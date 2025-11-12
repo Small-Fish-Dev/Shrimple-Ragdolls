@@ -62,7 +62,8 @@ public sealed class ShrimpleActiveRagdoll : Component
 	{
 		base.OnUpdate();
 
-		PositionRendererBonesFromPhysics();
+		if ( Mode == RagdollMode.Passive)
+			PositionRendererBonesFromPhysics();
 	}
 
 
@@ -298,11 +299,11 @@ public sealed class ShrimpleActiveRagdoll : Component
 
 		//BodyTransforms.Clear();
 
-		foreach ( ModelPhysics.Joint joint in Joints )
+		foreach ( var joint in Joints )
 			if ( joint.Component.IsValid() )
 				joint.Component.Destroy();
 
-		foreach ( Collider componentsInChild in GetComponentsInChildren<Collider>( includeDisabled: true ) )
+		foreach ( var componentsInChild in GetComponentsInChildren<Collider>( includeDisabled: true ) )
 		{
 			if ( componentsInChild.IsValid() && componentsInChild.GameObject.Flags.Contains( GameObjectFlags.PhysicsBone ) )
 			{
@@ -310,7 +311,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 			}
 		}
 
-		foreach ( ModelPhysics.Body body in Bodies )
+		foreach ( var body in Bodies )
 		{
 			if ( body.Component.IsValid() )
 			{
@@ -345,21 +346,39 @@ public sealed class ShrimpleActiveRagdoll : Component
 	{
 		if ( Bodies != null )
 			foreach ( var body in Bodies )
-				body.Component.Enabled = false;
+			{
+				if ( body.Component.IsValid() )
+				{
+					body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
+					body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
+					body.Component.Enabled = false;
+				}
+			}
 
 		if ( Joints != null )
 			foreach ( var joint in Joints )
-				joint.Component.Enabled = false;
+				if ( joint.Component.IsValid() )
+					joint.Component.Enabled = false;
+
+		Renderer?.ClearPhysicsBones();
 	}
 
 	private void EnablePhysics()
 	{
 		if ( Bodies != null )
 			foreach ( var body in Bodies )
-				body.Component.Enabled = true;
+			{
+				if ( body.Component.IsValid() )
+				{
+					body.Component.GameObject.Flags |= GameObjectFlags.Absolute;
+					body.Component.GameObject.Flags |= GameObjectFlags.PhysicsBone;
+					body.Component.Enabled = true;
+				}
+			}
 
 		if ( Joints != null )
 			foreach ( var joint in Joints )
-				joint.Component.Enabled = true;
+				if ( joint.Component.IsValid() )
+					joint.Component.Enabled = true;
 	}
 }

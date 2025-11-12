@@ -375,6 +375,7 @@
               "__type": "ShrimpleActiveRagdoll",
               "__guid": "43d20b57-2543-480b-bb15-58152226f0d1",
               "__enabled": true,
+              "Mode": "Disabled",
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
               "OnComponentEnabled": null,
