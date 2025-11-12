@@ -3,11 +3,48 @@ using Sandbox.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Sandbox.ModelPhysics;
 
 public sealed class ShrimpleActiveRagdoll : Component
 {
+	public enum RagdollMode
+	{
+		/// <summary>
+		/// Disabled collisions and disabled physics sim
+		/// </summary>
+		[Icon( "person_off" )]
+		Disabled,
+		/// <summary>
+		/// Enabled collisions, disabled physics sim
+		/// </summary>
+		[Icon( "man_2" )]
+		Passive,
+		/// <summary>
+		/// Enabled collisions and enabled physics sim
+		/// </summary>
+		[Icon( "sports_gymnastics" )]
+		Active,
+	}
+
 	[Property]
 	public SkinnedModelRenderer Renderer { get; set; }
+
+	RagdollMode _mode; // TODO Change to field new C# feature
+	[Property]
+	public RagdollMode Mode
+	{
+		get => _mode;
+		set
+		{
+			if ( _mode == value )
+				return;
+
+			_mode = value;
+			SetRagdollMode( _mode );
+		}
+	}
+
+
 	public Model Model => Renderer?.Model;
 	public List<ModelPhysics.Body> Bodies { get; } = new();
 	public List<ModelPhysics.Joint> Joints { get; } = new();
@@ -18,7 +55,67 @@ public sealed class ShrimpleActiveRagdoll : Component
 		base.OnStart();
 
 		CreatePhysics();
+		SetRagdollMode( Mode );
 	}
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+
+		PositionRendererBonesFromPhysics();
+	}
+
+
+	private void PositionRendererBonesFromPhysics()
+	{
+		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true );
+		if ( componentInChildren.IsValid() && componentInChildren.MotionEnabled )
+		{
+			WorldTransform = componentInChildren.WorldTransform;
+		}
+
+		if ( !Renderer.IsValid() )
+		{
+			return;
+		}
+
+		SceneModel sceneModel = Renderer.SceneModel;
+		if ( !sceneModel.IsValid() )
+		{
+			return;
+		}
+
+		Renderer.ClearPhysicsBones();
+		Transform worldTransform = base.WorldTransform;
+		foreach ( Body body in Bodies )
+		{
+			Rigidbody component = body.Component;
+			if ( !component.IsValid() )
+			{
+				continue;
+			}
+
+			/*
+			if ( !MotionEnabled && !component.MotionEnabled )
+			{
+				Transform transform = sceneModel.Transform.ToLocal( sceneModel.GetWorldSpaceAnimationTransform( body.Bone ) );
+				sceneModel.SetBoneOverride( body.Bone, in transform );
+				if ( component.Transform.SetLocalTransformFast( worldTransform.ToWorld( in transform ) ) )
+				{
+					component.Transform.TransformChanged( useTargetLocal: true );
+				}
+			}
+			else
+			{
+				Transform transform = worldTransform.ToLocal( component.WorldTransform );
+				sceneModel.SetBoneOverride( body.Bone, in transform );
+			}*/
+
+			Transform transform = worldTransform.ToLocal( component.WorldTransform );
+				sceneModel.SetBoneOverride( body.Bone, in transform );
+		}
+	}
+
 
 	private void CreatePhysics()
 	{
@@ -47,7 +144,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 			joint.Component.Enabled = true;
 		}
 
-		base.Network?.Refresh();
+		Network?.Refresh();
 	}
 
 	private void CreateParts( PhysicsGroupDescription physics, Transform world)
@@ -225,6 +322,44 @@ public sealed class ShrimpleActiveRagdoll : Component
 
 		Bodies.Clear();
 		Joints.Clear();
-		base.Network?.Refresh();
+		Network?.Refresh();
+	}
+
+	private void SetRagdollMode( RagdollMode mode )
+	{
+		if ( mode == RagdollMode.Disabled )
+			DisablePhysics();
+
+		if ( mode == RagdollMode.Passive )
+		{
+			EnablePhysics();
+		}
+		
+		if ( mode == RagdollMode.Active )
+		{
+			EnablePhysics();
+		}
+	}
+
+	private void DisablePhysics()
+	{
+		if ( Bodies != null )
+			foreach ( var body in Bodies )
+				body.Component.Enabled = false;
+
+		if ( Joints != null )
+			foreach ( var joint in Joints )
+				joint.Component.Enabled = false;
+	}
+
+	private void EnablePhysics()
+	{
+		if ( Bodies != null )
+			foreach ( var body in Bodies )
+				body.Component.Enabled = true;
+
+		if ( Joints != null )
+			foreach ( var joint in Joints )
+				joint.Component.Enabled = true;
 	}
 }
