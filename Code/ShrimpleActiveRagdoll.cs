@@ -50,6 +50,9 @@ public sealed class ShrimpleActiveRagdoll : Component
 	public List<ModelPhysics.Joint> Joints { get; } = new();
 	//private NetworkTransforms BodyTransforms = new NetworkTransforms();
 
+	private Transform[] _rendererBonePosition;
+	private SkinnedModelRenderer.BoneVelocity[] _rendererBoneVelocity;
+
 	protected override void OnStart()
 	{
 		base.OnStart();
@@ -115,6 +118,39 @@ public sealed class ShrimpleActiveRagdoll : Component
 			Transform transform = worldTransform.ToLocal( component.WorldTransform );
 				sceneModel.SetBoneOverride( body.Bone, in transform );
 		}
+	}
+
+	private void PositionPhysicsFromRendererBones()
+	{
+		if ( (_rendererBonePosition == null || _rendererBoneVelocity == null) && Renderer != null && Renderer.SceneModel.IsValid() )
+		{
+			_rendererBonePosition = Renderer.GetBoneTransforms( world: true );
+			_rendererBoneVelocity = Renderer.GetBoneVelocities();
+		}
+
+		if ( _rendererBonePosition == null || _rendererBoneVelocity == null )
+		{
+			return;
+		}
+
+		foreach ( KeyValuePair<BoneCollection.Bone, GameObject> item in Model.CreateBoneObjects( base.GameObject ) )
+		{
+			if ( item.Key != null && item.Value.IsValid() && _rendererBonePosition.Length > item.Key.Index && _rendererBoneVelocity.Length > item.Key.Index )
+			{
+				Transform worldTransform = _rendererBonePosition[item.Key.Index];
+				SkinnedModelRenderer.BoneVelocity boneVelocity = _rendererBoneVelocity[item.Key.Index];
+				Rigidbody component = item.Value.GetComponent<Rigidbody>();
+				if ( component != null )
+				{
+					component.WorldTransform = worldTransform;
+					component.Velocity = boneVelocity.Linear;
+					component.AngularVelocity = boneVelocity.Angular;
+				}
+			}
+		}
+
+		_rendererBoneVelocity = null;
+		_rendererBonePosition = null;
 	}
 
 
@@ -380,5 +416,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 			foreach ( var joint in Joints )
 				if ( joint.Component.IsValid() )
 					joint.Component.Enabled = true;
+
+		PositionPhysicsFromRendererBones();
 	}
 }
