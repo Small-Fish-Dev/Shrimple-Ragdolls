@@ -3,7 +3,6 @@ using Sandbox.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Sandbox.ModelPhysics;
 
 public sealed class ShrimpleActiveRagdoll : Component
 {
@@ -57,10 +56,13 @@ public sealed class ShrimpleActiveRagdoll : Component
 		}
 	}
 
+	public readonly record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders );
+	public readonly record struct Joint( Sandbox.Joint Component, Body Body1, Body Body2 );
+
 
 	public Model Model => Renderer?.Model;
-	public List<ModelPhysics.Body> Bodies { get; } = new();
-	public List<ModelPhysics.Joint> Joints { get; } = new();
+	public List<Body> Bodies { get; } = new();
+	public List<Joint> Joints { get; } = new();
 	//private NetworkTransforms BodyTransforms = new NetworkTransforms();
 
 	private Transform[] _rendererBonePosition;
@@ -188,12 +190,12 @@ public sealed class ShrimpleActiveRagdoll : Component
 		Transform worldTransform = Renderer.WorldTransform;
 		CreateParts( physics, worldTransform );
 		CreateJoints( physics );
-		foreach ( ModelPhysics.Body body in Bodies )
+		foreach ( Body body in Bodies )
 		{
 			body.Component.Enabled = true;
 		}
 
-		foreach ( ModelPhysics.Joint joint in Joints )
+		foreach ( Joint joint in Joints )
 		{
 			joint.Component.Enabled = true;
 		}
@@ -231,14 +233,15 @@ public sealed class ShrimpleActiveRagdoll : Component
 			rigidbody.OverrideMassCenter = part.OverrideMassCenter;
 			rigidbody.MassCenterOverride = part.MassCenterOverride;
 			Transform child = rigidbody.WorldTransform;
+			List<Collider> colliders = new();
 			//BodyTransforms.Set( Bodies.Count, child );
-			Bodies.Add( new ModelPhysics.Body( rigidbody, bone.Index, Renderer.WorldTransform.ToLocal( in child ) ) );
 			foreach ( PhysicsGroupDescription.BodyPart.SpherePart sphere in part.Spheres )
 			{
 				SphereCollider sphereCollider = value.AddComponent<SphereCollider>();
 				sphereCollider.Center = sphere.Sphere.Center;
 				sphereCollider.Radius = sphere.Sphere.Radius;
 				sphereCollider.Surface = sphere.Surface;
+				colliders.Add( sphereCollider );
 			}
 
 			foreach ( PhysicsGroupDescription.BodyPart.CapsulePart capsule in part.Capsules )
@@ -248,6 +251,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 				capsuleCollider.End = capsule.Capsule.CenterB;
 				capsuleCollider.Radius = capsule.Capsule.Radius;
 				capsuleCollider.Surface = capsule.Surface;
+				colliders.Add( capsuleCollider );
 			}
 
 			foreach ( PhysicsGroupDescription.BodyPart.HullPart hull in part.Hulls )
@@ -256,7 +260,9 @@ public sealed class ShrimpleActiveRagdoll : Component
 				hullCollider.Type = HullCollider.PrimitiveType.Points;
 				hullCollider.Points = hull.GetPoints().ToList();
 				hullCollider.Surface = hull.Surface;
+				colliders.Add( hullCollider );
 			}
+			Bodies.Add( new Body( rigidbody, bone.Index, colliders ) );
 		}
 	}
 
@@ -264,8 +270,8 @@ public sealed class ShrimpleActiveRagdoll : Component
 	{
 		foreach ( PhysicsGroupDescription.Joint joint2 in physics.Joints )
 		{
-			ModelPhysics.Body body = Bodies[joint2.Body1];
-			ModelPhysics.Body body2 = Bodies[joint2.Body2];
+			Body body = Bodies[joint2.Body1];
+			Body body2 = Bodies[joint2.Body2];
 			Transform child = joint2.Frame1;
 			Transform localFrame = joint2.Frame2;
 			Sandbox.Joint joint = null;
@@ -338,7 +344,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 				joint.EnableCollision = joint2.EnableCollision;
 				joint.BreakForce = joint2.LinearStrength;
 				joint.BreakTorque = joint2.AngularStrength;
-				Joints.Add( new ModelPhysics.Joint( joint, body, body2, child, localFrame ) );
+				Joints.Add( new Joint( joint, body, body2 ) );
 			}
 		}
 	}
