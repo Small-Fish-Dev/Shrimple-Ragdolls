@@ -94,7 +94,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true );
 		if ( componentInChildren.IsValid() && componentInChildren.MotionEnabled )
 		{
-			WorldTransform = componentInChildren.WorldTransform;
+			Renderer.WorldTransform = componentInChildren.WorldTransform;
 		}
 
 		if ( !Renderer.IsValid() )
