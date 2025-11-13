@@ -7,6 +7,7 @@ using static Sandbox.ModelPhysics;
 
 public sealed class ShrimpleActiveRagdoll : Component
 {
+	// TODO ADD MODE STATUE ONLY ONE RIGIDBODY
 	public enum RagdollMode
 	{
 		/// <summary>
@@ -78,8 +79,12 @@ public sealed class ShrimpleActiveRagdoll : Component
 	{
 		base.OnUpdate();
 
-		if ( Mode == RagdollMode.Passive)
+		if ( Mode == RagdollMode.Enabled)
 			PositionRendererBonesFromPhysics();
+		if ( Mode == RagdollMode.Passive )
+			PositionPhysicsFromRendererBones();
+		if ( Mode == RagdollMode.Active )
+			PositionPhysicsFromRendererBones();
 	}
 
 
@@ -379,6 +384,9 @@ public sealed class ShrimpleActiveRagdoll : Component
 	{
 		if ( mode == RagdollMode.Disabled )
 			DisablePhysics();
+
+		if ( mode == RagdollMode.Enabled )
+			EnablePhysics();
 
 		if ( mode == RagdollMode.Passive )
 		{
