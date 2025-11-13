@@ -1,10 +1,6 @@
-﻿using Sandbox;
-using Sandbox.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 
-public sealed class ShrimpleActiveRagdoll : Component
+public class ShrimpleActiveRagdoll : Component
 {
 	// TODO ADD MODE STATUE ONLY ONE RIGIDBODY
 	public enum RagdollMode
@@ -80,7 +76,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 	{
 		base.OnUpdate();
 
-		if ( Mode == RagdollMode.Enabled)
+		if ( Mode == RagdollMode.Enabled )
 			PositionRendererBonesFromPhysics();
 		if ( Mode == RagdollMode.Passive )
 			PositionPhysicsFromRendererBones();
@@ -135,7 +131,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 			}*/
 
 			Transform transform = worldTransform.ToLocal( component.WorldTransform );
-				sceneModel.SetBoneOverride( body.Bone, in transform );
+			sceneModel.SetBoneOverride( body.Bone, in transform );
 		}
 	}
 
@@ -175,7 +171,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 
 	private void CreatePhysics()
 	{
-		if ( !Active || IsProxy  )
+		if ( !Active || IsProxy )
 			return;
 
 		DestroyPhysics();
@@ -203,7 +199,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 		Network?.Refresh();
 	}
 
-	private void CreateParts( PhysicsGroupDescription physics, Transform world)
+	private void CreateParts( PhysicsGroupDescription physics, Transform world )
 	{
 		Dictionary<BoneCollection.Bone, GameObject> dictionary = Model.CreateBoneObjects( Renderer.GameObject );
 		BoneCollection bones = Model.Bones;
@@ -397,64 +393,106 @@ public sealed class ShrimpleActiveRagdoll : Component
 		{
 			EnablePhysics();
 		}
-		
+
 		if ( mode == RagdollMode.Active )
 		{
 			EnablePhysics();
 		}
 	}
 
-	private void DisablePhysics()
+	public void DisablePhysics()
 	{
-		if ( Bodies != null )
-			foreach ( var body in Bodies )
-			{
-				if ( body.Component.IsValid() )
-				{
-					body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
-					body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-					body.Component.Enabled = false;
-
-					foreach ( var collider in body.Colliders )
-					{
-						if ( collider.IsValid() )
-							collider.Enabled = false;
-					}
-				}
-			}
-
-		if ( Joints != null )
-			foreach ( var joint in Joints )
-				if ( joint.Component.IsValid() )
-					joint.Component.Enabled = false;
+		DisableBodies();
+		DisableJoints();
 
 		Renderer?.ClearPhysicsBones();
 	}
 
-	private void EnablePhysics()
+	/// <summary>
+	/// Disables all the rigidbodies and colliders
+	/// </summary>
+	protected void DisableBodies()
 	{
-		if ( Bodies != null )
-			foreach ( var body in Bodies )
-			{
-				if ( body.Component.IsValid() )
-				{
-					body.Component.GameObject.Flags |= GameObjectFlags.Absolute;
-					body.Component.GameObject.Flags |= GameObjectFlags.PhysicsBone;
-					body.Component.Enabled = true;
+		if ( Bodies == null )
+			return;
 
-					foreach ( var collider in body.Colliders )
-					{
-						if ( collider.IsValid() )
-							collider.Enabled = true;
-					}
+		foreach ( var body in Bodies )
+		{
+			if ( body.Component.IsValid() )
+			{
+				body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
+				body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
+				body.Component.Enabled = false;
+
+				foreach ( var collider in body.Colliders )
+				{
+					if ( collider.IsValid() )
+						collider.Enabled = false;
 				}
 			}
+		}
+	}
 
-		if ( Joints != null )
-			foreach ( var joint in Joints )
-				if ( joint.Component.IsValid() )
-					joint.Component.Enabled = true;
+	/// <summary>
+	/// Disables all joints
+	/// </summary>
+	protected void DisableJoints()
+	{
+		if ( Joints == null )
+			return;
+
+		foreach ( var joint in Joints )
+		{
+			if ( joint.Component.IsValid() )
+				joint.Component.Enabled = false;
+		}
+	}
+
+	public void EnablePhysics()
+	{
+		EnableBodies();
+		EnableJoints();
 
 		PositionPhysicsFromRendererBones();
+	}
+
+	/// <summary>
+	/// Enables all the rigidbodies and colliders
+	/// </summary>
+	protected void EnableBodies()
+	{
+		if ( Bodies == null )
+			return;
+
+		foreach ( var body in Bodies )
+		{
+			if ( body.Component.IsValid() )
+			{
+				body.Component.GameObject.Flags |= GameObjectFlags.Absolute;
+				body.Component.GameObject.Flags |= GameObjectFlags.PhysicsBone;
+				body.Component.Enabled = true;
+
+				foreach ( var collider in body.Colliders )
+				{
+					if ( collider.IsValid() )
+						collider.Enabled = true;
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Enables all joints
+	/// </summary>
+	protected void EnableJoints()
+	{
+		if ( Joints == null )
+			return;
+
+		foreach ( var joint in Joints )
+		{
+			if ( joint.Component.IsValid() )
+				joint.Component.Enabled = true;
+		}
 	}
 }
