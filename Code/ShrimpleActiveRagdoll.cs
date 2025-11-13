@@ -1,4 +1,4 @@
-using Sandbox;
+﻿using Sandbox;
 using Sandbox.Internal;
 using System;
 using System.Collections.Generic;
@@ -10,17 +10,30 @@ public sealed class ShrimpleActiveRagdoll : Component
 	public enum RagdollMode
 	{
 		/// <summary>
-		/// Disabled collisions and disabled physics sim
+		/// ❌ Collisions<br />
+		/// ❌ Physics<br />
+		/// ✅ Animations
 		/// </summary>
 		[Icon( "person_off" )]
 		Disabled,
 		/// <summary>
-		/// Enabled collisions, disabled physics sim
+		/// ✅ Collisions<br />
+		/// ✅ Physics<br />
+		/// ❌ Animations
+		/// </summary>
+		[Icon( "airline_seat_individual_suite" )]
+		Enabled,
+		/// <summary>
+		/// ✅ Collisions<br />
+		/// ❌ Physics<br />
+		/// ✅ Animations
 		/// </summary>
 		[Icon( "man_2" )]
 		Passive,
 		/// <summary>
-		/// Enabled collisions and enabled physics sim
+		/// ✅ Collisions<br />
+		/// ✅ Physics<br />
+		/// ✅ Animations
 		/// </summary>
 		[Icon( "sports_gymnastics" )]
 		Active,
