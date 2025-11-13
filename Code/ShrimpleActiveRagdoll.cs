@@ -43,18 +43,17 @@ public sealed class ShrimpleActiveRagdoll : Component
 	[Property]
 	public SkinnedModelRenderer Renderer { get; set; }
 
-	RagdollMode _mode; // TODO Change to field new C# feature
 	[Property]
 	public RagdollMode Mode
 	{
-		get => _mode;
+		get;
 		set
 		{
-			if ( _mode == value )
+			if ( field == value )
 				return;
 
-			_mode = value;
-			SetRagdollMode( _mode );
+			field = value;
+			SetRagdollMode( field );
 		}
 	}
 
@@ -108,7 +107,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 		}
 
 		Renderer.ClearPhysicsBones();
-		Transform worldTransform = base.WorldTransform;
+		Transform worldTransform = Renderer.WorldTransform;
 		foreach ( Body body in Bodies )
 		{
 			Rigidbody component = body.Component;
@@ -151,7 +150,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 			return;
 		}
 
-		foreach ( KeyValuePair<BoneCollection.Bone, GameObject> item in Model.CreateBoneObjects( base.GameObject ) )
+		foreach ( KeyValuePair<BoneCollection.Bone, GameObject> item in Model.CreateBoneObjects( Renderer.GameObject ) )
 		{
 			if ( item.Key != null && item.Value.IsValid() && _rendererBonePosition.Length > item.Key.Index && _rendererBoneVelocity.Length > item.Key.Index )
 			{
@@ -174,7 +173,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 
 	private void CreatePhysics()
 	{
-		if ( !base.Active || base.IsProxy  )
+		if ( !Active || IsProxy  )
 			return;
 
 		DestroyPhysics();
@@ -186,7 +185,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		Transform worldTransform = base.WorldTransform;
+		Transform worldTransform = Renderer.WorldTransform;
 		CreateParts( physics, worldTransform );
 		CreateJoints( physics );
 		foreach ( ModelPhysics.Body body in Bodies )
@@ -204,7 +203,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 
 	private void CreateParts( PhysicsGroupDescription physics, Transform world)
 	{
-		Dictionary<BoneCollection.Bone, GameObject> dictionary = Model.CreateBoneObjects( base.GameObject );
+		Dictionary<BoneCollection.Bone, GameObject> dictionary = Model.CreateBoneObjects( Renderer.GameObject );
 		BoneCollection bones = Model.Bones;
 		foreach ( PhysicsGroupDescription.BodyPart part in physics.Parts )
 		{
@@ -233,7 +232,7 @@ public sealed class ShrimpleActiveRagdoll : Component
 			rigidbody.MassCenterOverride = part.MassCenterOverride;
 			Transform child = rigidbody.WorldTransform;
 			//BodyTransforms.Set( Bodies.Count, child );
-			Bodies.Add( new ModelPhysics.Body( rigidbody, bone.Index, base.WorldTransform.ToLocal( in child ) ) );
+			Bodies.Add( new ModelPhysics.Body( rigidbody, bone.Index, Renderer.WorldTransform.ToLocal( in child ) ) );
 			foreach ( PhysicsGroupDescription.BodyPart.SpherePart sphere in part.Spheres )
 			{
 				SphereCollider sphereCollider = value.AddComponent<SphereCollider>();

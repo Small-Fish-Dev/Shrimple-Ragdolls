@@ -310,7 +310,26 @@
       "NetworkInterpolation": true,
       "NetworkOrphaned": 0,
       "OwnerTransfer": 1,
-      "Components": [],
+      "Components": [
+        {
+          "__type": "ShrimpleActiveRagdoll",
+          "__guid": "3fc8cc2b-7edf-4f2b-ab17-31a19c4b5215",
+          "__enabled": true,
+          "Mode": "Disabled",
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "87b5d825-ad68-4ee6-876c-d3d71174ebdd",
+            "go": "ddf8c384-2ae3-4745-82c5-e5d7db9efa3e",
+            "component_type": "SkinnedModelRenderer"
+          }
+        }
+      ],
       "Children": [
         {
           "__guid": "ddf8c384-2ae3-4745-82c5-e5d7db9efa3e",
@@ -370,24 +389,6 @@
               },
               "Tint": "1,1,1,1",
               "UseAnimGraph": true
-            },
-            {
-              "__type": "ShrimpleActiveRagdoll",
-              "__guid": "43d20b57-2543-480b-bb15-58152226f0d1",
-              "__enabled": true,
-              "Mode": "Disabled",
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Renderer": {
-                "_type": "component",
-                "component_id": "87b5d825-ad68-4ee6-876c-d3d71174ebdd",
-                "go": "ddf8c384-2ae3-4745-82c5-e5d7db9efa3e",
-                "component_type": "SkinnedModelRenderer"
-              }
             }
           ],
           "Children": []
