@@ -414,6 +414,12 @@ public sealed class ShrimpleActiveRagdoll : Component
 					body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
 					body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
 					body.Component.Enabled = false;
+
+					foreach ( var collider in body.Colliders )
+					{
+						if ( collider.IsValid() )
+							collider.Enabled = false;
+					}
 				}
 			}
 
@@ -435,6 +441,12 @@ public sealed class ShrimpleActiveRagdoll : Component
 					body.Component.GameObject.Flags |= GameObjectFlags.Absolute;
 					body.Component.GameObject.Flags |= GameObjectFlags.PhysicsBone;
 					body.Component.Enabled = true;
+
+					foreach ( var collider in body.Colliders )
+					{
+						if ( collider.IsValid() )
+							collider.Enabled = true;
+					}
 				}
 			}
 
