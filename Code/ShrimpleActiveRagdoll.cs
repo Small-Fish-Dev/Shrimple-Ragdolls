@@ -35,6 +35,19 @@ public class ShrimpleActiveRagdoll : Component
 		Active,
 	}
 
+	[Flags]
+	public enum RagdollFollowMode
+	{
+		[Icon( "cancel" )]
+		None = 1,
+		[Icon( "open_with" )]
+		Position = 2,
+		[Icon( "autorenew" )]
+		Rotation = 4,
+		[Hide]
+		All = Position | Rotation
+	}
+
 	[Property]
 	public SkinnedModelRenderer Renderer { get; set; }
 
@@ -51,6 +64,23 @@ public class ShrimpleActiveRagdoll : Component
 			SetRagdollMode( field );
 		}
 	}
+
+	[Property]
+	[ShowIf( nameof( Mode ), RagdollMode.Enabled )]
+	public RagdollFollowMode FollowMode
+	{
+		get;
+		set
+		{
+			if ( !field.Contains( RagdollFollowMode.None ) && value.Contains( RagdollFollowMode.None ) )
+				value = RagdollFollowMode.None;
+
+			if ( value != RagdollFollowMode.None )
+				value &= ~RagdollFollowMode.None;
+
+			field = value;
+		}
+	} = RagdollFollowMode.All;
 
 	public readonly record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders );
 	public readonly record struct Joint( Sandbox.Joint Component, Body Body1, Body Body2 );
@@ -150,7 +180,7 @@ public class ShrimpleActiveRagdoll : Component
 			if ( item.Key == null || !item.Value.IsValid() || item.Key.Index >= renderBonePositions.Length || item.Key.Index >= renderBoneVelocities.Length )
 				continue;
 
-			var component = item.Value.GetComponent<Rigidbody>();
+			var component = item.Value.GetComponent<Rigidbody>(); // TODO: Cache this?
 			if ( component.IsValid() )
 			{
 				var worldTransform = renderBonePositions[item.Key.Index];
