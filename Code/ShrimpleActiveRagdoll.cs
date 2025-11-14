@@ -212,12 +212,26 @@ public class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private void CreateBoneObjects()
+	private void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
 		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
+
+		if ( !discardHelpers )
+			return;
+
+		var partNames = physics.Parts.Select( x => x.BoneName );
+
+		foreach ( var bone in BoneObjects.ToList() )
+		{
+			if ( !bone.Value.Children.Any() && !partNames.Contains( bone.Key.Name ) )
+			{
+				bone.Value.Destroy(); // Remove helper bones we don't need
+				BoneObjects.Remove( bone.Key );
+			}
+		}
 	}
 
 	private void CreatePhysics()
@@ -234,7 +248,7 @@ public class ShrimpleActiveRagdoll : Component
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		CreateBoneObjects(); // Maybe we can create these in editor
+		CreateBoneObjects( physics ); // Maybe we can create these in editor
 		CreateParts( physics );
 		CreateJoints( physics );
 
@@ -306,65 +320,65 @@ public class ShrimpleActiveRagdoll : Component
 
 	private void CreateJoints( PhysicsGroupDescription physics )
 	{
-		foreach ( var joint2 in physics.Joints )
+		foreach ( var jointDefinition in physics.Joints )
 		{
-			var body = Bodies.ElementAt( joint2.Body1 ).Value;
-			var body2 = Bodies.ElementAt( joint2.Body2 ).Value;
-			Transform child = joint2.Frame1;
-			Transform localFrame = joint2.Frame2;
+			var body1 = Bodies.ElementAt( jointDefinition.Body1 ).Value;
+			var body2 = Bodies.ElementAt( jointDefinition.Body2 ).Value;
+			var child = jointDefinition.Frame1;
+			var localFrame = jointDefinition.Frame2;
 			Sandbox.Joint joint = null;
-			if ( joint2.Type == PhysicsGroupDescription.JointType.Hinge )
+			if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Hinge )
 			{
-				Sandbox.HingeJoint hingeJoint = body.Component.AddComponent<Sandbox.HingeJoint>( startEnabled: false );
-				if ( joint2.EnableTwistLimit )
+				var hingeJoint = body1.Component.AddComponent<Sandbox.HingeJoint>( startEnabled: false );
+				if ( jointDefinition.EnableTwistLimit )
 				{
-					hingeJoint.MinAngle = joint2.TwistMin;
-					hingeJoint.MaxAngle = joint2.TwistMax;
+					hingeJoint.MinAngle = jointDefinition.TwistMin;
+					hingeJoint.MaxAngle = jointDefinition.TwistMax;
 				}
 
-				if ( joint2.EnableAngularMotor )
+				if ( jointDefinition.EnableAngularMotor )
 				{
-					float rad = body.Component.WorldTransform.ToWorld( in child ).Rotation.Up.Dot( joint2.AngularTargetVelocity );
+					float rad = body1.Component.WorldTransform.ToWorld( in child ).Rotation.Up.Dot( jointDefinition.AngularTargetVelocity );
 					hingeJoint.Motor = Sandbox.HingeJoint.MotorMode.TargetVelocity;
 					hingeJoint.TargetVelocity = rad.RadianToDegree();
-					hingeJoint.MaxTorque = joint2.MaxTorque;
+					hingeJoint.MaxTorque = jointDefinition.MaxTorque;
 				}
 
 				joint = hingeJoint;
 			}
-			else if ( joint2.Type == PhysicsGroupDescription.JointType.Ball )
+			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Ball )
 			{
-				BallJoint ballJoint = body.Component.AddComponent<BallJoint>( startEnabled: false );
-				if ( joint2.EnableSwingLimit )
+				var ballJoint = body1.Component.AddComponent<BallJoint>( startEnabled: false );
+				if ( jointDefinition.EnableSwingLimit )
 				{
 					ballJoint.SwingLimitEnabled = true;
-					ballJoint.SwingLimit = new Vector2( joint2.SwingMin, joint2.SwingMax );
+					ballJoint.SwingLimit = new Vector2( jointDefinition.SwingMin, jointDefinition.SwingMax );
 				}
 
-				if ( joint2.EnableTwistLimit )
+				if ( jointDefinition.EnableTwistLimit )
 				{
 					ballJoint.TwistLimitEnabled = true;
-					ballJoint.TwistLimit = new Vector2( joint2.TwistMin, joint2.TwistMax );
+					ballJoint.TwistLimit = new Vector2( jointDefinition.TwistMin, jointDefinition.TwistMax );
 				}
 
 				joint = ballJoint;
 			}
-			else if ( joint2.Type == PhysicsGroupDescription.JointType.Fixed )
+			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Fixed )
 			{
-				FixedJoint fixedJoint = body.Component.AddComponent<FixedJoint>( startEnabled: false );
-				fixedJoint.LinearFrequency = joint2.LinearFrequency;
-				fixedJoint.LinearDamping = joint2.LinearDampingRatio;
-				fixedJoint.AngularFrequency = joint2.AngularFrequency;
-				fixedJoint.AngularDamping = joint2.AngularDampingRatio;
+				var fixedJoint = body1.Component.AddComponent<FixedJoint>( startEnabled: false );
+				fixedJoint.LinearFrequency = jointDefinition.LinearFrequency;
+				fixedJoint.LinearDamping = jointDefinition.LinearDampingRatio;
+				fixedJoint.AngularFrequency = jointDefinition.AngularFrequency;
+				fixedJoint.AngularDamping = jointDefinition.AngularDampingRatio;
 				joint = fixedJoint;
 			}
-			else if ( joint2.Type == PhysicsGroupDescription.JointType.Slider )
+			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Slider )
 			{
-				SliderJoint sliderJoint = body.Component.AddComponent<SliderJoint>( startEnabled: false );
-				if ( joint2.EnableLinearLimit )
+				var sliderJoint = body1.Component.AddComponent<SliderJoint>( startEnabled: false );
+				if ( jointDefinition.EnableLinearLimit )
 				{
-					sliderJoint.MinLength = joint2.LinearMin;
-					sliderJoint.MaxLength = joint2.LinearMax;
+					sliderJoint.MinLength = jointDefinition.LinearMin;
+					sliderJoint.MaxLength = jointDefinition.LinearMax;
 				}
 
 				Rotation rotation = Rotation.FromPitch( -90f );
@@ -377,12 +391,12 @@ public class ShrimpleActiveRagdoll : Component
 			{
 				joint.Body = body2.Component.GameObject;
 				joint.Attachment = Sandbox.Joint.AttachmentMode.LocalFrames;
-				joint.LocalFrame1 = child.WithPosition( joint2.Frame1.Position * body.Component.WorldScale );
-				joint.LocalFrame2 = localFrame.WithPosition( joint2.Frame2.Position * body2.Component.WorldScale );
-				joint.EnableCollision = joint2.EnableCollision;
-				joint.BreakForce = joint2.LinearStrength;
-				joint.BreakTorque = joint2.AngularStrength;
-				Joints.Add( new Joint( joint, body, body2 ) );
+				joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * body1.Component.WorldScale );
+				joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * body2.Component.WorldScale );
+				joint.EnableCollision = jointDefinition.EnableCollision;
+				joint.BreakForce = jointDefinition.LinearStrength;
+				joint.BreakTorque = jointDefinition.AngularStrength;
+				Joints.Add( new Joint( joint, body1, body2 ) );
 			}
 		}
 	}
