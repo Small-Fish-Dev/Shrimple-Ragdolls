@@ -381,7 +381,7 @@ public class ShrimpleActiveRagdoll : Component
 					sliderJoint.MaxLength = jointDefinition.LinearMax;
 				}
 
-				Rotation rotation = Rotation.FromPitch( -90f );
+				var rotation = Rotation.FromPitch( -90f );
 				child = child.WithRotation( rotation * child.Rotation );
 				localFrame = localFrame.WithRotation( rotation * localFrame.Rotation );
 				joint = sliderJoint;
@@ -414,14 +414,6 @@ public class ShrimpleActiveRagdoll : Component
 			if ( joint.Component.IsValid() )
 				joint.Component.Destroy();
 
-		foreach ( var componentsInChild in GetComponentsInChildren<Collider>( includeDisabled: true ) )
-		{
-			if ( componentsInChild.IsValid() && componentsInChild.GameObject.Flags.Contains( GameObjectFlags.PhysicsBone ) )
-			{
-				componentsInChild.Destroy();
-			}
-		}
-
 		foreach ( var body in Bodies.Values )
 		{
 			if ( body.Component.IsValid() )
@@ -429,6 +421,10 @@ public class ShrimpleActiveRagdoll : Component
 				body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
 				body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
 				body.Component.Destroy();
+
+				foreach ( var collider in body.Colliders )
+					if ( collider.IsValid() )
+						collider.Destroy();
 			}
 		}
 
@@ -446,14 +442,10 @@ public class ShrimpleActiveRagdoll : Component
 			EnablePhysics();
 
 		if ( mode == RagdollMode.Passive )
-		{
 			EnablePhysics();
-		}
 
 		if ( mode == RagdollMode.Active )
-		{
 			EnablePhysics();
-		}
 	}
 
 	public void DisablePhysics()
