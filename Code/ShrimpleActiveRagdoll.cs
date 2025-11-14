@@ -61,7 +61,9 @@ public class ShrimpleActiveRagdoll : Component
 				return;
 
 			field = value;
-			SetRagdollMode( field );
+
+			if ( !Game.IsEditor )
+				SetRagdollMode( field );
 		}
 	}
 
@@ -210,6 +212,14 @@ public class ShrimpleActiveRagdoll : Component
 		}
 	}
 
+	private void CreateBoneObjects()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
+	}
+
 	private void CreatePhysics()
 	{
 		if ( !Active || IsProxy )
@@ -224,10 +234,8 @@ public class ShrimpleActiveRagdoll : Component
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
-
-		Transform worldTransform = Renderer.WorldTransform;
-		CreateParts( physics, worldTransform );
+		CreateBoneObjects();
+		CreateParts( physics, Renderer.WorldTransform );
 		CreateJoints( physics );
 		foreach ( var body in Bodies.Values )
 		{
