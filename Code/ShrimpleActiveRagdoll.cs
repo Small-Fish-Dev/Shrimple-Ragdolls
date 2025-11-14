@@ -110,17 +110,21 @@ public class ShrimpleActiveRagdoll : Component
 		if ( Mode == RagdollMode.Passive )
 			PositionPhysicsFromRendererBones();
 		if ( Mode == RagdollMode.Active )
+		{
 			MovePhysicsFromRenderBones();
+			PositionRendererBonesFromPhysics();
+		}
 	}
 
 
 	private void PositionRendererBonesFromPhysics()
 	{
+		/*
 		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true );
 		if ( componentInChildren.IsValid() && componentInChildren.MotionEnabled )
 		{
 			Renderer.WorldTransform = componentInChildren.WorldTransform;
-		}
+		}*/
 
 		if ( !Renderer.IsValid() )
 		{
