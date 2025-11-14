@@ -62,8 +62,6 @@ public class ShrimpleActiveRagdoll : Component
 	//private NetworkTransforms BodyTransforms = new NetworkTransforms();
 
 	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; private set; }
-	private Transform[] _rendererBonePosition;
-	private SkinnedModelRenderer.BoneVelocity[] _rendererBoneVelocity;
 
 	protected override void OnStart()
 	{
@@ -138,37 +136,31 @@ public class ShrimpleActiveRagdoll : Component
 
 	private void PositionPhysicsFromRendererBones()
 	{
-		if ( (_rendererBonePosition == null || _rendererBoneVelocity == null) && Renderer != null && Renderer.SceneModel.IsValid() )
-		{
-			_rendererBonePosition = Renderer.GetBoneTransforms( world: true );
-			_rendererBoneVelocity = Renderer.GetBoneVelocities();
-		}
-
-		if ( _rendererBonePosition == null || _rendererBoneVelocity == null )
-		{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
-		}
+
+		var renderBonePositions = Renderer.GetBoneTransforms( world: true );
+		var renderBoneVelocities = Renderer.GetBoneVelocities();
+
+		if ( renderBonePositions == null || renderBoneVelocities == null )
+			return;
 
 		foreach ( var item in BoneObjects )
 		{
-			if ( item.Key != null && item.Value.IsValid() && _rendererBonePosition.Length > item.Key.Index && _rendererBoneVelocity.Length > item.Key.Index )
+			if ( item.Key == null || !item.Value.IsValid() || item.Key.Index >= renderBonePositions.Length || item.Key.Index >= renderBoneVelocities.Length )
+				continue;
+
+			var component = item.Value.GetComponent<Rigidbody>();
+			if ( component.IsValid() )
 			{
-				Transform worldTransform = _rendererBonePosition[item.Key.Index];
-				SkinnedModelRenderer.BoneVelocity boneVelocity = _rendererBoneVelocity[item.Key.Index];
-				Rigidbody component = item.Value.GetComponent<Rigidbody>();
-				if ( component != null )
-				{
-					component.WorldTransform = worldTransform;
-					component.Velocity = boneVelocity.Linear;
-					component.AngularVelocity = boneVelocity.Angular;
-				}
+				var worldTransform = renderBonePositions[item.Key.Index];
+				var boneVelocity = renderBoneVelocities[item.Key.Index];
+				component.WorldTransform = worldTransform;
+				component.Velocity = boneVelocity.Linear;
+				component.AngularVelocity = boneVelocity.Angular;
 			}
 		}
-
-		_rendererBoneVelocity = null;
-		_rendererBonePosition = null;
 	}
-
 
 	private void CreatePhysics()
 	{
