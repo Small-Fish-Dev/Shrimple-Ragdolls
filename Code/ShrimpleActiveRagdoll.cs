@@ -87,7 +87,7 @@ public class ShrimpleActiveRagdoll : Component
 
 
 	public Model Model => Renderer?.Model;
-	public List<Body> Bodies { get; } = new();
+	public Dictionary<BoneCollection.Bone, Body> Bodies { get; } = new();
 	public List<Joint> Joints { get; } = new();
 	//private NetworkTransforms BodyTransforms = new NetworkTransforms();
 
@@ -110,7 +110,7 @@ public class ShrimpleActiveRagdoll : Component
 		if ( Mode == RagdollMode.Passive )
 			PositionPhysicsFromRendererBones();
 		if ( Mode == RagdollMode.Active )
-			PositionPhysicsFromRendererBones();
+			MovePhysicsFromRenderBones();
 	}
 
 
@@ -135,7 +135,7 @@ public class ShrimpleActiveRagdoll : Component
 
 		Renderer.ClearPhysicsBones();
 		Transform worldTransform = Renderer.WorldTransform;
-		foreach ( Body body in Bodies )
+		foreach ( var body in Bodies.Values )
 		{
 			Rigidbody component = body.Component;
 			if ( !component.IsValid() )
@@ -192,6 +192,20 @@ public class ShrimpleActiveRagdoll : Component
 		}
 	}
 
+	private void MovePhysicsFromRenderBones()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var pair in Bodies )
+		{
+			if ( !pair.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( pair.Key, out var transform ) )
+				continue;
+
+			pair.Value.Component.SmoothMove( in transform, 0.1f, Time.Delta );
+		}
+	}
+
 	private void CreatePhysics()
 	{
 		if ( !Active || IsProxy )
@@ -211,12 +225,12 @@ public class ShrimpleActiveRagdoll : Component
 		Transform worldTransform = Renderer.WorldTransform;
 		CreateParts( physics, worldTransform );
 		CreateJoints( physics );
-		foreach ( Body body in Bodies )
+		foreach ( var body in Bodies.Values )
 		{
 			body.Component.Enabled = true;
 		}
 
-		foreach ( Joint joint in Joints )
+		foreach ( var joint in Joints )
 		{
 			joint.Component.Enabled = true;
 		}
@@ -226,12 +240,11 @@ public class ShrimpleActiveRagdoll : Component
 
 	private void CreateParts( PhysicsGroupDescription physics, Transform world )
 	{
-		Dictionary<BoneCollection.Bone, GameObject> dictionary = Model.CreateBoneObjects( Renderer.GameObject );
-		BoneCollection bones = Model.Bones;
-		foreach ( PhysicsGroupDescription.BodyPart part in physics.Parts )
+		var bones = Model.Bones;
+		foreach ( var part in physics.Parts )
 		{
 			BoneCollection.Bone bone = bones.GetBone( part.BoneName );
-			if ( !dictionary.TryGetValue( bone, out var value ) )
+			if ( !BoneObjects.TryGetValue( bone, out var value ) )
 			{
 				continue;
 			}
@@ -283,7 +296,7 @@ public class ShrimpleActiveRagdoll : Component
 				hullCollider.Surface = hull.Surface;
 				colliders.Add( hullCollider );
 			}
-			Bodies.Add( new Body( rigidbody, bone.Index, colliders ) );
+			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
 		}
 	}
 
@@ -291,8 +304,8 @@ public class ShrimpleActiveRagdoll : Component
 	{
 		foreach ( PhysicsGroupDescription.Joint joint2 in physics.Joints )
 		{
-			Body body = Bodies[joint2.Body1];
-			Body body2 = Bodies[joint2.Body2];
+			Body body = Bodies.ElementAt( joint2.Body1 ).Value;
+			Body body2 = Bodies.ElementAt( joint2.Body2 ).Value;
 			Transform child = joint2.Frame1;
 			Transform localFrame = joint2.Frame2;
 			Sandbox.Joint joint = null;
@@ -391,7 +404,7 @@ public class ShrimpleActiveRagdoll : Component
 			}
 		}
 
-		foreach ( var body in Bodies )
+		foreach ( var body in Bodies.Values )
 		{
 			if ( body.Component.IsValid() )
 			{
@@ -441,7 +454,7 @@ public class ShrimpleActiveRagdoll : Component
 		if ( Bodies == null )
 			return;
 
-		foreach ( var body in Bodies )
+		foreach ( var body in Bodies.Values )
 		{
 			if ( body.Component.IsValid() )
 			{
@@ -489,7 +502,7 @@ public class ShrimpleActiveRagdoll : Component
 		if ( Bodies == null )
 			return;
 
-		foreach ( var body in Bodies )
+		foreach ( var body in Bodies.Values )
 		{
 			if ( body.Component.IsValid() )
 			{
