@@ -61,6 +61,7 @@ public class ShrimpleActiveRagdoll : Component
 	public List<Joint> Joints { get; } = new();
 	//private NetworkTransforms BodyTransforms = new NetworkTransforms();
 
+	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; private set; }
 	private Transform[] _rendererBonePosition;
 	private SkinnedModelRenderer.BoneVelocity[] _rendererBoneVelocity;
 
@@ -148,7 +149,7 @@ public class ShrimpleActiveRagdoll : Component
 			return;
 		}
 
-		foreach ( KeyValuePair<BoneCollection.Bone, GameObject> item in Model.CreateBoneObjects( Renderer.GameObject ) )
+		foreach ( var item in BoneObjects )
 		{
 			if ( item.Key != null && item.Value.IsValid() && _rendererBonePosition.Length > item.Key.Index && _rendererBoneVelocity.Length > item.Key.Index )
 			{
@@ -179,9 +180,11 @@ public class ShrimpleActiveRagdoll : Component
 		if ( !Model.IsValid() )
 			return;
 
-		PhysicsGroupDescription physics = Model.Physics;
+		var physics = Model.Physics;
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
+
+		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
 
 		Transform worldTransform = Renderer.WorldTransform;
 		CreateParts( physics, worldTransform );
