@@ -234,75 +234,67 @@ public class ShrimpleActiveRagdoll : Component
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		CreateBoneObjects();
-		CreateParts( physics, Renderer.WorldTransform );
+		CreateBoneObjects(); // Maybe we can create these in editor
+		CreateParts( physics );
 		CreateJoints( physics );
+
 		foreach ( var body in Bodies.Values )
-		{
 			body.Component.Enabled = true;
-		}
-
 		foreach ( var joint in Joints )
-		{
 			joint.Component.Enabled = true;
-		}
 
-		Network?.Refresh();
+		Network?.Refresh( Renderer ); // Only refresh the rendeded as that's where we added the bone objects
 	}
 
-	private void CreateParts( PhysicsGroupDescription physics, Transform world )
+	private void CreateParts( PhysicsGroupDescription physics )
 	{
-		var bones = Model.Bones;
 		foreach ( var part in physics.Parts )
 		{
-			BoneCollection.Bone bone = bones.GetBone( part.BoneName );
-			if ( !BoneObjects.TryGetValue( bone, out var value ) )
-			{
+			var bone = Model.Bones.GetBone( part.BoneName );
+
+			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
 				continue;
-			}
 
-			if ( !value.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
+			if ( !boneObject.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
 			{
-				value.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
-				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var tx ) )
-				{
-					tx = world.ToWorld( part.Transform );
-				}
+				boneObject.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
 
-				value.WorldTransform = tx;
+				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
+					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
+
+				boneObject.WorldTransform = boneTransform;
 			}
 
-			Rigidbody rigidbody = value.AddComponent<Rigidbody>( startEnabled: false );
+			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			rigidbody.LinearDamping = part.LinearDamping;
 			rigidbody.AngularDamping = part.AngularDamping;
 			rigidbody.MassOverride = part.Mass;
 			rigidbody.OverrideMassCenter = part.OverrideMassCenter;
 			rigidbody.MassCenterOverride = part.MassCenterOverride;
-			Transform child = rigidbody.WorldTransform;
-			List<Collider> colliders = new();
+			//var child = rigidbody.WorldTransform;
 			//BodyTransforms.Set( Bodies.Count, child );
-			foreach ( PhysicsGroupDescription.BodyPart.SpherePart sphere in part.Spheres )
+
+			var colliders = new List<Collider>();
+			foreach ( var sphere in part.Spheres )
 			{
-				SphereCollider sphereCollider = value.AddComponent<SphereCollider>();
+				var sphereCollider = boneObject.AddComponent<SphereCollider>();
 				sphereCollider.Center = sphere.Sphere.Center;
 				sphereCollider.Radius = sphere.Sphere.Radius;
 				sphereCollider.Surface = sphere.Surface;
 				colliders.Add( sphereCollider );
 			}
-
-			foreach ( PhysicsGroupDescription.BodyPart.CapsulePart capsule in part.Capsules )
+			foreach ( var capsule in part.Capsules )
 			{
-				CapsuleCollider capsuleCollider = value.AddComponent<CapsuleCollider>();
+				var capsuleCollider = boneObject.AddComponent<CapsuleCollider>();
 				capsuleCollider.Start = capsule.Capsule.CenterA;
 				capsuleCollider.End = capsule.Capsule.CenterB;
 				capsuleCollider.Radius = capsule.Capsule.Radius;
 				capsuleCollider.Surface = capsule.Surface;
 				colliders.Add( capsuleCollider );
 			}
-
-			foreach ( PhysicsGroupDescription.BodyPart.HullPart hull in part.Hulls )
+			foreach ( var hull in part.Hulls )
 			{
-				HullCollider hullCollider = value.AddComponent<HullCollider>();
+				var hullCollider = boneObject.AddComponent<HullCollider>();
 				hullCollider.Type = HullCollider.PrimitiveType.Points;
 				hullCollider.Points = hull.GetPoints().ToList();
 				hullCollider.Surface = hull.Surface;
@@ -314,10 +306,10 @@ public class ShrimpleActiveRagdoll : Component
 
 	private void CreateJoints( PhysicsGroupDescription physics )
 	{
-		foreach ( PhysicsGroupDescription.Joint joint2 in physics.Joints )
+		foreach ( var joint2 in physics.Joints )
 		{
-			Body body = Bodies.ElementAt( joint2.Body1 ).Value;
-			Body body2 = Bodies.ElementAt( joint2.Body2 ).Value;
+			var body = Bodies.ElementAt( joint2.Body1 ).Value;
+			var body2 = Bodies.ElementAt( joint2.Body2 ).Value;
 			Transform child = joint2.Frame1;
 			Transform localFrame = joint2.Frame2;
 			Sandbox.Joint joint = null;
