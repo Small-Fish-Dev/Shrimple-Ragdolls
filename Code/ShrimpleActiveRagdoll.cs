@@ -62,7 +62,7 @@ public class ShrimpleActiveRagdoll : Component
 
 			field = value;
 
-			if ( !Game.IsEditor )
+			if ( Game.IsPlaying )
 				SetRagdollMode( field );
 		}
 	}
