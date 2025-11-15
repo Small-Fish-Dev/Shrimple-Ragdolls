@@ -250,7 +250,7 @@ public class ShrimpleActiveRagdoll : Component
 
 		CreateBoneObjects( physics ); // Maybe we can create these in editor
 		CreateParts( physics );
-		CreateJoints( physics );
+		// CreateJoints( physics );
 
 		foreach ( var body in Bodies.Values )
 			body.Component.Enabled = true;
@@ -262,6 +262,7 @@ public class ShrimpleActiveRagdoll : Component
 
 	private void CreateParts( PhysicsGroupDescription physics )
 	{
+
 		foreach ( var part in physics.Parts )
 		{
 			var bone = Model.Bones.GetBone( part.BoneName );
@@ -279,26 +280,25 @@ public class ShrimpleActiveRagdoll : Component
 				boneObject.WorldTransform = boneTransform;
 			}
 
-			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
-			rigidbody.LinearDamping = part.LinearDamping;
-			rigidbody.AngularDamping = part.AngularDamping;
-			rigidbody.MassOverride = part.Mass;
-			rigidbody.OverrideMassCenter = part.OverrideMassCenter;
-			rigidbody.MassCenterOverride = part.MassCenterOverride;
 			//var child = rigidbody.WorldTransform;
 			//BodyTransforms.Set( Bodies.Count, child );
 
-			var colliders = AddCollider( boneObject, part ).ToList();
+			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
+			var colliders = AddCollider( boneObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
 		}
+
+		//rigidbody.PhysicsBody.RebuildMass();
 	}
 
-	private IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part )
+	private IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
 	{
+		var localTransform = parent.WorldTransform.ToLocal( worldTransform );
+
 		foreach ( var sphere in part.Spheres )
 		{
 			var sphereCollider = parent.AddComponent<SphereCollider>();
-			sphereCollider.Center = sphere.Sphere.Center;
+			sphereCollider.Center = localTransform.PointToWorld( sphere.Sphere.Center );
 			sphereCollider.Radius = sphere.Sphere.Radius;
 			sphereCollider.Surface = sphere.Surface;
 			yield return sphereCollider;
@@ -306,8 +306,8 @@ public class ShrimpleActiveRagdoll : Component
 		foreach ( var capsule in part.Capsules )
 		{
 			var capsuleCollider = parent.AddComponent<CapsuleCollider>();
-			capsuleCollider.Start = capsule.Capsule.CenterA;
-			capsuleCollider.End = capsule.Capsule.CenterB;
+			capsuleCollider.Start = localTransform.PointToWorld( capsule.Capsule.CenterA );
+			capsuleCollider.End = localTransform.PointToWorld( capsule.Capsule.CenterB );
 			capsuleCollider.Radius = capsule.Capsule.Radius;
 			capsuleCollider.Surface = capsule.Surface;
 			yield return capsuleCollider;
@@ -318,6 +318,7 @@ public class ShrimpleActiveRagdoll : Component
 			hullCollider.Type = HullCollider.PrimitiveType.Points;
 			hullCollider.Points = hull.GetPoints().ToList();
 			hullCollider.Surface = hull.Surface;
+			hullCollider.Center = localTransform.Position;
 			yield return hullCollider;
 		}
 	}
