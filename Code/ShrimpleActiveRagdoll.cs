@@ -288,33 +288,37 @@ public class ShrimpleActiveRagdoll : Component
 			//var child = rigidbody.WorldTransform;
 			//BodyTransforms.Set( Bodies.Count, child );
 
-			var colliders = new List<Collider>();
-			foreach ( var sphere in part.Spheres )
-			{
-				var sphereCollider = boneObject.AddComponent<SphereCollider>();
-				sphereCollider.Center = sphere.Sphere.Center;
-				sphereCollider.Radius = sphere.Sphere.Radius;
-				sphereCollider.Surface = sphere.Surface;
-				colliders.Add( sphereCollider );
-			}
-			foreach ( var capsule in part.Capsules )
-			{
-				var capsuleCollider = boneObject.AddComponent<CapsuleCollider>();
-				capsuleCollider.Start = capsule.Capsule.CenterA;
-				capsuleCollider.End = capsule.Capsule.CenterB;
-				capsuleCollider.Radius = capsule.Capsule.Radius;
-				capsuleCollider.Surface = capsule.Surface;
-				colliders.Add( capsuleCollider );
-			}
-			foreach ( var hull in part.Hulls )
-			{
-				var hullCollider = boneObject.AddComponent<HullCollider>();
-				hullCollider.Type = HullCollider.PrimitiveType.Points;
-				hullCollider.Points = hull.GetPoints().ToList();
-				hullCollider.Surface = hull.Surface;
-				colliders.Add( hullCollider );
-			}
+			var colliders = AddCollider( boneObject, part ).ToList();
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
+		}
+	}
+
+	private IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part )
+	{
+		foreach ( var sphere in part.Spheres )
+		{
+			var sphereCollider = parent.AddComponent<SphereCollider>();
+			sphereCollider.Center = sphere.Sphere.Center;
+			sphereCollider.Radius = sphere.Sphere.Radius;
+			sphereCollider.Surface = sphere.Surface;
+			yield return sphereCollider;
+		}
+		foreach ( var capsule in part.Capsules )
+		{
+			var capsuleCollider = parent.AddComponent<CapsuleCollider>();
+			capsuleCollider.Start = capsule.Capsule.CenterA;
+			capsuleCollider.End = capsule.Capsule.CenterB;
+			capsuleCollider.Radius = capsule.Capsule.Radius;
+			capsuleCollider.Surface = capsule.Surface;
+			yield return capsuleCollider;
+		}
+		foreach ( var hull in part.Hulls )
+		{
+			var hullCollider = parent.AddComponent<HullCollider>();
+			hullCollider.Type = HullCollider.PrimitiveType.Points;
+			hullCollider.Points = hull.GetPoints().ToList();
+			hullCollider.Surface = hull.Surface;
+			yield return hullCollider;
 		}
 	}
 
