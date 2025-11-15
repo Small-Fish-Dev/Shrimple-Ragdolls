@@ -122,7 +122,7 @@ public class ShrimpleActiveRagdoll : Component
 	private void PositionRendererBonesFromPhysics()
 	{
 		/*
-		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true );
+		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true ); // TODO PLACEMODE
 		if ( componentInChildren.IsValid() && componentInChildren.MotionEnabled )
 		{
 			Renderer.WorldTransform = componentInChildren.WorldTransform;
@@ -141,14 +141,8 @@ public class ShrimpleActiveRagdoll : Component
 
 		Renderer.ClearPhysicsBones();
 		Transform worldTransform = Renderer.WorldTransform;
-		foreach ( var body in Bodies.Values )
+		foreach ( var bone in BoneObjects )
 		{
-			Rigidbody component = body.Component;
-			if ( !component.IsValid() )
-			{
-				continue;
-			}
-
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
 			{
@@ -165,8 +159,9 @@ public class ShrimpleActiveRagdoll : Component
 				sceneModel.SetBoneOverride( body.Bone, in transform );
 			}*/
 
-			Transform transform = worldTransform.ToLocal( component.WorldTransform );
-			sceneModel.SetBoneOverride( body.Bone, in transform );
+
+			Transform transform = worldTransform.ToLocal( bone.Value.WorldTransform );
+			sceneModel.SetBoneOverride( bone.Key.Index, in transform );
 		}
 	}
 
@@ -249,8 +244,8 @@ public class ShrimpleActiveRagdoll : Component
 			return;
 
 		CreateBoneObjects( physics ); // Maybe we can create these in editor
-		CreateParts( physics );
-		// CreateJoints( physics );
+		CreateStatueParts( physics );
+		//CreateJoints( physics );
 
 		foreach ( var body in Bodies.Values )
 			body.Component.Enabled = true;
@@ -262,7 +257,6 @@ public class ShrimpleActiveRagdoll : Component
 
 	private void CreateParts( PhysicsGroupDescription physics )
 	{
-
 		foreach ( var part in physics.Parts )
 		{
 			var bone = Model.Bones.GetBone( part.BoneName );
