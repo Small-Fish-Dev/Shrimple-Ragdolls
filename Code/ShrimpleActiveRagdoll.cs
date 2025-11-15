@@ -291,6 +291,32 @@ public class ShrimpleActiveRagdoll : Component
 		//rigidbody.PhysicsBody.RebuildMass();
 	}
 
+	private void CreateStatueParts( PhysicsGroupDescription physics )
+	{
+		var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>( startEnabled: false );
+
+		foreach ( var part in physics.Parts )
+		{
+			var bone = Model.Bones.GetBone( part.BoneName );
+
+			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
+				continue;
+
+			if ( !boneObject.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
+			{
+				boneObject.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
+
+				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
+					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
+
+				boneObject.WorldTransform = boneTransform;
+			}
+
+			var colliders = AddCollider( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
+			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
+		}
+	}
+
 	private IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
 	{
 		var localTransform = parent.WorldTransform.ToLocal( worldTransform );
