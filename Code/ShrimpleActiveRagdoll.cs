@@ -91,9 +91,9 @@ public partial class ShrimpleActiveRagdoll : Component
 	public Model Model => Renderer?.Model;
 	public Dictionary<BoneCollection.Bone, Body> Bodies { get; } = new();
 	public List<Joint> Joints { get; } = new();
-	//private NetworkTransforms BodyTransforms = new NetworkTransforms();
+	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
-	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; private set; }
+	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; }
 
 	protected override void OnStart()
 	{
@@ -118,7 +118,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
+	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -140,7 +140,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private void CreatePhysics()
+	protected void CreatePhysics()
 	{
 		if ( !Active || IsProxy )
 			return;
@@ -166,7 +166,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		Network?.Refresh( Renderer ); // Only refresh the rendeded as that's where we added the bone objects
 	}
 
-	private void CreateParts( PhysicsGroupDescription physics )
+	protected void CreateParts( PhysicsGroupDescription physics )
 	{
 		foreach ( var part in physics.Parts )
 		{
@@ -196,7 +196,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		//rigidbody.PhysicsBody.RebuildMass();
 	}
 
-	private void CreateStatueParts( PhysicsGroupDescription physics )
+	protected void CreateStatueParts( PhysicsGroupDescription physics )
 	{
 		var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>( startEnabled: false );
 
@@ -222,7 +222,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
+	protected IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
 	{
 		var localTransform = parent.WorldTransform.ToLocal( worldTransform );
 
@@ -254,7 +254,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private void CreateJoints( PhysicsGroupDescription physics )
+	protected void CreateJoints( PhysicsGroupDescription physics )
 	{
 		foreach ( var jointDefinition in physics.Joints )
 		{
@@ -337,7 +337,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private void DestroyPhysics()
+	protected void DestroyPhysics()
 	{
 		if ( Renderer.IsValid() )
 		{
@@ -369,7 +369,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		Network?.Refresh();
 	}
 
-	private void SetRagdollMode( RagdollMode mode )
+	protected void SetRagdollMode( RagdollMode mode )
 	{
 		if ( mode == RagdollMode.Disabled )
 			DisablePhysics();

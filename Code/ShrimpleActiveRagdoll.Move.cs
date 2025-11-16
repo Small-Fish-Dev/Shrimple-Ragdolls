@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Move the bone's mesh based on their object transform
 	/// </summary>
-	private void MoveMeshFromObjects()
+	protected void MoveMeshFromObjects()
 	{
 		/*
 		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true ); // TODO PLACEMODE
@@ -52,7 +52,7 @@
 	/// <summary>
 	/// Move the bone's objects based on their mesh transform
 	/// </summary>
-	private void MoveObjectsFromMesh()
+	protected void MoveObjectsFromMesh()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -83,7 +83,7 @@
 	/// <summary>
 	/// Physically move the bone's rigidbodies based on their animation transforms
 	/// </summary>
-	private void MoveBodiesFromAnimations()
+	protected void MoveBodiesFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -100,7 +100,7 @@
 	/// <summary>
 	/// Move the bone's objects based on their animation transforms
 	/// </summary>
-	private void MoveObjectsFromAnimations()
+	protected void MoveObjectsFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
