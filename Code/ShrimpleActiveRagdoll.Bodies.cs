@@ -44,9 +44,9 @@
 			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
 				continue;
 
-			if ( !boneObject.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
+			if ( !boneObject.Flags.Contains( GameObjectFlags.PhysicsBone ) ) // Don't add the absolute flag to statue bodies
 			{
-				boneObject.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
+				boneObject.Flags |= GameObjectFlags.PhysicsBone;
 
 				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
 					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );

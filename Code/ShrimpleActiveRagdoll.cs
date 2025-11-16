@@ -125,6 +125,10 @@
 			MoveBodiesFromAnimations();
 			MoveMeshFromObjects();
 		}
+		if ( Mode == RagdollMode.Statue )
+		{
+			MoveMeshFromObjects();
+		}
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
@@ -221,7 +225,7 @@
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		CreateBoneObjects( physics );
+		CreateBoneObjects( physics, false );
 		CreateStatueBodies( physics );
 
 		foreach ( var body in Bodies.Values )
