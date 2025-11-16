@@ -1,6 +1,6 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	private void PositionRendererBonesFromPhysics()
+	private void MoveBonesFromObjects()
 	{
 		/*
 		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true ); // TODO PLACEMODE
@@ -46,7 +46,7 @@
 		}
 	}
 
-	private void PositionPhysicsFromRendererBones()
+	private void MoveObjectsFromBones()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
