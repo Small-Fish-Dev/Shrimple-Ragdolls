@@ -62,13 +62,10 @@
 		get;
 		set
 		{
-			if ( field == value )
-				return;
+			if ( Game.IsPlaying )
+				InternalSetRagdollMode( field, value );
 
 			field = value;
-
-			if ( Game.IsPlaying )
-				SetRagdollMode( field );
 		}
 	}
 
@@ -101,7 +98,7 @@
 	[Property]
 	public bool NetworkRefreshOnChange { get; set; } = true; // TODO IMPLEMENT
 
-
+	public bool PhysicsWereCreated { get; protected set; } = false;
 	public Model Model => Renderer?.Model;
 	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
@@ -175,15 +172,14 @@
 		foreach ( var joint in Joints )
 			joint.Component.Enabled = true;
 
-		Network?.Refresh( Renderer ); // Only refresh the rendeded as that's where we added the bone objects
+		Network?.Refresh( Renderer.GameObject ); // Only refresh the rendeded as that's where we added the bone objects
+		PhysicsWereCreated = true;
 	}
 
 	protected void DestroyPhysics()
 	{
 		if ( Renderer.IsValid() )
-		{
 			Renderer.ClearPhysicsBones();
-		}
 
 		//BodyTransforms.Clear();
 
@@ -207,27 +203,81 @@
 
 		Bodies.Clear();
 		Joints.Clear();
-		Network?.Refresh();
+		Network?.Refresh( Renderer.GameObject );
+		PhysicsWereCreated = false;
 	}
 
-	protected void SetRagdollMode( RagdollMode mode )
+	protected void CreateStatuePhysics()
 	{
-		if ( mode == RagdollMode.Disabled )
+		if ( !Active || IsProxy )
+			return;
+
+		DestroyPhysics();
+
+		if ( !Model.IsValid() )
+			return;
+
+		var physics = Model.Physics;
+		if ( physics == null || physics.Parts.Count == 0 )
+			return;
+
+		CreateBoneObjects( physics );
+		CreateStatueBodies( physics );
+
+		foreach ( var body in Bodies.Values )
+			body.Component.Enabled = true;
+
+		Network?.Refresh( Renderer.GameObject ); // Only refresh the rendeded as that's where we added the bone objects
+		PhysicsWereCreated = true; // TODO Separate StatuePhysicsWereCreated so we can switch from disabled to statue?
+	}
+
+	/// <summary>
+	/// Set the ragdoll mode
+	/// </summary>
+	/// <param name="mode"></param>
+	public void SetRagdollMode( RagdollMode mode )
+	{
+		Mode = mode;
+	}
+
+	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode )
+	{
+		if ( oldMode == newMode )
+			return;
+
+		if ( newMode == RagdollMode.Disabled )
 			DisablePhysics();
 
-		if ( mode == RagdollMode.Enabled )
-			EnablePhysics();
-
-		if ( mode == RagdollMode.Passive )
-			EnablePhysics();
-
-		if ( mode == RagdollMode.Active )
-			EnablePhysics();
-
-		if ( mode == RagdollMode.Statue )
+		if ( newMode == RagdollMode.Enabled )
 		{
-			DisablePhysics();
+			if ( oldMode == RagdollMode.Statue ) // If we were statue we need to recreate the physics
+				CreatePhysics();
 
+			EnablePhysics();
+		}
+
+		if ( newMode == RagdollMode.Passive )
+		{
+			if ( oldMode == RagdollMode.Statue )
+				CreatePhysics();
+
+			EnablePhysics();
+		}
+
+		if ( newMode == RagdollMode.Active )
+		{
+			if ( oldMode == RagdollMode.Statue )
+				CreatePhysics();
+
+			EnablePhysics();
+		}
+
+		if ( newMode == RagdollMode.Statue )
+		{
+			if ( oldMode != RagdollMode.Statue )
+				CreateStatuePhysics();
+
+			EnablePhysics();
 		}
 	}
 
