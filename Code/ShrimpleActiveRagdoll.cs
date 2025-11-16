@@ -176,7 +176,7 @@
 		foreach ( var joint in Joints )
 			joint.Component.Enabled = true;
 
-		Network?.Refresh( Renderer.GameObject ); // Only refresh the rendeded as that's where we added the bone objects
+		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
 		PhysicsWereCreated = true;
 	}
 
@@ -207,7 +207,7 @@
 
 		Bodies.Clear();
 		Joints.Clear();
-		Network?.Refresh( Renderer.GameObject );
+		Renderer?.Network?.Refresh();
 		PhysicsWereCreated = false;
 	}
 
@@ -231,7 +231,7 @@
 		foreach ( var body in Bodies.Values )
 			body.Component.Enabled = true;
 
-		Network?.Refresh( Renderer.GameObject ); // Only refresh the rendeded as that's where we added the bone objects
+		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
 		PhysicsWereCreated = true; // TODO Separate StatuePhysicsWereCreated so we can switch from disabled to statue?
 	}
 
