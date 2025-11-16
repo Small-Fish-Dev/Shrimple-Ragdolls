@@ -131,7 +131,7 @@
 		}
 	}
 
-	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = false )
+	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
