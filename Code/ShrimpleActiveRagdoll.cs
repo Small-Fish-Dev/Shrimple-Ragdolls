@@ -300,15 +300,4 @@
 
 		MoveObjectsFromMesh();
 	}
-
-	protected override void DrawGizmos()
-	{
-		base.DrawGizmos();
-
-		foreach ( var obj in Scene.GetAll<SkinnedModelRenderer>() )
-		{
-
-			Log.Info( obj.GameObject.Root.Name + " " + obj.Model.GetBoneTransform( "eye_L" ).Position );
-		}
-	}
 }
