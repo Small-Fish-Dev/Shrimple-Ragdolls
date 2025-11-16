@@ -99,6 +99,7 @@
 	public bool NetworkRefreshOnChange { get; set; } = true; // TODO IMPLEMENT
 
 	public bool PhysicsWereCreated { get; protected set; } = false;
+	public bool StatuePhysicsWereCreated { get; protected set; } = false;
 	public Model Model => Renderer?.Model;
 	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
@@ -208,6 +209,7 @@
 		Joints.Clear();
 		Renderer?.Network?.Refresh();
 		PhysicsWereCreated = false;
+		StatuePhysicsWereCreated = false;
 	}
 
 	protected void CreateStatuePhysics()
@@ -226,12 +228,14 @@
 
 		CreateBoneObjects( physics );
 		CreateStatueBodies( physics );
+		MoveMeshFromObjects();
 
 		foreach ( var body in Bodies.Values )
 			body.Component.Enabled = true;
 
 		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
-		PhysicsWereCreated = true; // TODO Separate StatuePhysicsWereCreated so we can switch from disabled to statue?
+		PhysicsWereCreated = true;
+		StatuePhysicsWereCreated = true;
 	}
 
 	/// <summary>
@@ -253,7 +257,7 @@
 
 		if ( newMode == RagdollMode.Enabled )
 		{
-			if ( oldMode == RagdollMode.Statue || firstTime ) // If we were statue we need to recreate the physics
+			if ( StatuePhysicsWereCreated || firstTime ) // If we were statue we need to recreate the physics
 				CreatePhysics();
 
 			EnablePhysics();
@@ -261,7 +265,7 @@
 
 		if ( newMode == RagdollMode.Passive )
 		{
-			if ( oldMode == RagdollMode.Statue || firstTime )
+			if ( StatuePhysicsWereCreated || firstTime )
 				CreatePhysics();
 
 			EnablePhysics();
@@ -269,7 +273,7 @@
 
 		if ( newMode == RagdollMode.Active )
 		{
-			if ( oldMode == RagdollMode.Statue || firstTime )
+			if ( StatuePhysicsWereCreated || firstTime )
 				CreatePhysics();
 
 			EnablePhysics();
@@ -277,7 +281,7 @@
 
 		if ( newMode == RagdollMode.Statue )
 		{
-			if ( oldMode != RagdollMode.Statue || firstTime )
+			if ( !StatuePhysicsWereCreated || firstTime )
 				CreateStatuePhysics();
 
 			EnablePhysics();
