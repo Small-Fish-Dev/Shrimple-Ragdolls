@@ -113,7 +113,7 @@ public class ShrimpleActiveRagdoll : Component
 			PositionPhysicsFromRendererBones();
 		if ( Mode == RagdollMode.Active )
 		{
-			MovePhysicsFromRenderBones();
+			MoveBodiesFromAnimations();
 			PositionRendererBonesFromPhysics();
 		}
 	}
@@ -193,7 +193,7 @@ public class ShrimpleActiveRagdoll : Component
 		}
 	}
 
-	private void MovePhysicsFromRenderBones()
+	private void MoveBodiesFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -229,6 +229,19 @@ public class ShrimpleActiveRagdoll : Component
 		}
 	}
 
+	/// <summary>
+	/// Move the <see cref="BoneObjects"/> following the <see cref="SkinnedModelRenderer.TryGetBoneTransformAnimation(in BoneCollection.Bone, out global::Transform)"/>
+	/// </summary>
+	private void MoveObjectsFromAnimations()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var boneObject in BoneObjects )
+			if ( Renderer.TryGetBoneTransformAnimation( boneObject.Key, out var transform ) )
+				boneObject.Value.WorldTransform = transform;
+	}
+
 	private void CreatePhysics()
 	{
 		if ( !Active || IsProxy )
@@ -244,8 +257,8 @@ public class ShrimpleActiveRagdoll : Component
 			return;
 
 		CreateBoneObjects( physics ); // Maybe we can create these in editor
-		CreateStatueParts( physics );
-		//CreateJoints( physics );
+		CreateParts( physics );
+		CreateJoints( physics );
 
 		foreach ( var body in Bodies.Values )
 			body.Component.Enabled = true;
