@@ -117,21 +117,21 @@
 		base.OnUpdate();
 
 		if ( Mode == RagdollMode.Enabled )
-			MoveMeshFromObjects();
+			MoveMeshFromBodies();
 		if ( Mode == RagdollMode.Passive )
 			MoveBodiesFromAnimations();
 		if ( Mode == RagdollMode.Active )
 		{
 			MoveBodiesFromAnimations();
-			MoveMeshFromObjects();
+			MoveMeshFromBodies();
 		}
 		if ( Mode == RagdollMode.Statue )
 		{
-			MoveMeshFromObjects();
+			MoveMeshFromBodies();
 		}
 	}
 
-	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
+	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = false )
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -225,7 +225,7 @@
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		CreateBoneObjects( physics, false );
+		CreateBoneObjects( physics );
 		CreateStatueBodies( physics );
 
 		foreach ( var body in Bodies.Values )
@@ -299,5 +299,16 @@
 		EnableJoints();
 
 		MoveObjectsFromMesh();
+	}
+
+	protected override void DrawGizmos()
+	{
+		base.DrawGizmos();
+
+		foreach ( var obj in Scene.GetAll<SkinnedModelRenderer>() )
+		{
+
+			Log.Info( obj.GameObject.Root.Name + " " + obj.Model.GetBoneTransform( "eye_L" ).Position );
+		}
 	}
 }

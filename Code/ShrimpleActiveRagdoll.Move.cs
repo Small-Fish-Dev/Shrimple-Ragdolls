@@ -1,16 +1,16 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
 	/// <summary>
-	/// Move the bone's mesh based on their object transform
+	/// Move the bone's mesh based on their body transform
 	/// </summary>
-	protected void MoveMeshFromObjects()
+	protected void MoveMeshFromBodies()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		Renderer.ClearPhysicsBones();
+		Renderer.ClearPhysicsBones(); // Is this necessary?
 		var worldTransform = Renderer.WorldTransform;
-		foreach ( var bone in BoneObjects )
+		foreach ( var bone in Bodies )
 		{
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
@@ -29,7 +29,7 @@
 			}*/
 
 
-			Transform transform = worldTransform.ToLocal( bone.Value.WorldTransform );
+			Transform transform = worldTransform.ToLocal( bone.Value.Component.GameObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( bone.Key.Index, in transform );
 		}
 	}

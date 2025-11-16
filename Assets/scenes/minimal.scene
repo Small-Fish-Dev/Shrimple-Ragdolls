@@ -319,7 +319,7 @@
       "Components": [
         {
           "__type": "ShrimpleActiveRagdoll",
-          "__guid": "3fc8cc2b-7edf-4f2b-ab17-31a19c4b5215",
+          "__guid": "cf4b4f23-f6da-4018-aae2-e9a5a254d432",
           "__enabled": true,
           "FollowMode": "All",
           "Mode": "Passive",
@@ -399,6 +399,121 @@
               },
               "Tint": "1,1,1,1",
               "UseAnimGraph": true
+            }
+          ],
+          "Children": []
+        }
+      ]
+    },
+    {
+      "__guid": "c1563bba-87be-4a85-9736-23dd8d9251cc",
+      "__version": 1,
+      "Flags": 0,
+      "Name": "Person (1)",
+      "Position": "-136,-116,0",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkInterpolation": true,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [],
+      "Children": [
+        {
+          "__guid": "9731ab04-3706-4363-9c00-6055766ae26d",
+          "__version": 1,
+          "Flags": 0,
+          "Name": "Model",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkInterpolation": true,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "b4b8acd6-ef5c-47cb-81ed-91a5e2109e13",
+              "__enabled": true,
+              "AnimationGraph": null,
+              "BodyGroups": 341,
+              "BoneMergeTarget": null,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "LodOverride": null,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Materials": null,
+              "Model": "models/citizen/citizen.vmdl",
+              "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "PlaybackRate": 1,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null,
+                "Looping": true,
+                "Blending": false
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            },
+            {
+              "__type": "Sandbox.ModelPhysics",
+              "__guid": "bd3ade4b-1682-4c49-bf5f-d359f59ca820",
+              "__enabled": true,
+              "Bodies": [],
+              "IgnoreRoot": false,
+              "Joints": [],
+              "Locking": {
+                "X": false,
+                "Y": false,
+                "Z": false,
+                "Pitch": false,
+                "Yaw": false,
+                "Roll": false
+              },
+              "Model": "models/citizen/citizen.vmdl",
+              "MotionEnabled": true,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "PhysicsWereCreated": false,
+              "Renderer": {
+                "_type": "component",
+                "component_id": "b4b8acd6-ef5c-47cb-81ed-91a5e2109e13",
+                "go": "9731ab04-3706-4363-9c00-6055766ae26d",
+                "component_type": "SkinnedModelRenderer"
+              },
+              "RigidbodyFlags": 0,
+              "StartAsleep": false
             }
           ],
           "Children": []
