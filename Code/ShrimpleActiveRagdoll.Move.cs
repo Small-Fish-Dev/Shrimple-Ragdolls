@@ -5,26 +5,11 @@
 	/// </summary>
 	protected void MoveMeshFromObjects()
 	{
-		/*
-		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true ); // TODO PLACEMODE
-		if ( componentInChildren.IsValid() && componentInChildren.MotionEnabled )
-		{
-			Renderer.WorldTransform = componentInChildren.WorldTransform;
-		}*/
-
-		if ( !Renderer.IsValid() )
-		{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
-		}
-
-		SceneModel sceneModel = Renderer.SceneModel;
-		if ( !sceneModel.IsValid() )
-		{
-			return;
-		}
 
 		Renderer.ClearPhysicsBones();
-		Transform worldTransform = Renderer.WorldTransform;
+		var worldTransform = Renderer.WorldTransform;
 		foreach ( var bone in BoneObjects )
 		{
 			/*
@@ -45,7 +30,7 @@
 
 
 			Transform transform = worldTransform.ToLocal( bone.Value.WorldTransform );
-			sceneModel.SetBoneOverride( bone.Key.Index, in transform );
+			Renderer.SceneModel.SetBoneOverride( bone.Key.Index, in transform );
 		}
 	}
 

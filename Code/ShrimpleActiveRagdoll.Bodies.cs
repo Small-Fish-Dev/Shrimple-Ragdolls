@@ -1,6 +1,4 @@
-﻿using System;
-
-public partial class ShrimpleActiveRagdoll
+﻿public partial class ShrimpleActiveRagdoll
 {
 	public readonly record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders );
 	public Dictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();

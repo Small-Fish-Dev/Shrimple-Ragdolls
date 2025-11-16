@@ -1,6 +1,4 @@
-﻿using System;
-
-public partial class ShrimpleActiveRagdoll : Component
+﻿public partial class ShrimpleActiveRagdoll : Component
 {
 	// TODO ADD MODE STATUE ONLY ONE RIGIDBODY
 	public enum RagdollMode
@@ -33,6 +31,13 @@ public partial class ShrimpleActiveRagdoll : Component
 		/// </summary>
 		[Icon( "sports_gymnastics" )]
 		Active,
+		/// <summary>
+		/// ✅ Collisions<br />
+		/// ❌ Physics<br />
+		/// ❌ Animations
+		/// </summary>
+		[Icon( "accessibility" )]
+		Statue
 	}
 
 	[Flags]
@@ -83,6 +88,18 @@ public partial class ShrimpleActiveRagdoll : Component
 			field = value;
 		}
 	} = RagdollFollowMode.All;
+
+	/// <summary>
+	/// Destroy and build the physics when changing <see cref="Mode"/> instead of just enabling/disabling the components
+	/// </summary>
+	[Property]
+	public bool RebuildPhysicsOnChange { get; set; } = false; // TODO IMPLEMENT
+
+	/// <summary>
+	/// Call a network refresh on the Renderer's GameObject when changing <see cref="Mode"/>
+	/// </summary>
+	[Property]
+	public bool NetworkRefreshOnChange { get; set; } = true; // TODO IMPLEMENT
 
 
 	public Model Model => Renderer?.Model;
@@ -206,6 +223,12 @@ public partial class ShrimpleActiveRagdoll : Component
 
 		if ( mode == RagdollMode.Active )
 			EnablePhysics();
+
+		if ( mode == RagdollMode.Statue )
+		{
+			DisablePhysics();
+
+		}
 	}
 
 	public void DisablePhysics()
