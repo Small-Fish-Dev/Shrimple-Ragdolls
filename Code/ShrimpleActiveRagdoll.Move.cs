@@ -1,7 +1,7 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
 	/// <summary>
-	/// Move the bone's mesh based on their body transform
+	/// Move the bone's mesh based on their Rigidbody transform
 	/// </summary>
 	protected void MoveMeshFromBodies()
 	{
@@ -30,6 +30,40 @@
 
 
 			Transform transform = worldTransform.ToLocal( bone.Value.Component.GameObject.WorldTransform );
+			Renderer.SceneModel.SetBoneOverride( bone.Key.Index, in transform );
+		}
+	}
+
+	/// <summary>
+	/// Move the bone's mesh based on their objects transform
+	/// </summary>
+	protected void MoveMeshFromObjects()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		Renderer.ClearPhysicsBones(); // Is this necessary?
+		var worldTransform = Renderer.WorldTransform;
+		foreach ( var bone in Bodies ) // We still use bodies just for the bone references
+		{
+			/*
+			if ( !MotionEnabled && !component.MotionEnabled )
+			{
+				Transform transform = sceneModel.Transform.ToLocal( sceneModel.GetWorldSpaceAnimationTransform( body.Bone ) );
+				sceneModel.SetBoneOverride( body.Bone, in transform );
+				if ( component.Transform.SetLocalTransformFast( worldTransform.ToWorld( in transform ) ) )
+				{
+					component.Transform.TransformChanged( useTargetLocal: true );
+				}
+			}
+			else
+			{
+				Transform transform = worldTransform.ToLocal( component.WorldTransform );
+				sceneModel.SetBoneOverride( body.Bone, in transform );
+			}*/
+
+			var boneObject = BoneObjects[bone.Key];
+			Transform transform = worldTransform.ToLocal( boneObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( bone.Key.Index, in transform );
 		}
 	}

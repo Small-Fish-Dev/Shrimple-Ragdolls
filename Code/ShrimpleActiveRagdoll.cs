@@ -127,7 +127,7 @@
 		}
 		if ( Mode == RagdollMode.Statue )
 		{
-			MoveMeshFromBodies();
+			MoveMeshFromObjects();
 		}
 	}
 
