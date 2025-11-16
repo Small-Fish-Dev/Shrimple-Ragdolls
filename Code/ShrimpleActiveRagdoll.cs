@@ -108,8 +108,7 @@
 	{
 		base.OnStart();
 
-		CreatePhysics();
-		SetRagdollMode( Mode );
+		InternalSetRagdollMode( Mode, Mode, true );
 	}
 
 	protected override void OnUpdate()
@@ -241,20 +240,20 @@
 	/// <param name="mode"></param>
 	public void SetRagdollMode( RagdollMode mode )
 	{
+		if ( Mode == mode )
+			return;
+
 		Mode = mode;
 	}
 
-	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode )
+	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode, bool firstTime = false )
 	{
-		if ( oldMode == newMode )
-			return;
-
 		if ( newMode == RagdollMode.Disabled )
 			DisablePhysics();
 
 		if ( newMode == RagdollMode.Enabled )
 		{
-			if ( oldMode == RagdollMode.Statue ) // If we were statue we need to recreate the physics
+			if ( oldMode == RagdollMode.Statue || firstTime ) // If we were statue we need to recreate the physics
 				CreatePhysics();
 
 			EnablePhysics();
@@ -262,7 +261,7 @@
 
 		if ( newMode == RagdollMode.Passive )
 		{
-			if ( oldMode == RagdollMode.Statue )
+			if ( oldMode == RagdollMode.Statue || firstTime )
 				CreatePhysics();
 
 			EnablePhysics();
@@ -270,7 +269,7 @@
 
 		if ( newMode == RagdollMode.Active )
 		{
-			if ( oldMode == RagdollMode.Statue )
+			if ( oldMode == RagdollMode.Statue || firstTime )
 				CreatePhysics();
 
 			EnablePhysics();
@@ -278,7 +277,7 @@
 
 		if ( newMode == RagdollMode.Statue )
 		{
-			if ( oldMode != RagdollMode.Statue )
+			if ( oldMode != RagdollMode.Statue || firstTime )
 				CreateStatuePhysics();
 
 			EnablePhysics();
