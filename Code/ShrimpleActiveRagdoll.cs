@@ -108,13 +108,13 @@ public partial class ShrimpleActiveRagdoll : Component
 		base.OnUpdate();
 
 		if ( Mode == RagdollMode.Enabled )
-			MoveBonesFromObjects();
+			MoveMeshFromObjects();
 		if ( Mode == RagdollMode.Passive )
 			MoveBodiesFromAnimations();
 		if ( Mode == RagdollMode.Active )
 		{
 			MoveBodiesFromAnimations();
-			MoveBonesFromObjects();
+			MoveMeshFromObjects();
 		}
 	}
 
@@ -437,7 +437,7 @@ public partial class ShrimpleActiveRagdoll : Component
 		EnableBodies();
 		EnableJoints();
 
-		MoveObjectsFromBones();
+		MoveObjectsFromMesh();
 	}
 
 	/// <summary>

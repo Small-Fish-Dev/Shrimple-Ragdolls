@@ -1,6 +1,9 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	private void MoveBonesFromObjects()
+	/// <summary>
+	/// Move the bone's mesh based on their object transform
+	/// </summary>
+	private void MoveMeshFromObjects()
 	{
 		/*
 		Rigidbody componentInChildren = GetComponentInChildren<Rigidbody>( includeDisabled: true ); // TODO PLACEMODE
@@ -46,7 +49,10 @@
 		}
 	}
 
-	private void MoveObjectsFromBones()
+	/// <summary>
+	/// Move the bone's objects based on their mesh transform
+	/// </summary>
+	private void MoveObjectsFromMesh()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -74,6 +80,9 @@
 		}
 	}
 
+	/// <summary>
+	/// Physically move the bone's rigidbodies based on their animation transforms
+	/// </summary>
 	private void MoveBodiesFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
@@ -89,7 +98,7 @@
 	}
 
 	/// <summary>
-	/// Move the <see cref="BoneObjects"/> following the <see cref="SkinnedModelRenderer.TryGetBoneTransformAnimation(in BoneCollection.Bone, out global::Transform)"/>
+	/// Move the bone's objects based on their animation transforms
 	/// </summary>
 	private void MoveObjectsFromAnimations()
 	{
