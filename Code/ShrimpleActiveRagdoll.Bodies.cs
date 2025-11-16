@@ -26,7 +26,7 @@
 			//BodyTransforms.Set( Bodies.Count, child );
 
 			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
-			var colliders = AddCollider( boneObject, part, boneObject.WorldTransform ).ToList();
+			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
 		}
 
@@ -54,12 +54,12 @@
 				boneObject.WorldTransform = boneTransform;
 			}
 
-			var colliders = AddCollider( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
+			var colliders = AddColliders( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
 		}
 	}
 
-	protected IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
+	protected IEnumerable<Collider> AddColliders( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
 	{
 		var localTransform = parent.WorldTransform.ToLocal( worldTransform );
 

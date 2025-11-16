@@ -197,12 +197,12 @@
 			{
 				body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
 				body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-				body.Component.Destroy();
-
-				foreach ( var collider in body.Colliders )
-					if ( collider.IsValid() )
-						collider.Destroy();
+				body.Component?.Destroy();
 			}
+
+			foreach ( var collider in body.Colliders )
+				if ( collider.IsValid() )
+					collider.Destroy();
 		}
 
 		Bodies.Clear();
