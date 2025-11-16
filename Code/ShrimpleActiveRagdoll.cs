@@ -84,13 +84,8 @@ public partial class ShrimpleActiveRagdoll : Component
 		}
 	} = RagdollFollowMode.All;
 
-	public readonly record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders );
-	public readonly record struct Joint( Sandbox.Joint Component, Body Body1, Body Body2 );
-
 
 	public Model Model => Renderer?.Model;
-	public Dictionary<BoneCollection.Bone, Body> Bodies { get; } = new();
-	public List<Joint> Joints { get; } = new();
 	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
 	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; }
@@ -155,7 +150,7 @@ public partial class ShrimpleActiveRagdoll : Component
 			return;
 
 		CreateBoneObjects( physics ); // Maybe we can create these in editor
-		CreateParts( physics );
+		CreateBodies( physics );
 		CreateJoints( physics );
 
 		foreach ( var body in Bodies.Values )
@@ -164,177 +159,6 @@ public partial class ShrimpleActiveRagdoll : Component
 			joint.Component.Enabled = true;
 
 		Network?.Refresh( Renderer ); // Only refresh the rendeded as that's where we added the bone objects
-	}
-
-	protected void CreateParts( PhysicsGroupDescription physics )
-	{
-		foreach ( var part in physics.Parts )
-		{
-			var bone = Model.Bones.GetBone( part.BoneName );
-
-			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
-				continue;
-
-			if ( !boneObject.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
-			{
-				boneObject.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
-
-				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
-					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
-
-				boneObject.WorldTransform = boneTransform;
-			}
-
-			//var child = rigidbody.WorldTransform;
-			//BodyTransforms.Set( Bodies.Count, child );
-
-			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
-			var colliders = AddCollider( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
-		}
-
-		//rigidbody.PhysicsBody.RebuildMass();
-	}
-
-	protected void CreateStatueParts( PhysicsGroupDescription physics )
-	{
-		var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>( startEnabled: false );
-
-		foreach ( var part in physics.Parts )
-		{
-			var bone = Model.Bones.GetBone( part.BoneName );
-
-			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
-				continue;
-
-			if ( !boneObject.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
-			{
-				boneObject.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
-
-				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
-					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
-
-				boneObject.WorldTransform = boneTransform;
-			}
-
-			var colliders = AddCollider( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
-		}
-	}
-
-	protected IEnumerable<Collider> AddCollider( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
-	{
-		var localTransform = parent.WorldTransform.ToLocal( worldTransform );
-
-		foreach ( var sphere in part.Spheres )
-		{
-			var sphereCollider = parent.AddComponent<SphereCollider>();
-			sphereCollider.Center = localTransform.PointToWorld( sphere.Sphere.Center );
-			sphereCollider.Radius = sphere.Sphere.Radius;
-			sphereCollider.Surface = sphere.Surface;
-			yield return sphereCollider;
-		}
-		foreach ( var capsule in part.Capsules )
-		{
-			var capsuleCollider = parent.AddComponent<CapsuleCollider>();
-			capsuleCollider.Start = localTransform.PointToWorld( capsule.Capsule.CenterA );
-			capsuleCollider.End = localTransform.PointToWorld( capsule.Capsule.CenterB );
-			capsuleCollider.Radius = capsule.Capsule.Radius;
-			capsuleCollider.Surface = capsule.Surface;
-			yield return capsuleCollider;
-		}
-		foreach ( var hull in part.Hulls )
-		{
-			var hullCollider = parent.AddComponent<HullCollider>();
-			hullCollider.Type = HullCollider.PrimitiveType.Points;
-			hullCollider.Points = hull.GetPoints().ToList();
-			hullCollider.Surface = hull.Surface;
-			hullCollider.Center = localTransform.Position;
-			yield return hullCollider;
-		}
-	}
-
-	protected void CreateJoints( PhysicsGroupDescription physics )
-	{
-		foreach ( var jointDefinition in physics.Joints )
-		{
-			var body1 = Bodies.ElementAt( jointDefinition.Body1 ).Value;
-			var body2 = Bodies.ElementAt( jointDefinition.Body2 ).Value;
-			var child = jointDefinition.Frame1;
-			var localFrame = jointDefinition.Frame2;
-			Sandbox.Joint joint = null;
-			if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Hinge )
-			{
-				var hingeJoint = body1.Component.AddComponent<Sandbox.HingeJoint>( startEnabled: false );
-				if ( jointDefinition.EnableTwistLimit )
-				{
-					hingeJoint.MinAngle = jointDefinition.TwistMin;
-					hingeJoint.MaxAngle = jointDefinition.TwistMax;
-				}
-
-				if ( jointDefinition.EnableAngularMotor )
-				{
-					float rad = body1.Component.WorldTransform.ToWorld( in child ).Rotation.Up.Dot( jointDefinition.AngularTargetVelocity );
-					hingeJoint.Motor = Sandbox.HingeJoint.MotorMode.TargetVelocity;
-					hingeJoint.TargetVelocity = rad.RadianToDegree();
-					hingeJoint.MaxTorque = jointDefinition.MaxTorque;
-				}
-
-				joint = hingeJoint;
-			}
-			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Ball )
-			{
-				var ballJoint = body1.Component.AddComponent<BallJoint>( startEnabled: false );
-				if ( jointDefinition.EnableSwingLimit )
-				{
-					ballJoint.SwingLimitEnabled = true;
-					ballJoint.SwingLimit = new Vector2( jointDefinition.SwingMin, jointDefinition.SwingMax );
-				}
-
-				if ( jointDefinition.EnableTwistLimit )
-				{
-					ballJoint.TwistLimitEnabled = true;
-					ballJoint.TwistLimit = new Vector2( jointDefinition.TwistMin, jointDefinition.TwistMax );
-				}
-
-				joint = ballJoint;
-			}
-			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Fixed )
-			{
-				var fixedJoint = body1.Component.AddComponent<FixedJoint>( startEnabled: false );
-				fixedJoint.LinearFrequency = jointDefinition.LinearFrequency;
-				fixedJoint.LinearDamping = jointDefinition.LinearDampingRatio;
-				fixedJoint.AngularFrequency = jointDefinition.AngularFrequency;
-				fixedJoint.AngularDamping = jointDefinition.AngularDampingRatio;
-				joint = fixedJoint;
-			}
-			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Slider )
-			{
-				var sliderJoint = body1.Component.AddComponent<SliderJoint>( startEnabled: false );
-				if ( jointDefinition.EnableLinearLimit )
-				{
-					sliderJoint.MinLength = jointDefinition.LinearMin;
-					sliderJoint.MaxLength = jointDefinition.LinearMax;
-				}
-
-				var rotation = Rotation.FromPitch( -90f );
-				child = child.WithRotation( rotation * child.Rotation );
-				localFrame = localFrame.WithRotation( rotation * localFrame.Rotation );
-				joint = sliderJoint;
-			}
-
-			if ( joint.IsValid() )
-			{
-				joint.Body = body2.Component.GameObject;
-				joint.Attachment = Sandbox.Joint.AttachmentMode.LocalFrames;
-				joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * body1.Component.WorldScale );
-				joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * body2.Component.WorldScale );
-				joint.EnableCollision = jointDefinition.EnableCollision;
-				joint.BreakForce = jointDefinition.LinearStrength;
-				joint.BreakTorque = jointDefinition.AngularStrength;
-				Joints.Add( new Joint( joint, body1, body2 ) );
-			}
-		}
 	}
 
 	protected void DestroyPhysics()
@@ -392,91 +216,11 @@ public partial class ShrimpleActiveRagdoll : Component
 		Renderer?.ClearPhysicsBones();
 	}
 
-	/// <summary>
-	/// Disables all the rigidbodies and colliders
-	/// </summary>
-	protected void DisableBodies()
-	{
-		if ( Bodies == null )
-			return;
-
-		foreach ( var body in Bodies.Values )
-		{
-			if ( body.Component.IsValid() )
-			{
-				body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
-				body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-				body.Component.Enabled = false;
-
-				foreach ( var collider in body.Colliders )
-				{
-					if ( collider.IsValid() )
-						collider.Enabled = false;
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Disables all joints
-	/// </summary>
-	protected void DisableJoints()
-	{
-		if ( Joints == null )
-			return;
-
-		foreach ( var joint in Joints )
-		{
-			if ( joint.Component.IsValid() )
-				joint.Component.Enabled = false;
-		}
-	}
-
 	public void EnablePhysics()
 	{
 		EnableBodies();
 		EnableJoints();
 
 		MoveObjectsFromMesh();
-	}
-
-	/// <summary>
-	/// Enables all the rigidbodies and colliders
-	/// </summary>
-	protected void EnableBodies()
-	{
-		if ( Bodies == null )
-			return;
-
-		foreach ( var body in Bodies.Values )
-		{
-			if ( body.Component.IsValid() )
-			{
-				body.Component.GameObject.Flags |= GameObjectFlags.Absolute;
-				body.Component.GameObject.Flags |= GameObjectFlags.PhysicsBone;
-				body.Component.Enabled = true;
-
-				foreach ( var collider in body.Colliders )
-				{
-					if ( collider.IsValid() )
-						collider.Enabled = true;
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Enables all joints
-	/// </summary>
-	protected void EnableJoints()
-	{
-		if ( Joints == null )
-			return;
-
-		foreach ( var joint in Joints )
-		{
-			if ( joint.Component.IsValid() )
-				joint.Component.Enabled = true;
-		}
 	}
 }
