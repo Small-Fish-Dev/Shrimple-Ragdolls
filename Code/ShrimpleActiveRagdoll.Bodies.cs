@@ -84,7 +84,9 @@
 		{
 			var hullCollider = parent.AddComponent<HullCollider>();
 			hullCollider.Type = HullCollider.PrimitiveType.Points;
-			hullCollider.Points = hull.GetPoints().ToList();
+			hullCollider.Points = hull.GetPoints()
+				.Select( x => localTransform.PointToWorld( x ) ) // Looks weird but we're turning local points into world points relative to the parent which is still local in the grand scheme of things
+				.ToList();
 			hullCollider.Surface = hull.Surface;
 			hullCollider.Center = localTransform.Position;
 			yield return hullCollider;
