@@ -137,6 +137,9 @@
 	{
 		base.OnFixedUpdate();
 
+		if ( !Active || IsProxy || Mode == RagdollMode.Disabled )
+			return;
+
 		if ( Renderer.GameObject != GameObject.Root )
 		{
 			if ( FollowMode.Contains( RagdollFollowMode.Position ) )
