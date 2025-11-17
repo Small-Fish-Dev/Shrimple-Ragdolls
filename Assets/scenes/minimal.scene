@@ -322,7 +322,7 @@
           "__guid": "cf4b4f23-f6da-4018-aae2-e9a5a254d432",
           "__enabled": true,
           "FollowMode": "All",
-          "Mode": "Passive",
+          "Mode": "Statue",
           "NetworkRefreshOnChange": true,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
