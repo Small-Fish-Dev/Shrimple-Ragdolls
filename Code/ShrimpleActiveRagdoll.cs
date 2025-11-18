@@ -129,8 +129,6 @@
 			MoveBodiesFromAnimations();
 			MoveMeshFromBodies();
 		}
-		if ( Mode == RagdollMode.Statue )
-			MoveMeshFromObjects();
 	}
 
 	protected override void OnFixedUpdate()
@@ -303,6 +301,7 @@
 				CreateStatuePhysics();
 
 			EnablePhysics();
+			MoveMeshFromObjects();
 		}
 	}
 
