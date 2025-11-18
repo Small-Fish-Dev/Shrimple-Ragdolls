@@ -1,0 +1,74 @@
+﻿public partial class ShrimpleActiveRagdoll
+{
+	/// <summary>
+	/// Calculate the center of mass of the ragdoll based on its bodies' masses and masscenters
+	/// </summary>
+	/// <returns></returns>
+	public Vector3 GetMassCenter()
+	{
+		var masses = 0f;
+		var centers = Vector3.Zero;
+
+		foreach ( var body in Bodies.Values )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
+
+			var mass = body.Component.PhysicsBody.Mass;
+			centers += body.Component.MassCenter * mass;
+			masses += mass;
+		}
+
+		if ( masses <= 0f )
+			return Vector3.Zero;
+
+		return centers / masses;
+	}
+	/// <summary>
+	/// Move the ragdoll without affecting its velocity or simulating collisions<br />
+	/// </summary>
+	/// <param name="target">The target transform, the entire ragdoll will be moved so that its root matches</param>
+	/// <param name="teleport">Don't use <see cref="PhysicsBody.UseController"/> so that it teleports instead of sweeping</param>
+	public void Move( Transform target, bool teleport = false )
+	{
+		foreach ( var body in Bodies.Values )
+		{
+			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) ); // TODO: Renderer doesn't follow in Enabled mode, set to follow bone roots
+			body.Component.PhysicsBody.UseController = !teleport;
+			body.Component.PhysicsBody.Move( targetTransform, Time.Delta );
+			body.Component.PhysicsBody.UseController = teleport;
+		}
+	}
+
+	/// <summary>
+	/// Apply a velocity to the ragdoll as a whole rather than on every body individually
+	/// </summary>
+	/// <param name="velocity">The velocity applied</param>
+	public void ApplyVelocityToRagdoll( Vector3 velocity )
+	{
+		foreach ( var body in Bodies.Values )
+			body.Component.Velocity += velocity;
+	}
+
+	/// <summary>
+	/// Apply a torque to the ragdoll as a whole rather than on every body individually
+	/// </summary>
+	/// <param name="torque">The axis to spin around and speed in radians per second</param>
+	public void ApplyTorque( Vector3 torque )
+	{
+		var spinAxis = torque.Normal;
+		var spinSpeed = torque.Length; // radians per second
+		var angularVelocity = spinAxis * spinSpeed;
+		var massCenter = GetMassCenter();
+
+		var rotationCenter = Renderer.TryGetBoneTransform( "pelvis", out var trasform ) ? trasform.Position : massCenter;
+		var centerLinearVelocity = Vector3.Cross( angularVelocity, (massCenter - rotationCenter) );
+
+		foreach ( var body in Bodies.Values )
+		{
+			var bodyVelocity = centerLinearVelocity + Vector3.Cross( angularVelocity, body.Component.WorldPosition - massCenter );
+			body.Component.Velocity += bodyVelocity;
+			body.Component.AngularVelocity += angularVelocity;
+		}
+	}
+}
