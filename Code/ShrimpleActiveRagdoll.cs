@@ -267,6 +267,7 @@
 				CreatePhysics();
 
 			EnablePhysics();
+			Renderer?.ClearPhysicsBones();
 		}
 
 		if ( newMode == RagdollMode.Passive )
@@ -275,6 +276,7 @@
 				CreatePhysics();
 
 			EnablePhysics();
+			Renderer?.ClearPhysicsBones();
 		}
 
 		if ( newMode == RagdollMode.Active )
@@ -283,6 +285,7 @@
 				CreatePhysics();
 
 			EnablePhysics();
+			Renderer?.ClearPhysicsBones();
 		}
 
 		if ( newMode == RagdollMode.Statue )

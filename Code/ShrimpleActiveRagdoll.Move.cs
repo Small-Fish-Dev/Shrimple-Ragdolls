@@ -8,7 +8,6 @@
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		Renderer.ClearPhysicsBones(); // Is this necessary?
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies )
 		{
@@ -44,7 +43,6 @@
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		Renderer.ClearPhysicsBones(); // Is this necessary?
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var bone in Bodies ) // We still use bodies just for the bone references
 		{
