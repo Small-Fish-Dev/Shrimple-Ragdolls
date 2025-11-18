@@ -71,10 +71,11 @@
 
 	/// <summary>
 	/// If the ragdoll's renderer is not the root object, how should the root gameobject follow the ragdoll's movement<br />
-	/// Useful for characters where the renderer is a child of the main object<br />
+	/// ENABLED ONLY FOR MODES WITH NO ANIMATIONS (Enabled and Statue)<br />
 	/// If you want to move the ragdoll you'll have to move the <see cref="Renderer"/>'s GameObject
 	/// </summary>
 	[Property]
+	[ShowIf( nameof( PhysicsDriven ), true )]
 	public RagdollFollowMode FollowMode
 	{
 		get;
@@ -104,6 +105,17 @@
 
 	public bool PhysicsWereCreated { get; protected set; } = false;
 	public bool StatuePhysicsWereCreated { get; protected set; } = false;
+
+	/// <summary>
+	/// The GameObject's position depends on physics simulation<br />
+	/// <see cref="RagdollMode.Enabled"/> or <see cref="RagdollMode.Statue"/>
+	/// </summary>
+	public bool PhysicsDriven => Mode == RagdollMode.Enabled || Mode == RagdollMode.Statue;
+	/// <summary>
+	/// The GameObject's position depends on animations or local transform<br />
+	/// <see cref="RagdollMode.Passive"/> or <see cref="RagdollMode.Active"/>
+	/// </summary>
+	public bool AnimationsDriven => Mode == RagdollMode.Passive || Mode == RagdollMode.Active;
 	public Model Model => Renderer?.Model;
 	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
@@ -138,13 +150,7 @@
 		if ( !Active || IsProxy || Mode == RagdollMode.Disabled )
 			return;
 
-		if ( Renderer.GameObject != GameObject.Root )
-		{
-			if ( FollowMode.Contains( RagdollFollowMode.Position ) )
-				GameObject.Root.WorldPosition = Renderer.GameObject.WorldPosition;
-			if ( FollowMode.Contains( RagdollFollowMode.Rotation ) )
-				GameObject.Root.WorldRotation = Renderer.GameObject.WorldRotation;
-		}
+		MoveGameObject();
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
@@ -315,6 +321,10 @@
 
 	public void EnablePhysics()
 	{
+		if ( !Renderer.IsValid() )
+			return;
+
+		MoveGameObject();
 		EnableBodies();
 		EnableJoints();
 
