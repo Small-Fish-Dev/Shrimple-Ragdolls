@@ -62,10 +62,11 @@
 		get;
 		set
 		{
-			if ( Game.IsPlaying )
-				InternalSetRagdollMode( field, value );
-
+			var old = field;
 			field = value;
+
+			if ( Game.IsPlaying )
+				InternalSetRagdollMode( old, value );
 		}
 	}
 
