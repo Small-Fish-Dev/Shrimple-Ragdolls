@@ -209,26 +209,9 @@
 
 		//BodyTransforms.Clear();
 
-		foreach ( var joint in Joints )
-			if ( joint.Component.IsValid() )
-				joint.Component.Destroy();
+		DestroyJoints();
+		DestroyBodies();
 
-		foreach ( var body in Bodies.Values )
-		{
-			if ( body.Component.IsValid() )
-			{
-				body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
-				body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-				body.Component?.Destroy();
-			}
-
-			foreach ( var collider in body.Colliders )
-				if ( collider.IsValid() )
-					collider.Destroy();
-		}
-
-		Bodies.Clear();
-		Joints.Clear();
 		Renderer?.Network?.Refresh();
 		PhysicsWereCreated = false;
 		StatuePhysicsWereCreated = false;

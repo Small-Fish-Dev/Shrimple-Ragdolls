@@ -87,6 +87,21 @@
 	}
 
 	/// <summary>
+	/// Destroy all joint components and clear the joints list
+	/// </summary>
+	protected void DestroyJoints()
+	{
+		if ( Joints == null )
+			return;
+
+		foreach ( var joint in Joints )
+			if ( joint.Component.IsValid() )
+				joint.Component.Destroy();
+
+		Joints.Clear();
+	}
+
+	/// <summary>
 	/// Disables all joints
 	/// </summary>
 	protected void DisableJoints()

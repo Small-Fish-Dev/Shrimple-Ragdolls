@@ -89,6 +89,31 @@
 	}
 
 	/// <summary>
+	/// Destroy all rigidbody components and colliders, then clear the bodies list
+	/// </summary>
+	protected void DestroyBodies()
+	{
+		if ( Bodies == null )
+			return;
+
+		foreach ( var body in Bodies.Values )
+		{
+			if ( body.Component.IsValid() )
+			{
+				body.Component.GameObject.Flags &= ~GameObjectFlags.Absolute;
+				body.Component.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
+				body.Component?.Destroy();
+			}
+
+			foreach ( var collider in body.Colliders )
+				if ( collider.IsValid() )
+					collider.Destroy();
+		}
+
+		Bodies.Clear();
+	}
+
+	/// <summary>
 	/// Disables all the rigidbodies and colliders
 	/// </summary>
 	protected void DisableBodies()
