@@ -44,15 +44,10 @@
 			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
 				continue;
 
-			if ( !boneObject.Flags.Contains( GameObjectFlags.PhysicsBone ) ) // Don't add the absolute flag to statue bodies
-			{
-				boneObject.Flags |= GameObjectFlags.PhysicsBone;
+			if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
+				boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
 
-				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
-					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
-
-				boneObject.WorldTransform = boneTransform;
-			}
+			boneObject.WorldTransform = boneTransform;
 
 			var colliders = AddColliders( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
