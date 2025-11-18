@@ -131,19 +131,23 @@
 				boneObject.Value.WorldTransform = transform;
 	}
 
-	protected void MoveGameObject()
+	protected void MoveGameObject( bool resetLocalTransform = false )
 	{
 		if ( PhysicsDriven && GameObject.Root != Renderer.GameObject )
 		{
 			if ( FollowMode.Contains( RagdollFollowMode.Position ) )
 			{
 				GameObject.Root.WorldPosition = Renderer.WorldPosition;
-				Renderer.LocalPosition = Vector3.Zero;
+
+				if ( resetLocalTransform )
+					Renderer.LocalPosition = Vector3.Zero;
 			}
 			if ( FollowMode.Contains( RagdollFollowMode.Rotation ) )
 			{
 				GameObject.Root.WorldRotation = Renderer.WorldRotation;
-				Renderer.LocalRotation = Rotation.Identity;
+
+				if ( resetLocalTransform )
+					Renderer.LocalRotation = Rotation.Identity;
 			}
 		}
 	}

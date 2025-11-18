@@ -150,7 +150,7 @@
 		if ( !Active || IsProxy || Mode == RagdollMode.Disabled )
 			return;
 
-		MoveGameObject();
+		MoveGameObject( false );
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
@@ -323,7 +323,7 @@
 		if ( !Renderer.IsValid() )
 			return;
 
-		MoveGameObject();
+		MoveGameObject( true );
 		EnableBodies();
 		EnableJoints();
 
