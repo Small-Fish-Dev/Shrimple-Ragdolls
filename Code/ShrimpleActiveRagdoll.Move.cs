@@ -133,6 +133,9 @@
 
 	protected void MoveGameObject( bool resetLocalTransform = false )
 	{
+		if ( !PhysicsWereCreated || !StatuePhysicsWereCreated )
+			return;
+
 		if ( PhysicsDriven && GameObject.Root != Renderer.GameObject )
 		{
 			if ( FollowMode.Contains( RagdollFollowMode.Position ) )

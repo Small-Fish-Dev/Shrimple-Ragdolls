@@ -205,17 +205,17 @@
 
 	protected void DestroyPhysics()
 	{
+		PhysicsWereCreated = false;
+		StatuePhysicsWereCreated = false;
+
 		if ( Renderer.IsValid() )
 			Renderer.ClearPhysicsBones();
-
 		//BodyTransforms.Clear();
 
 		DestroyJoints();
 		DestroyBodies();
 
 		Renderer?.Network?.Refresh();
-		PhysicsWereCreated = false;
-		StatuePhysicsWereCreated = false;
 	}
 
 	protected void CreateStatuePhysics()
