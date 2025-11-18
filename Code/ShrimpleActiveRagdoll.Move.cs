@@ -10,7 +10,7 @@
 
 		Renderer.ClearPhysicsBones(); // Is this necessary?
 		var worldTransform = Renderer.WorldTransform;
-		foreach ( var bone in Bodies )
+		foreach ( var body in Bodies )
 		{
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
@@ -28,9 +28,11 @@
 				sceneModel.SetBoneOverride( body.Bone, in transform );
 			}*/
 
+			//if ( body.Value.Component.Sleeping )
+			//	continue;
 
-			Transform transform = worldTransform.ToLocal( bone.Value.Component.GameObject.WorldTransform );
-			Renderer.SceneModel.SetBoneOverride( bone.Key.Index, in transform );
+			var transform = worldTransform.ToLocal( body.Value.Component.GameObject.WorldTransform );
+			Renderer.SceneModel.SetBoneOverride( body.Key.Index, in transform );
 		}
 	}
 
@@ -127,5 +129,22 @@
 		foreach ( var boneObject in BoneObjects )
 			if ( Renderer.TryGetBoneTransformAnimation( boneObject.Key, out var transform ) )
 				boneObject.Value.WorldTransform = transform;
+	}
+
+	protected void MoveGameObject()
+	{
+		if ( PhysicsDriven && GameObject.Root != Renderer.GameObject )
+		{
+			if ( FollowMode.Contains( RagdollFollowMode.Position ) )
+			{
+				GameObject.Root.WorldPosition = Renderer.WorldPosition;
+				Renderer.LocalPosition = Vector3.Zero;
+			}
+			if ( FollowMode.Contains( RagdollFollowMode.Rotation ) )
+			{
+				GameObject.Root.WorldRotation = Renderer.WorldRotation;
+				Renderer.LocalRotation = Rotation.Identity;
+			}
+		}
 	}
 }
