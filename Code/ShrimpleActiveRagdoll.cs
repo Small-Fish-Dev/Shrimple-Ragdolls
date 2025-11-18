@@ -330,4 +330,16 @@
 		if ( Mode == RagdollMode.Statue )
 			MoveObjectsFromMesh();
 	}
+
+	protected override void OnEnabled()
+	{
+		base.OnEnabled();
+		EnablePhysics();
+	}
+
+	protected override void OnDisabled()
+	{
+		base.OnDisabled();
+		DisablePhysics();
+	}
 }
