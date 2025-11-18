@@ -328,7 +328,7 @@
 		EnableJoints();
 
 		if ( Mode == RagdollMode.Statue )
-			MoveObjectsFromMesh();
+			MoveMeshFromObjects();
 	}
 
 	protected override void OnEnabled()
