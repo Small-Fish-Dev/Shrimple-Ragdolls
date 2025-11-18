@@ -307,7 +307,6 @@
 				CreateStatuePhysics();
 
 			EnablePhysics();
-			MoveMeshFromObjects();
 		}
 	}
 
@@ -328,6 +327,7 @@
 		EnableBodies();
 		EnableJoints();
 
-		MoveObjectsFromMesh();
+		if ( Mode == RagdollMode.Statue )
+			MoveObjectsFromMesh();
 	}
 }
