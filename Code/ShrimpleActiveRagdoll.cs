@@ -341,4 +341,34 @@
 		base.OnDisabled();
 		DisablePhysics();
 	}
+
+
+	[Property]
+	public BoneFollowOption Bones { get; set; } = new();
+
+
+
+	protected override void DrawGizmos()
+	{
+		base.DrawGizmos();
+
+		if ( !Game.IsEditor || Game.IsPlaying )
+			return;
+
+		Bones.Bone.Options = Model.Physics.Parts.Select( x => x.BoneName ).ToList();
+	}
+}
+
+public class BoneFollowOption
+{
+	[KeyProperty]
+	public ShrimpleActiveRagdoll.RagdollFollowMode FollowMode { get; set; }
+	[KeyProperty]
+	public BoneList Bone { get; set; } = new();
+}
+
+public class BoneList
+{
+	public List<string> Options { get; set; } = new();
+	public string Selected { get; set; }
 }
