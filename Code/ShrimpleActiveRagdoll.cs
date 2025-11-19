@@ -104,8 +104,19 @@
 	[Property]
 	public bool NetworkRefreshOnChange { get; set; } = true; // TODO IMPLEMENT
 
-	public bool PhysicsWereCreated { get; protected set; } = false;
+	/// <summary>
+	/// All the bodies and joints for ragdoll mode were created
+	/// </summary>
+	public bool RagdollPhysicsWereCreated { get; protected set; } = false;
+	/// <summary>
+	/// All the colliders were created for statue mode
+	/// </summary>
 	public bool StatuePhysicsWereCreated { get; protected set; } = false;
+
+	/// <summary>
+	/// All the bodies and joints were created for any mode
+	/// </summary>
+	public bool PhysicsWereCreated => RagdollPhysicsWereCreated || StatuePhysicsWereCreated;
 
 	/// <summary>
 	/// The GameObject's position depends on physics simulation<br />
@@ -117,6 +128,7 @@
 	/// <see cref="RagdollMode.Passive"/> or <see cref="RagdollMode.Active"/>
 	/// </summary>
 	public bool AnimationsDriven => Mode == RagdollMode.Passive || Mode == RagdollMode.Active;
+
 	public Model Model => Renderer?.Model;
 	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
@@ -200,12 +212,12 @@
 			joint.Component.Enabled = true;
 
 		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
-		PhysicsWereCreated = true;
+		RagdollPhysicsWereCreated = true;
 	}
 
 	protected void DestroyPhysics()
 	{
-		PhysicsWereCreated = false;
+		RagdollPhysicsWereCreated = false;
 		StatuePhysicsWereCreated = false;
 
 		if ( Renderer.IsValid() )
@@ -240,7 +252,7 @@
 			body.Component.Enabled = true;
 
 		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
-		PhysicsWereCreated = true;
+		RagdollPhysicsWereCreated = true;
 		StatuePhysicsWereCreated = true;
 	}
 

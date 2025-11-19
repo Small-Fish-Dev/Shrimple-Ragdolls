@@ -131,7 +131,7 @@
 
 	protected void MoveGameObject( bool resetLocalTransform = false )
 	{
-		if ( !PhysicsWereCreated && !StatuePhysicsWereCreated )
+		if ( !PhysicsWereCreated )
 			return;
 
 		if ( PhysicsDriven && GameObject.Root != Renderer.GameObject )
