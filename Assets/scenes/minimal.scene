@@ -321,6 +321,13 @@
           "__type": "ShrimpleActiveRagdoll",
           "__guid": "cf4b4f23-f6da-4018-aae2-e9a5a254d432",
           "__enabled": true,
+          "Bones": {
+            "FollowMode": "All",
+            "Bone": {
+              "Model": "models/citizen/citizen.vmdl",
+              "Selected": "pelvis"
+            }
+          },
           "FollowMode": "All",
           "Mode": "Statue",
           "NetworkRefreshOnChange": true,

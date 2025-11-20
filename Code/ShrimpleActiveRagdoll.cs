@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleActiveRagdoll : Component
+﻿using System.Text.Json.Serialization;
+
+public partial class ShrimpleActiveRagdoll : Component
 {
 	// TODO ADD MODE STATUE ONLY ONE RIGIDBODY
 	public enum RagdollMode
@@ -374,6 +376,7 @@ public class BoneFollowOption
 
 public class BoneList
 {
+	[JsonIgnore]
 	public List<string> Options => Model.Physics.Parts.Select( x => x.BoneName ).ToList();
 	public Model Model { get; set; }
 	public string Selected { get; set; }
