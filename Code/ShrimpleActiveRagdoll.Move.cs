@@ -11,7 +11,7 @@
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies )
 		{
-			if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled )
+			if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled ) // Optimization, don't override if it's sleeping
 				continue;
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
@@ -48,8 +48,6 @@
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies ) // We still use bodies just for the bone references
 		{
-			if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled )
-				continue;
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
 			{
@@ -147,7 +145,7 @@
 
 			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
 			Renderer.TryGetBoneTransformAnimation( bone, out var animationTransform );
-			Renderer.TryGetBoneTransform( FollowOptions.Bone.Selected, out var currentTransform );
+			var currentTransform = Bodies[bone].Component.GameObject.WorldTransform;
 
 			Renderer.WorldTransform = currentTransform.ToWorld( animationTransform.ToLocal( Renderer.WorldTransform ) );
 		}
