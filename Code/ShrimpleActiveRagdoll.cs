@@ -275,6 +275,7 @@
 
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
+			MoveObjectsFromMesh();
 		}
 
 		if ( newMode == RagdollMode.Active )
@@ -284,6 +285,7 @@
 
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
+			MoveObjectsFromMesh();
 		}
 
 		if ( newMode == RagdollMode.Statue )
@@ -292,6 +294,7 @@
 				CreateStatuePhysics();
 
 			EnablePhysics();
+			MoveObjectsFromMesh();
 		}
 	}
 
