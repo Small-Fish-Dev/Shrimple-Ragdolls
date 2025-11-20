@@ -200,7 +200,7 @@
 		RagdollPhysicsWereCreated = true;
 	}
 
-	protected void DestroyPhysics()
+	public void DestroyPhysics()
 	{
 		RagdollPhysicsWereCreated = false;
 		StatuePhysicsWereCreated = false;
