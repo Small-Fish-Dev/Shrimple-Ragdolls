@@ -24,6 +24,7 @@
 
 		return centers / masses;
 	}
+
 	/// <summary>
 	/// Move the ragdoll without affecting its velocity or simulating collisions<br />
 	/// </summary>
@@ -31,6 +32,8 @@
 	/// <param name="teleport">Don't use <see cref="PhysicsBody.UseController"/> so that it teleports instead of sweeping</param>
 	public void Move( Transform target, bool teleport = false )
 	{
+		WakePhysics();
+
 		foreach ( var body in Bodies.Values )
 		{
 			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) ); // TODO: Renderer doesn't follow in Enabled mode, set to follow bone roots
@@ -46,6 +49,8 @@
 	/// <param name="velocity">The velocity applied</param>
 	public void ApplyVelocityToRagdoll( Vector3 velocity )
 	{
+		WakePhysics();
+
 		foreach ( var body in Bodies.Values )
 			body.Component.Velocity += velocity;
 	}
@@ -56,6 +61,8 @@
 	/// <param name="torque">The axis to spin around and speed in radians per second</param>
 	public void ApplyTorque( Vector3 torque )
 	{
+		WakePhysics();
+
 		var spinAxis = torque.Normal;
 		var spinSpeed = torque.Length; // radians per second
 		var angularVelocity = spinAxis * spinSpeed;
@@ -70,5 +77,14 @@
 			body.Component.Velocity += bodyVelocity;
 			body.Component.AngularVelocity += angularVelocity;
 		}
+	}
+
+	/// <summary>
+	/// Makes sure to wake up all bodies
+	/// </summary>
+	public void WakePhysics()
+	{
+		foreach ( var body in Bodies )
+			body.Value.Component.Sleeping = false;
 	}
 }
