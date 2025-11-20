@@ -11,6 +11,8 @@
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies )
 		{
+			if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled )
+				continue;
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
 			{
@@ -44,8 +46,10 @@
 			return;
 
 		var worldTransform = Renderer.WorldTransform;
-		foreach ( var bone in Bodies ) // We still use bodies just for the bone references
+		foreach ( var body in Bodies ) // We still use bodies just for the bone references
 		{
+			if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled )
+				continue;
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
 			{
@@ -62,9 +66,9 @@
 				sceneModel.SetBoneOverride( body.Bone, in transform );
 			}*/
 
-			var boneObject = BoneObjects[bone.Key];
+			var boneObject = BoneObjects[body.Key];
 			Transform transform = worldTransform.ToLocal( boneObject.WorldTransform );
-			Renderer.SceneModel.SetBoneOverride( bone.Key.Index, in transform );
+			Renderer.SceneModel.SetBoneOverride( body.Key.Index, in transform );
 		}
 	}
 
