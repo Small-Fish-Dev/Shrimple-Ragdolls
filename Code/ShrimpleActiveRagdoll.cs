@@ -44,11 +44,11 @@
 	public enum RagdollFollowMode
 	{
 		[Icon( "cancel" )]
-		None = 1,
+		None = 0,
 		[Icon( "open_with" )]
-		Position = 2,
+		Position = 1,
 		[Icon( "autorenew" )]
-		Rotation = 4,
+		Rotation = 2,
 		[Hide]
 		All = Position | Rotation
 	}
@@ -72,25 +72,10 @@
 
 	/// <summary>
 	/// If the ragdoll's renderer is not the root object, how should the root gameobject follow the ragdoll's movement<br />
-	/// ENABLED ONLY FOR MODES WITH NO ANIMATIONS (Enabled and Statue)<br />
 	/// If you want to move the ragdoll you'll have to move the <see cref="Renderer"/>'s GameObject
 	/// </summary>
 	[Property]
-	[ShowIf( nameof( PhysicsDriven ), true )]
-	public RagdollFollowMode FollowMode
-	{
-		get;
-		set
-		{
-			if ( !field.Contains( RagdollFollowMode.None ) && value.Contains( RagdollFollowMode.None ) )
-				value = RagdollFollowMode.None;
-
-			if ( value != RagdollFollowMode.None )
-				value &= ~RagdollFollowMode.None;
-
-			field = value;
-		}
-	} = RagdollFollowMode.All;
+	public BoneFollowOption FollowOptions { get; set; } = new();
 
 	/// <summary>
 	/// Destroy and build the physics when changing <see cref="Mode"/> instead of just enabling/disabling the components
@@ -341,12 +326,6 @@
 		base.OnDisabled();
 		DisablePhysics();
 	}
-
-
-	[Property]
-	public BoneFollowOption Bones { get; set; } = new();
-
-
 
 	protected override void DrawGizmos()
 	{

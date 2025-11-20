@@ -21,10 +21,10 @@ public partial class ShrimpleActiveRagdoll
 	protected void SetupBoneList()
 	{
 		// Can't do this inside of OnValidate, still broken somehow
-		if ( !Bones.Bone.Model.IsValid() || Bones.Bone.Model != Renderer.Model )
+		if ( !FollowOptions.Bone.Model.IsValid() || FollowOptions.Bone.Model != Renderer.Model )
 		{
-			Bones.Bone?.Model = Model;
-			Bones.Bone.Selected = Model.Physics.Parts.Select( x => x.BoneName ).FirstOrDefault();
+			FollowOptions.Bone?.Model = Model;
+			FollowOptions.Bone.Selected = Model.Physics.Parts.Select( x => x.BoneName ).FirstOrDefault();
 		}
 	}
 }
