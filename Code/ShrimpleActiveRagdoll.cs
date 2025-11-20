@@ -123,7 +123,7 @@
 	{
 		base.OnStart();
 
-		InternalSetRagdollMode( Mode, Mode, true );
+		InternalSetRagdollMode( Mode, Mode );
 	}
 
 	protected override void OnUpdate()
@@ -253,23 +253,24 @@
 		Mode = mode;
 	}
 
-	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode, bool firstTime = false )
+	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode )
 	{
 		if ( newMode == RagdollMode.Disabled )
 			DisablePhysics();
 
 		if ( newMode == RagdollMode.Enabled )
 		{
-			if ( StatuePhysicsWereCreated || firstTime ) // If we were statue we need to recreate the physics
+			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated ) // If we were statue we need to recreate the physics
 				CreatePhysics();
 
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
+			MoveObjectsFromMesh();
 		}
 
 		if ( newMode == RagdollMode.Passive )
 		{
-			if ( StatuePhysicsWereCreated || firstTime )
+			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
 				CreatePhysics();
 
 			EnablePhysics();
@@ -278,7 +279,7 @@
 
 		if ( newMode == RagdollMode.Active )
 		{
-			if ( StatuePhysicsWereCreated || firstTime )
+			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
 				CreatePhysics();
 
 			EnablePhysics();
@@ -287,7 +288,7 @@
 
 		if ( newMode == RagdollMode.Statue )
 		{
-			if ( !StatuePhysicsWereCreated || firstTime )
+			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated )
 				CreateStatuePhysics();
 
 			EnablePhysics();
