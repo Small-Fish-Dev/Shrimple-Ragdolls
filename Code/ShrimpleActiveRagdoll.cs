@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-public partial class ShrimpleActiveRagdoll : Component
+﻿public partial class ShrimpleActiveRagdoll : Component
 {
 	// TODO ADD MODE STATUE ONLY ONE RIGIDBODY
 	public enum RagdollMode
@@ -357,27 +355,6 @@ public partial class ShrimpleActiveRagdoll : Component
 		if ( !Game.IsEditor || Game.IsPlaying )
 			return;
 
-		// Can't do this inside of OnValidate, still broken somehow
-		if ( !Bones.Bone.Model.IsValid() || Bones.Bone.Model != Renderer.Model )
-		{
-			Bones.Bone?.Model = Model;
-			Bones.Bone.Selected = Model.Physics.Parts.Select( x => x.BoneName ).FirstOrDefault();
-		}
+		SetupBoneList();
 	}
-}
-
-public class BoneFollowOption
-{
-	[KeyProperty]
-	public ShrimpleActiveRagdoll.RagdollFollowMode FollowMode { get; set; } = ShrimpleActiveRagdoll.RagdollFollowMode.All;
-	[KeyProperty]
-	public BoneList Bone { get; set; } = new();
-}
-
-public class BoneList
-{
-	[JsonIgnore]
-	public List<string> Options => Model.Physics.Parts.Select( x => x.BoneName ).ToList();
-	public Model Model { get; set; }
-	public string Selected { get; set; }
 }
