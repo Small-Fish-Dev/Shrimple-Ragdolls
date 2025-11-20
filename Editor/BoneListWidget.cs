@@ -45,12 +45,14 @@ internal class BoneListWidget : ControlWidget
 		_menu = new Menu();
 		_menu.DeleteOnClose = true;
 
+		var options = SerializedProperty.GetValue<BoneList>().Options;
+
 		_menu.AddLineEdit( "Filter",
 			placeholder: "Search",
 			autoFocus: true,
-			onChange: s => PopulateMenu( _menu, SerializedProperty.GetValue<BoneList>().Options, s ) );
+			onChange: s => PopulateMenu( _menu, options.Select( x => $"{options.IndexOf( x ).ToString( "D2" )}. {x}" ), s ) );
 
-		_menu.AboutToShow += () => PopulateMenu( _menu, SerializedProperty.GetValue<BoneList>().Options );
+		_menu.AboutToShow += () => PopulateMenu( _menu, options.Select( x => $"{options.IndexOf( x ).ToString( "D2" )}. {x}" ) );
 
 		_menu.OpenAtCursor( true );
 		_menu.MinimumWidth = ScreenRect.Width;
@@ -90,7 +92,7 @@ internal class BoneListWidget : ControlWidget
 		{
 			if ( x != null )
 			{
-				SerializedProperty.GetValue<BoneList>().Selected = x;
+				SerializedProperty.GetValue<BoneList>().Selected = x.Split( ". " )[1];
 				SignalValuesChanged();
 			}
 		}, flat: useFilter );
