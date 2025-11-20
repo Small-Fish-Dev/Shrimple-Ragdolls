@@ -129,21 +129,38 @@
 				boneObject.Value.WorldTransform = transform;
 	}
 
+	/// <summary>
+	/// Follow the <see cref="RagdollFollowMode"/>
+	/// </summary>
+	/// <param name="resetLocalTransform"></param>
 	protected void MoveGameObject( bool resetLocalTransform = false )
 	{
 		if ( !PhysicsWereCreated )
 			return;
 
+		if ( Mode == RagdollMode.Enabled )
+		{
+
+			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
+			Renderer.TryGetBoneTransformAnimation( bone, out var animationTransform );
+			Renderer.TryGetBoneTransform( FollowOptions.Bone.Selected, out var currentTransform );
+
+			Renderer.WorldTransform = currentTransform.ToWorld( animationTransform.ToLocal( Renderer.WorldTransform ) );
+		}
+
+
+
+		return;
 		if ( PhysicsDriven && GameObject.Root != Renderer.GameObject )
 		{
-			if ( FollowMode.Contains( RagdollFollowMode.Position ) )
+			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
 			{
 				GameObject.Root.WorldPosition = Renderer.WorldPosition;
 
 				if ( resetLocalTransform )
 					Renderer.LocalPosition = Vector3.Zero;
 			}
-			if ( FollowMode.Contains( RagdollFollowMode.Rotation ) )
+			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
 			{
 				GameObject.Root.WorldRotation = Renderer.WorldRotation;
 
