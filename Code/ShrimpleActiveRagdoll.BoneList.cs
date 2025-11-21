@@ -4,8 +4,19 @@ public partial class ShrimpleActiveRagdoll
 {
 	public class BoneFollowOption
 	{
+		/// <summary>
+		/// If the root object is not the renderer, make that follow the renderer
+		/// </summary>
+		[KeyProperty]
+		public bool RootObjectFollow { get; set; } = true;
+		/// <summary>
+		/// How the renderer will follow the ragdoll
+		/// </summary>
 		[KeyProperty]
 		public RagdollFollowMode FollowMode { get; set; } = RagdollFollowMode.All;
+		/// <summary>
+		/// Which bone the renderer will merge to
+		/// </summary>
 		[KeyProperty]
 		public BoneList Bone { get; set; } = new();
 	}

@@ -148,7 +148,7 @@
 		if ( !Active || IsProxy || Mode == RagdollMode.Disabled )
 			return;
 
-		MoveGameObject( false );
+		MoveGameObject();
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
@@ -256,13 +256,17 @@
 	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode )
 	{
 		if ( newMode == RagdollMode.Disabled )
+		{
+			Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
 			DisablePhysics();
+		}
 
 		if ( newMode == RagdollMode.Enabled )
 		{
 			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated ) // If we were statue we need to recreate the physics
 				CreatePhysics();
 
+			Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
 			MoveObjectsFromMesh();
@@ -273,6 +277,7 @@
 			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
 				CreatePhysics();
 
+			Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
 			MoveObjectsFromMesh();
@@ -283,6 +288,7 @@
 			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
 				CreatePhysics();
 
+			Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
 			MoveObjectsFromMesh();
@@ -293,6 +299,7 @@
 			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated )
 				CreateStatuePhysics();
 
+			Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
 			EnablePhysics();
 			MoveObjectsFromMesh();
 		}
@@ -311,7 +318,7 @@
 		if ( !Renderer.IsValid() )
 			return;
 
-		MoveGameObject( true );
+		MoveGameObject();
 		EnableBodies();
 		EnableJoints();
 
