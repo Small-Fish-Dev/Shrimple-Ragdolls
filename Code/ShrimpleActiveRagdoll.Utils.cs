@@ -1,5 +1,11 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
+	[Button]
+	public void Test()
+	{
+		Move( new Transform( Renderer.WorldTransform.Position + Vector3.Up * 100f, Renderer.WorldTransform.Rotation ) );
+	}
+
 	/// <summary>
 	/// Calculate the center of mass of the ragdoll based on its bodies' masses and masscenters
 	/// </summary>
@@ -29,17 +35,19 @@
 	/// Move the ragdoll without affecting its velocity or simulating collisions<br />
 	/// </summary>
 	/// <param name="target">The target transform, the entire ragdoll will be moved so that its root matches</param>
-	/// <param name="teleport">Don't use <see cref="PhysicsBody.UseController"/> so that it teleports instead of sweeping</param>
-	public void Move( Transform target, bool teleport = false )
+	public void Move( Transform target )
 	{
 		WakePhysics();
 
 		foreach ( var body in Bodies.Values )
 		{
 			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) ); // TODO: Renderer doesn't follow in Enabled mode, set to follow bone roots
-			body.Component.PhysicsBody.UseController = !teleport;
+			var previousVel = body.Component.Velocity;
+			var previousAngVel = body.Component.AngularVelocity;
+
+			body.Component.PhysicsBody.UseController = false;
 			body.Component.PhysicsBody.Move( targetTransform, Time.Delta );
-			body.Component.PhysicsBody.UseController = teleport;
+			body.Component.PhysicsBody.UseController = true;
 		}
 	}
 
