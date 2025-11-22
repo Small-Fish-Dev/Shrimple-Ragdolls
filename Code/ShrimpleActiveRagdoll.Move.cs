@@ -162,5 +162,19 @@
 					GameObject.Root.WorldRotation = Renderer.WorldRotation;
 			}
 		}
+
+		if ( Mode == RagdollMode.Statue )
+		{
+			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
+			{
+				if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
+					GameObject.Root.WorldPosition = Renderer.WorldPosition;
+			}
+			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
+			{
+				if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
+					GameObject.Root.WorldRotation = Renderer.WorldRotation;
+			}
+		}
 	}
 }
