@@ -142,9 +142,10 @@
 		if ( Mode == RagdollMode.Enabled )
 		{
 			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
-			Renderer.TryGetBoneTransformAnimation( bone, out var animationTransform );
+			var localTransform = Renderer.Model.GetBoneTransform( FollowOptions.Bone.Selected );
 			var currentTransform = Bodies[bone].Component.GameObject.WorldTransform;
-			var targetTransform = currentTransform.ToWorld( animationTransform.ToLocal( Renderer.WorldTransform ) );
+			// Maybe there's a better way to get the bones to match without instantiating a new Transform but I couldn't find it haha 
+			var targetTransform = currentTransform.ToWorld( new Transform( -localTransform.Position * localTransform.Rotation.Inverse, localTransform.Rotation.Inverse ) );
 
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
 			{
