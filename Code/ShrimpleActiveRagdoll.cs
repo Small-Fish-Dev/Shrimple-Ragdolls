@@ -257,7 +257,7 @@
 	{
 		if ( newMode == RagdollMode.Disabled )
 		{
-			Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
+			MakeRendererAbsolute( false );
 			DisablePhysics();
 		}
 
@@ -266,7 +266,7 @@
 			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated ) // If we were statue we need to recreate the physics
 				CreatePhysics();
 
-			Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
+			MakeRendererAbsolute( true );
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
 			MoveObjectsFromMesh();
@@ -277,7 +277,7 @@
 			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
 				CreatePhysics();
 
-			Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
+			MakeRendererAbsolute( false );
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
 			MoveObjectsFromMesh();
@@ -288,7 +288,7 @@
 			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
 				CreatePhysics();
 
-			Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
+			MakeRendererAbsolute( false );
 			EnablePhysics();
 			Renderer?.ClearPhysicsBones();
 			MoveObjectsFromMesh();
@@ -299,9 +299,26 @@
 			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated )
 				CreateStatuePhysics();
 
-			Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
+			MakeRendererAbsolute( true );
 			EnablePhysics();
 			MoveObjectsFromMesh();
+		}
+	}
+
+	protected void MakeRendererAbsolute( bool absolute )
+	{
+		if ( absolute )
+		{
+			if ( !Renderer.GameObject.Flags.Contains( GameObjectFlags.Absolute ) )
+				Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
+		}
+		else
+		{
+			if ( Renderer.GameObject.Flags.Contains( GameObjectFlags.Absolute ) )
+			{
+				Renderer.GameObject.Flags &= ~GameObjectFlags.Absolute;
+				Renderer.WorldTransform = Renderer.LocalTransform;
+			}
 		}
 	}
 
