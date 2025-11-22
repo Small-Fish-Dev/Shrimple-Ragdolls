@@ -42,8 +42,6 @@
 		foreach ( var body in Bodies.Values )
 		{
 			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) ); // TODO: Renderer doesn't follow in Enabled mode, set to follow bone roots
-			var previousVel = body.Component.Velocity;
-			var previousAngVel = body.Component.AngularVelocity;
 
 			body.Component.PhysicsBody.UseController = false;
 			body.Component.PhysicsBody.Move( targetTransform, Time.Delta );

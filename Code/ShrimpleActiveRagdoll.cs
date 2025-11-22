@@ -72,7 +72,8 @@
 
 	/// <summary>
 	/// If the ragdoll's renderer is not the root object, how should the root gameobject follow the ragdoll's movement<br />
-	/// If you want to move the ragdoll you'll have to move the <see cref="Renderer"/>'s GameObject
+	/// If you want to move the ragdoll you'll have to move the <see cref="Renderer"/>'s GameObject<br />
+	/// If you want to move the ragdoll's physics you'll have to call <see cref="Move(global::Transform)"/> and in animation driven modes also the Renderer's GameObject
 	/// </summary>
 	[Property]
 	public BoneFollowOption FollowOptions { get; set; } = new();
