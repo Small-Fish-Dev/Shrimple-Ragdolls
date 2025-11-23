@@ -143,15 +143,14 @@
 	{
 		base.OnUpdate();
 
+		if ( !Active || Mode == RagdollMode.Disabled )
+			return;
+
+
 		if ( Mode == RagdollMode.Enabled )
 			MoveMeshFromBodies();
-		if ( Mode == RagdollMode.Passive )
-			MoveBodiesFromAnimations();
 		if ( Mode == RagdollMode.Active )
-		{
-			MoveBodiesFromAnimations();
 			MoveMeshFromBodies();
-		}
 
 		//var attachment = Renderer.GetAttachment( "eyes" );
 		//DebugOverlay.Sphere( new Sphere( attachment.Value.Position, 3.0f ), Color.Red, Time.Delta );
@@ -163,6 +162,11 @@
 
 		if ( !Active || IsProxy || Mode == RagdollMode.Disabled )
 			return;
+
+		if ( Mode == RagdollMode.Passive )
+			MoveBodiesFromAnimations();
+		if ( Mode == RagdollMode.Active )
+			MoveBodiesFromAnimations();
 
 		MoveGameObject();
 	}

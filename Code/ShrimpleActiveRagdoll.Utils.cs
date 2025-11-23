@@ -1,11 +1,5 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	[Button]
-	public void Test()
-	{
-		Move( new Transform( Renderer.WorldTransform.Position + Vector3.Up * 100f, Renderer.WorldTransform.Rotation ) );
-	}
-
 	/// <summary>
 	/// Calculate the center of mass of the ragdoll based on its bodies' masses and masscenters
 	/// </summary>
