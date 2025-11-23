@@ -37,17 +37,18 @@
 
 		foreach ( var body in Bodies )
 		{
-			var parent = GetBodyByBone( body.Key.Parent );
-			body.Value.Parent = parent;
+			// Find nearest valid parent body
+			body.Value.Parent = GetNearestValidParentBody( body.Key.Parent );
 
-			if ( body.Key.Children != null || body.Key.Children.Count() > 0 )
+			if ( body.Key.Children != null && body.Key.Children.Count() > 0 )
 				body.Value.Children = new List<Body>();
 			else
 				continue;
 
 			foreach ( var childBone in body.Key.Children )
 			{
-				var childBody = GetBodyByBone( childBone );
+				// Find nearest valid child body (traverse down the hierarchy)
+				var childBody = GetNearestValidChildBody( childBone );
 				if ( childBody != null )
 					body.Value.Children.Add( childBody );
 			}
