@@ -308,6 +308,9 @@
 
 	protected void MakeRendererAbsolute( bool absolute )
 	{
+		if ( !Renderer.IsValid() )
+			return;
+
 		if ( absolute )
 		{
 			if ( !Renderer.GameObject.Flags.Contains( GameObjectFlags.Absolute ) )
