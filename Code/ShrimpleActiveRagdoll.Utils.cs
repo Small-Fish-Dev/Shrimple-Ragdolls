@@ -87,4 +87,30 @@
 		foreach ( var body in Bodies )
 			body.Value.Component.Sleeping = false;
 	}
+
+	public Body GetBodyByBoneName( string boneName )
+	{
+		var bone = Renderer.Model.Bones.GetBone( boneName );
+		if ( Bodies.TryGetValue( bone, out var body ) )
+			return body;
+		return null;
+	}
+
+	public Body GetBodyByBoneIndex( int boneIndex )
+	{
+		var bone = Renderer.Model.Bones.AllBones[boneIndex];
+		if ( Bodies.TryGetValue( bone, out var body ) )
+			return body;
+		return null;
+	}
+
+	public BoneCollection.Bone GetBoneByBody( Body body )
+	{
+		foreach ( var pair in Bodies )
+		{
+			if ( pair.Value == body )
+				return pair.Key;
+		}
+		return null;
+	}
 }
