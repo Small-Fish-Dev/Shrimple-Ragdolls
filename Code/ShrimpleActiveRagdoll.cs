@@ -54,7 +54,18 @@
 	}
 
 	[Property]
-	public SkinnedModelRenderer Renderer { get; set; }
+	public SkinnedModelRenderer Renderer
+	{
+		get;
+		set
+		{
+			if ( !value.IsValid() )
+				return;
+
+			field = value;
+			field.CreateBoneObjects = true;
+		}
+	}
 
 	[Property]
 	public RagdollMode Mode
@@ -124,6 +135,7 @@
 	{
 		base.OnStart();
 
+		Renderer.CreateBoneObjects = true;
 		InternalSetRagdollMode( Mode, Mode );
 	}
 
@@ -140,6 +152,9 @@
 			MoveBodiesFromAnimations();
 			MoveMeshFromBodies();
 		}
+
+		//var attachment = Renderer.GetAttachment( "eyes" );
+		//DebugOverlay.Sphere( new Sphere( attachment.Value.Position, 3.0f ), Color.Red, Time.Delta );
 	}
 
 	protected override void OnFixedUpdate()
