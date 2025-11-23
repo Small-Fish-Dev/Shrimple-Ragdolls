@@ -319,7 +319,7 @@
 			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated )
 				CreateStatuePhysics();
 
-			MakeRendererAbsolute( true );
+			MakeRendererAbsolute( false );
 			EnablePhysics();
 			MoveObjectsFromMesh();
 		}
