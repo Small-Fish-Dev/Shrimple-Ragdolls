@@ -106,17 +106,66 @@
 
 	public Body GetBodyByBone( BoneCollection.Bone bone )
 	{
+		if ( bone == null )
+			return null;
+
 		if ( Bodies.TryGetValue( bone, out var body ) )
 			return body;
+
 		return null;
 	}
 
 	public BoneCollection.Bone GetBoneByBody( Body body )
 	{
+		if ( body == null )
+			return null;
+
 		foreach ( var pair in Bodies )
 		{
 			if ( pair.Value == body )
 				return pair.Key;
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// Finds the nearest ancestor bone that is associated with a valid body
+	/// </summary>
+	/// <returns>The nearest valid parent body associated with the specified bone, or null if no such body is found.</returns>
+	public Body GetNearestValidParentBody( BoneCollection.Bone bone )
+	{
+		while ( bone != null )
+		{
+			var parentBody = GetBodyByBone( bone );
+			if ( parentBody != null )
+				return parentBody;
+			bone = bone.Parent;
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// Finds the nearest descendant bone that is associated with a valid body
+	/// </summary>
+	/// <returns>The nearest valid childn body associated with the specified bone, or null if no such body is found.</returns>
+	public Body GetNearestValidChildBody( BoneCollection.Bone bone )
+	{
+		if ( bone == null )
+			return null;
+
+		// If this bone has a body, return it
+		if ( Bodies.TryGetValue( bone, out var body ) && body != null )
+			return body;
+
+		// Otherwise, recursively check children
+		if ( bone.Children != null )
+		{
+			foreach ( var childBone in bone.Children )
+			{
+				var childBody = GetNearestValidChildBody( childBone );
+				if ( childBody != null )
+					return childBody;
+			}
 		}
 		return null;
 	}
