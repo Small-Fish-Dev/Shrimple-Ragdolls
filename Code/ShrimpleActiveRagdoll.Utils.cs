@@ -104,6 +104,13 @@
 		return null;
 	}
 
+	public Body GetBodyByBone( BoneCollection.Bone bone )
+	{
+		if ( Bodies.TryGetValue( bone, out var body ) )
+			return body;
+		return null;
+	}
+
 	public BoneCollection.Bone GetBoneByBody( Body body )
 	{
 		foreach ( var pair in Bodies )
