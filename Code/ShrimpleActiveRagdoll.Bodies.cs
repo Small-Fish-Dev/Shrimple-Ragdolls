@@ -1,6 +1,11 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	public record class Body( Rigidbody Component, int Bone, List<Collider> Colliders, Body Parent = null, List<Body> Children = null ); // This one has to be a class for the parent and children reference
+	public record class Body( Rigidbody Component, int Bone, List<Collider> Colliders, Body Parent = null, List<Body> Children = null )
+	{
+		public Body Parent { get; set; } = Parent;
+		public List<Body> Children { get; set; } = Children;
+	}
+
 	public Dictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
@@ -28,6 +33,24 @@
 			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
+		}
+
+		foreach ( var body in Bodies )
+		{
+			var parent = GetBodyByBone( body.Key.Parent );
+			body.Value.Parent = parent;
+
+			if ( body.Key.Children != null || body.Key.Children.Count() > 0 )
+				body.Value.Children = new List<Body>();
+			else
+				continue;
+
+			foreach ( var childBone in body.Key.Children )
+			{
+				var childBody = GetBodyByBone( childBone );
+				if ( childBody != null )
+					body.Value.Children.Add( childBody );
+			}
 		}
 
 		//rigidbody.PhysicsBody.RebuildMass();
