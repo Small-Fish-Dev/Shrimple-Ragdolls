@@ -1,6 +1,6 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	public readonly record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders );
+	public record class Body( Rigidbody Component, int Bone, List<Collider> Colliders, Body Parent = null, List<Body> Children = null ); // This one has to be a class for the parent and children reference
 	public Dictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
