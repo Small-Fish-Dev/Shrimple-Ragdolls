@@ -1,6 +1,5 @@
 ﻿public partial class ShrimpleActiveRagdoll : Component
 {
-	// TODO ADD MODE STATUE ONLY ONE RIGIDBODY
 	public enum RagdollMode
 	{
 		/// <summary>
@@ -54,6 +53,7 @@
 	}
 
 	[Property]
+	//[Sync] // TODO: MAKE SYNCS WHEN FIELDS WORK
 	public SkinnedModelRenderer Renderer
 	{
 		get;
@@ -68,6 +68,7 @@
 	}
 
 	[Property]
+	//[Sync]
 	public RagdollMode Mode
 	{
 		get;
@@ -93,21 +94,23 @@
 	/// Destroy and build the physics when changing <see cref="Mode"/> instead of just enabling/disabling the components
 	/// </summary>
 	[Property]
-	public bool RebuildPhysicsOnChange { get; set; } = false; // TODO IMPLEMENT
+	public bool RebuildPhysicsOnChange { get; set; } = false;
 
 	/// <summary>
-	/// Call a network refresh on the Renderer's GameObject when changing <see cref="Mode"/>
+	/// Call a network refresh on the Renderer's GameObject internally when creating/destroying physics
 	/// </summary>
 	[Property]
-	public bool NetworkRefreshOnChange { get; set; } = true; // TODO IMPLEMENT
+	public bool NetworkRefreshOnChange { get; set; } = true;
 
 	/// <summary>
 	/// All the bodies and joints for ragdoll mode were created
 	/// </summary>
+	[Sync]
 	public bool RagdollPhysicsWereCreated { get; protected set; } = false;
 	/// <summary>
 	/// All the colliders were created for statue mode
 	/// </summary>
+	[Sync]
 	public bool StatuePhysicsWereCreated { get; protected set; } = false;
 
 	/// <summary>
@@ -129,6 +132,7 @@
 	public Model Model => Renderer?.Model;
 	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
+	[Sync]
 	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; }
 
 	protected override void OnStart()
@@ -216,7 +220,9 @@
 		foreach ( var joint in Joints )
 			joint.Component.Enabled = true;
 
-		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
+		if ( NetworkRefreshOnChange )
+			Renderer?.Network?.Refresh(); // Only refresh the renderer as that's where we added the bone objects
+
 		RagdollPhysicsWereCreated = true;
 	}
 
@@ -232,7 +238,8 @@
 		DestroyJoints();
 		DestroyBodies();
 
-		Renderer?.Network?.Refresh();
+		if ( NetworkRefreshOnChange )
+			Renderer?.Network?.Refresh();
 	}
 
 	protected void CreateStatuePhysics()
@@ -256,7 +263,9 @@
 		foreach ( var body in Bodies.Values )
 			body.Component.Enabled = true;
 
-		Renderer?.Network?.Refresh(); // Only refresh the rendeded as that's where we added the bone objects
+		if ( NetworkRefreshOnChange )
+			Renderer?.Network?.Refresh();
+
 		RagdollPhysicsWereCreated = true;
 		StatuePhysicsWereCreated = true;
 	}
