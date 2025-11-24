@@ -6,8 +6,7 @@
 		public List<Body> Children { get; set; } = Children;
 	}
 
-	[Sync]
-	public NetDictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();
+	public Dictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
 	{

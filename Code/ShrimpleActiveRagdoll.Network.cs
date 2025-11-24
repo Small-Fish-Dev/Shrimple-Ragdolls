@@ -35,4 +35,20 @@
 				body.Component.WorldTransform = bodyTransform.Value;
 		}
 	}
+
+	protected void LoadBodies()
+	{
+		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
+
+		foreach ( var bone in BoneObjects )
+		{
+			var rigidbody = bone.Value.GetComponent<Rigidbody>();
+			var colliders = bone.Value.GetComponents<Collider>().ToList();
+
+			if ( !rigidbody.IsValid() )
+				continue;
+
+			Bodies.Add( bone.Key, new Body( rigidbody, bone.Key.Index, colliders ) );
+		}
+	}
 }

@@ -146,6 +146,13 @@
 			GameObject.Root.NetworkSpawn();
 		}
 	}
+	protected override async Task OnLoad()
+	{
+		if ( !IsProxy )
+			return;
+
+		LoadBodies();
+	}
 
 	protected override void OnUpdate()
 	{
@@ -180,12 +187,19 @@
 
 			MoveGameObject();
 			SetBodyTransforms();
-			Log.Info( "Host: " + BodyTransforms.First().Value );
+
+			foreach ( var collider in Renderer.GameObject.Components.GetAll<Collider>( FindMode.EverythingInSelfAndDescendants ) )
+			{
+				//Log.Info( "Host: " + collider.GameObject.Name + ": " + collider.GetHashCode() );
+			}
 		}
 		else
 		{
 			SetProxyTransforms();
-			Log.Info( "Proxy: " + BodyTransforms.First().Value );
+			foreach ( var collider in Renderer.GameObject.Components.GetAll<Collider>( FindMode.EverythingInSelfAndDescendants ) )
+			{
+				//Log.Info( "Proxy: " + collider.GameObject.Name + ": " + collider.GetHashCode() );
+			}
 		}
 	}
 
@@ -215,6 +229,8 @@
 	{
 		if ( !Active || IsProxy )
 			return;
+
+		Log.Info( "FUUUUCK" );
 
 		DestroyPhysics();
 
