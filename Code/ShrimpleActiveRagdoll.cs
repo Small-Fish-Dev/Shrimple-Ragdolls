@@ -67,15 +67,17 @@
 		}
 	}
 
+	RagdollMode _mode; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
 	[Property]
-	//[Sync]
+	[Sync]
+	[Change( nameof( OnModeChanged ) )]
 	public RagdollMode Mode
 	{
-		get;
+		get => _mode;
 		set
 		{
-			var old = field;
-			field = value;
+			var old = _mode;
+			_mode = value;
 
 			if ( Game.IsPlaying )
 				InternalSetRagdollMode( old, value );
@@ -146,12 +148,19 @@
 			GameObject.Root.NetworkSpawn();
 		}
 	}
+
 	protected override async Task OnLoad()
 	{
 		if ( !IsProxy )
 			return;
 
-		LoadBodies();
+		LoadProxyBodies();
+	}
+
+	protected void OnModeChanged( RagdollMode oldMode, RagdollMode newMode )
+	{
+		if ( IsProxy )
+			LoadProxyBodies();
 	}
 
 	protected override void OnUpdate()

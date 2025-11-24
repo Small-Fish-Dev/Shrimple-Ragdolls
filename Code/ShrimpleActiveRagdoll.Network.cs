@@ -36,9 +36,12 @@
 		}
 	}
 
-	protected void LoadBodies()
+	protected void LoadProxyBodies()
 	{
+		BoneObjects?.Clear();
 		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
+		Bodies?.Clear();
+		Bodies = new();
 
 		foreach ( var bone in BoneObjects )
 		{

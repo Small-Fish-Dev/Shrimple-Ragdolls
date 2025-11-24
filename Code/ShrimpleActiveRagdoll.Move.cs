@@ -11,8 +11,8 @@
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies )
 		{
-			if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled ) // Optimization, don't override if it's sleeping
-				continue;
+			//if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled ) // Optimization, don't override if it's sleeping
+			//	continue;
 			/*
 			if ( !MotionEnabled && !component.MotionEnabled )
 			{
@@ -136,7 +136,7 @@
 	/// </summary>
 	protected void MoveGameObject()
 	{
-		if ( !PhysicsWereCreated )
+		if ( !PhysicsWereCreated || IsProxy )
 			return;
 
 		if ( Mode == RagdollMode.Enabled )

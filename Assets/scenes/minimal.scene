@@ -311,7 +311,7 @@
               "Selected": "pelvis"
             }
           },
-          "Mode": "Enabled",
+          "Mode": "Disabled",
           "NetworkRefreshOnChange": true,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
