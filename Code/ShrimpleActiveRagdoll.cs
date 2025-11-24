@@ -130,9 +130,7 @@
 	public bool AnimationsDriven => Mode == RagdollMode.Passive || Mode == RagdollMode.Active;
 
 	public Model Model => Renderer?.Model;
-	//protected NetworkTransforms BodyTransforms = new NetworkTransforms();
 
-	[Sync]
 	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; }
 
 	protected override void OnStart()
@@ -141,6 +139,12 @@
 
 		Renderer.CreateBoneObjects = true;
 		InternalSetRagdollMode( Mode, Mode );
+
+		if ( !IsProxy )
+		{
+			SetupBodyTransforms();
+			GameObject.Root.NetworkSpawn();
+		}
 	}
 
 	protected override void OnUpdate()
@@ -164,15 +168,25 @@
 	{
 		base.OnFixedUpdate();
 
-		if ( !Active || IsProxy || Mode == RagdollMode.Disabled )
+		if ( !Active || Mode == RagdollMode.Disabled )
 			return;
 
-		if ( Mode == RagdollMode.Passive )
-			MoveBodiesFromAnimations();
-		if ( Mode == RagdollMode.Active )
-			MoveBodiesFromAnimations();
+		if ( !IsProxy )
+		{
+			if ( Mode == RagdollMode.Passive )
+				MoveBodiesFromAnimations();
+			if ( Mode == RagdollMode.Active )
+				MoveBodiesFromAnimations();
 
-		MoveGameObject();
+			MoveGameObject();
+			SetBodyTransforms();
+			Log.Info( "Host: " + BodyTransforms.First().Value );
+		}
+		else
+		{
+			SetProxyTransforms();
+			Log.Info( "Proxy: " + BodyTransforms.First().Value );
+		}
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
@@ -240,34 +254,6 @@
 
 		if ( NetworkRefreshOnChange )
 			Renderer?.Network?.Refresh();
-	}
-
-	protected void CreateStatuePhysics()
-	{
-		if ( !Active || IsProxy )
-			return;
-
-		DestroyPhysics();
-
-		if ( !Model.IsValid() )
-			return;
-
-		var physics = Model.Physics;
-		if ( physics == null || physics.Parts.Count == 0 )
-			return;
-
-		CreateBoneObjects( physics );
-		CreateStatueBodies( physics );
-		MoveMeshFromObjects();
-
-		foreach ( var body in Bodies.Values )
-			body.Component.Enabled = true;
-
-		if ( NetworkRefreshOnChange )
-			Renderer?.Network?.Refresh();
-
-		RagdollPhysicsWereCreated = true;
-		StatuePhysicsWereCreated = true;
 	}
 
 	/// <summary>
