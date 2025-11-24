@@ -283,7 +283,7 @@
 
 		if ( newMode == RagdollMode.Enabled )
 		{
-			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated ) // If we were statue we need to recreate the physics
+			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated || RebuildPhysicsOnChange ) // If we were statue we need to recreate the physics
 				CreatePhysics();
 
 			MakeRendererAbsolute( true );
@@ -294,7 +294,7 @@
 
 		if ( newMode == RagdollMode.Passive )
 		{
-			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
+			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated || RebuildPhysicsOnChange )
 				CreatePhysics();
 
 			MakeRendererAbsolute( false );
@@ -305,7 +305,7 @@
 
 		if ( newMode == RagdollMode.Active )
 		{
-			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated )
+			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated || RebuildPhysicsOnChange )
 				CreatePhysics();
 
 			MakeRendererAbsolute( false );
@@ -316,7 +316,7 @@
 
 		if ( newMode == RagdollMode.Statue )
 		{
-			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated )
+			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated || RebuildPhysicsOnChange )
 				CreateStatuePhysics();
 
 			MakeRendererAbsolute( false );
