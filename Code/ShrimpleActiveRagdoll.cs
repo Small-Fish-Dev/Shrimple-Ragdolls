@@ -157,12 +157,6 @@
 		LoadProxyBodies();
 	}
 
-	protected void OnModeChanged( RagdollMode oldMode, RagdollMode newMode )
-	{
-		if ( IsProxy )
-			LoadProxyBodies();
-	}
-
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();

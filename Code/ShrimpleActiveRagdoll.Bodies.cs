@@ -35,6 +35,15 @@
 			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
 		}
 
+		SetBodyHierarchyReferences();
+
+		//rigidbody.PhysicsBody.RebuildMass();
+	}
+
+
+	protected void SetBodyHierarchyReferences()
+	{
+
 		foreach ( var body in Bodies )
 		{
 			// Find nearest valid parent body
@@ -53,8 +62,6 @@
 					body.Value.Children.Add( childBody );
 			}
 		}
-
-		//rigidbody.PhysicsBody.RebuildMass();
 	}
 
 	protected void CreateStatueBodies( PhysicsGroupDescription physics )
