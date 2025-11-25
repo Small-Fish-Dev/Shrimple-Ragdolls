@@ -1,9 +1,21 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	public record class Body( Rigidbody Component, int Bone, List<Collider> Colliders, Body Parent = null, List<Body> Children = null )
+	public record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders, BoneCollection.Bone Parent = null, List<BoneCollection.Bone> Children = null, bool IsValid = false )
 	{
-		public Body Parent { get; set; } = Parent;
-		public List<Body> Children { get; set; } = Children;
+		public Body WithColliders( List<Collider> colliders )
+			=> this with { Colliders = colliders };
+
+		public Body WithComponent( Rigidbody component )
+			=> this with { Component = component };
+
+		public Body WithBone( int bone )
+			=> this with { Bone = bone };
+
+		public Body WithParent( BoneCollection.Bone parent )
+			=> this with { Parent = parent };
+
+		public Body WithChildren( List<BoneCollection.Bone> children )
+			=> this with { Children = children };
 	}
 
 	public Dictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();
@@ -32,7 +44,7 @@
 
 			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
+			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders, IsValid: true ) );
 		}
 
 		SetBodyHierarchyReferences();
@@ -43,24 +55,26 @@
 
 	protected void SetBodyHierarchyReferences()
 	{
-
-		foreach ( var body in Bodies )
+		foreach ( var kvp in Bodies.ToList() )
 		{
-			// Find nearest valid parent body
-			body.Value.Parent = GetNearestValidParentBody( body.Key.Parent );
-
-			if ( body.Key.Children != null && body.Key.Children.Count() > 0 )
-				body.Value.Children = new List<Body>();
-			else
+			var validParentBone = GetNearestValidParentBody( kvp.Key.Parent );
+			if ( validParentBone == null )
 				continue;
+			var newBody = kvp.Value.WithParent( GetBoneByBody( validParentBone.Value ) );
 
-			foreach ( var childBone in body.Key.Children )
+			if ( kvp.Key.Children != null && kvp.Key.Children.Count() > 0 )
 			{
-				// Find nearest valid child body (traverse down the hierarchy)
-				var childBody = GetNearestValidChildBody( childBone );
-				if ( childBody != null )
-					body.Value.Children.Add( childBody );
+				var childrenBodies = new List<BoneCollection.Bone>();
+				foreach ( var childBone in kvp.Key.Children )
+				{
+					var childBody = GetNearestValidChildBody( childBone );
+					if ( childBody != null )
+						childrenBodies.Add( GetBoneByBody( childBody.Value ) );
+				}
+				newBody = newBody.WithChildren( childrenBodies );
 			}
+
+			Bodies[kvp.Key] = newBody;
 		}
 	}
 

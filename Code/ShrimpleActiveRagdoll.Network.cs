@@ -34,8 +34,8 @@
 
 			if ( body != null )
 			{
-				body.Component.WorldTransform = bodyTransform.Value;
-				body.Component.PhysicsBody.Transform = bodyTransform.Value;
+				body.Value.Component.WorldTransform = bodyTransform.Value;
+				body.Value.Component.PhysicsBody.Transform = bodyTransform.Value;
 			}
 		}
 		MoveGameObject();
