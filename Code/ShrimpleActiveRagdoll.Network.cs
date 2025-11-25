@@ -20,6 +20,7 @@
 
 		foreach ( var body in Bodies )
 			BodyTransforms[body.Key.Index] = body.Value.Component.GameObject.WorldTransform;
+
 	}
 
 	protected void SetProxyTransforms()
@@ -32,8 +33,12 @@
 			var body = GetBodyByBoneIndex( bodyTransform.Key );
 
 			if ( body != null )
+			{
 				body.Component.WorldTransform = bodyTransform.Value;
+				body.Component.PhysicsBody.Transform = bodyTransform.Value;
+			}
 		}
+		MoveGameObject();
 	}
 
 	protected void LoadProxyBodies()

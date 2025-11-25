@@ -32,7 +32,6 @@
 
 			//if ( body.Value.Component.Sleeping )
 			//	continue;
-
 			var transform = worldTransform.ToLocal( body.Value.Component.GameObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key.Index, in transform );
 		}
@@ -137,7 +136,7 @@
 	/// </summary>
 	protected void MoveGameObject()
 	{
-		if ( !PhysicsWereCreated || IsProxy )
+		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count() == 0 )
 			return;
 
 		if ( Mode == RagdollMode.Enabled )
