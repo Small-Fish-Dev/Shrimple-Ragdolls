@@ -43,15 +43,28 @@
 		Bodies?.Clear();
 		Bodies = new();
 
+		// TODO: Work with Statue mode
+
 		foreach ( var bone in BoneObjects )
 		{
-			var rigidbody = bone.Value.GetComponent<Rigidbody>();
-			var colliders = bone.Value.GetComponents<Collider>().ToList();
+			var rigidbody = bone.Value.GetComponent<Rigidbody>( true );
+			var colliders = bone.Value.GetComponents<Collider>( true ).ToList();
 
 			if ( !rigidbody.IsValid() )
 				continue;
 
 			Bodies.Add( bone.Key, new Body( rigidbody, bone.Key.Index, colliders ) );
+		}
+
+		SetBodyHierarchyReferences();
+	}
+
+	protected void OnModeChanged( RagdollMode oldMode, RagdollMode newMode )
+	{
+		if ( IsProxy )
+		{
+			LoadProxyBodies();
+			MoveGameObject();
 		}
 	}
 }

@@ -8,6 +8,7 @@
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
+
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies )
 		{
