@@ -1,23 +1,5 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	public record struct Body( Rigidbody Component, BoneCollection.Bone Bone, List<Collider> Colliders, BoneCollection.Bone Parent = null, List<BoneCollection.Bone> Children = null, bool IsValid = false )
-	{
-		public Body WithColliders( List<Collider> colliders )
-			=> this with { Colliders = colliders };
-
-		public Body WithComponent( Rigidbody component )
-			=> this with { Component = component };
-
-		public Body WithBone( BoneCollection.Bone bone )
-			=> this with { Bone = bone };
-
-		public Body WithParent( BoneCollection.Bone parent )
-			=> this with { Parent = parent };
-
-		public Body WithChildren( List<BoneCollection.Bone> children )
-			=> this with { Children = children };
-	}
-
 	[Sync]
 	public NetDictionary<int, Body> Bodies { get; protected set; } = new();
 
@@ -45,7 +27,7 @@
 
 			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone.Index, new Body( rigidbody, bone, colliders, IsValid: true ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, bone.Index, colliders ) );
 		}
 
 		SetBodyHierarchyReferences();
@@ -58,15 +40,15 @@
 	{
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			var validParentBone = GetNearestValidParentBody( kvp.Value.Bone.Parent );
+			var validParentBone = GetNearestValidParentBody( kvp.Value.GetBone( Model ).Parent );
 			if ( validParentBone == null )
 				continue;
 			var newBody = kvp.Value.WithParent( GetBoneByBody( validParentBone.Value ) );
-
-			if ( kvp.Value.Bone.Children != null && kvp.Value.Bone.Children.Count() > 0 )
+			var children = kvp.Value.GetBone( Model ).Children;
+			if ( children != null && children.Count() > 0 )
 			{
 				var childrenBodies = new List<BoneCollection.Bone>();
-				foreach ( var childBone in kvp.Value.Bone.Children )
+				foreach ( var childBone in children )
 				{
 					var childBody = GetNearestValidChildBody( childBone );
 					if ( childBody != null )
@@ -96,7 +78,7 @@
 			boneObject.WorldTransform = boneTransform;
 
 			var colliders = AddColliders( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone.Index, new Body( rigidbody, bone, colliders ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, bone.Index, colliders ) );
 		}
 	}
 
@@ -239,5 +221,62 @@
 			if ( keepTransform && rigidbody.IsValid() )
 				rigidbody.WorldTransform = oldTransform;
 		}
+	}
+
+
+	public struct Body
+	{
+		public Rigidbody Component;
+		public Model Model;
+		private int _boneIndex;
+		public List<Collider> Colliders = new();
+		private int _parentIndex;
+		private List<int> _childIndexes = new();
+		public bool IsValid = false;
+
+		public Body( Rigidbody component, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
+		{
+			Component = component;
+			_boneIndex = bone;
+			Colliders = colliders;
+			_parentIndex = parent;
+			_childIndexes = children;
+			IsValid = isValid;
+		}
+
+		public Body WithColliders( List<Collider> colliders )
+		{
+			Colliders = colliders;
+			return this;
+		}
+
+		public Body WithComponent( Rigidbody component )
+		{
+			var copy = this;
+			copy.Component = component;
+			return copy;
+		}
+
+		public Body WithBone( BoneCollection.Bone bone )
+		{
+			_boneIndex = bone.Index;
+			return this;
+		}
+
+		public Body WithParent( BoneCollection.Bone parent )
+		{
+			_parentIndex = parent.Index;
+			return this;
+		}
+
+		public Body WithChildren( List<BoneCollection.Bone> children )
+		{
+			_childIndexes = children?.Select( x => x.Index ).ToList();
+			return this;
+		}
+
+		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[_boneIndex];
+		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[_parentIndex];
+		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => _childIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
 	}
 }

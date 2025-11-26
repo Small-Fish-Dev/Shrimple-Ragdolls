@@ -64,7 +64,7 @@
 				sceneModel.SetBoneOverride( body.Bone, in transform );
 			}*/
 
-			var boneObject = BoneObjects[body.Value.Bone];
+			var boneObject = BoneObjects[body.Value.GetBone( Model )];
 			Transform transform = worldTransform.ToLocal( boneObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
@@ -112,7 +112,7 @@
 
 		foreach ( var pair in Bodies )
 		{
-			if ( !pair.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( pair.Value.Bone, out var transform ) )
+			if ( !pair.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( pair.Value.GetBone( Model ), out var transform ) )
 				continue;
 
 			pair.Value.Component.SmoothMove( in transform, 0.1f, Time.Delta );

@@ -129,8 +129,9 @@
 
 		foreach ( var pair in Bodies )
 		{
-			if ( pair.Value.Bone == body.Bone )
-				return pair.Value.Bone;
+			var bone = pair.Value.GetBone( Model );
+			if ( bone == body.GetBone( Model ) )
+				return bone;
 		}
 		return null;
 	}
