@@ -41,35 +41,22 @@
 		MoveGameObject();
 	}
 
-	protected void LoadProxyBodies()
-	{
-		BoneObjects?.Clear();
-		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
-		Bodies?.Clear();
-		Bodies = new();
-
-		// TODO: Work with Statue mode
-
-		foreach ( var bone in BoneObjects )
-		{
-			var rigidbody = bone.Value.GetComponent<Rigidbody>( true );
-			var colliders = bone.Value.GetComponents<Collider>( true ).ToList();
-
-			if ( !rigidbody.IsValid() )
-				continue;
-
-			Bodies.Add( bone.Key, new Body( rigidbody, bone.Key.Index, colliders ) );
-		}
-
-		SetBodyHierarchyReferences();
-	}
-
 	protected void OnModeChanged( RagdollMode oldMode, RagdollMode newMode )
 	{
 		if ( IsProxy )
 		{
-			LoadProxyBodies();
+			SetBodyHierarchyReferences();
 			MoveGameObject();
+		}
+	}
+
+	protected override void OnRefresh()
+	{
+		base.OnRefresh();
+
+		if ( IsProxy )
+		{
+			SetBodyHierarchyReferences();
 		}
 	}
 }
