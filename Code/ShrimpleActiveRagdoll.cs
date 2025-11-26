@@ -133,7 +133,7 @@
 
 	public Model Model => Renderer?.Model;
 
-	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; }
+	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; } = new();
 
 	protected override void OnStart()
 	{
@@ -149,21 +149,12 @@
 		}
 	}
 
-	protected override async Task OnLoad()
-	{
-		if ( !IsProxy )
-			return;
-
-		LoadProxyBodies();
-	}
-
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
 
 		if ( !Active || Mode == RagdollMode.Disabled )
 			return;
-
 
 		if ( Mode == RagdollMode.Enabled )
 			MoveMeshFromBodies();
@@ -208,7 +199,7 @@
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
 	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+		if ( !Renderer.IsValid() || !Model.IsValid() )
 			return;
 
 		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
@@ -232,8 +223,6 @@
 	{
 		if ( !Active || IsProxy )
 			return;
-
-		Log.Info( "FUUUUCK" );
 
 		DestroyPhysics();
 

@@ -99,15 +99,14 @@
 	public Body? GetBodyByBoneName( string boneName )
 	{
 		var bone = Renderer.Model.Bones.GetBone( boneName );
-		if ( Bodies.TryGetValue( bone, out var body ) )
+		if ( Bodies.TryGetValue( bone.Index, out var body ) )
 			return body;
 		return null;
 	}
 
 	public Body? GetBodyByBoneIndex( int boneIndex )
 	{
-		var bone = Renderer.Model.Bones.AllBones[boneIndex];
-		if ( Bodies.TryGetValue( bone, out var body ) )
+		if ( Bodies.TryGetValue( boneIndex, out var body ) )
 			return body;
 		return null;
 	}
@@ -117,7 +116,7 @@
 		if ( bone == null )
 			return null;
 
-		if ( Bodies.TryGetValue( bone, out var body ) )
+		if ( Bodies.TryGetValue( bone.Index, out var body ) )
 			return body;
 
 		return null;
@@ -131,7 +130,7 @@
 		foreach ( var pair in Bodies )
 		{
 			if ( pair.Value.Bone == body.Bone )
-				return pair.Key;
+				return pair.Value.Bone;
 		}
 		return null;
 	}
@@ -162,7 +161,7 @@
 			return null;
 
 		// If this bone has a body, return it
-		if ( Bodies.TryGetValue( bone, out var body ) )
+		if ( Bodies.TryGetValue( bone.Index, out var body ) )
 			return body;
 
 		// Otherwise, recursively check children

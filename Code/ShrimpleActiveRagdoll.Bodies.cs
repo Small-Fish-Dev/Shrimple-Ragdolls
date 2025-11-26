@@ -1,6 +1,6 @@
 ﻿public partial class ShrimpleActiveRagdoll
 {
-	public record struct Body( Rigidbody Component, int Bone, List<Collider> Colliders, BoneCollection.Bone Parent = null, List<BoneCollection.Bone> Children = null, bool IsValid = false )
+	public record struct Body( Rigidbody Component, BoneCollection.Bone Bone, List<Collider> Colliders, BoneCollection.Bone Parent = null, List<BoneCollection.Bone> Children = null, bool IsValid = false )
 	{
 		public Body WithColliders( List<Collider> colliders )
 			=> this with { Colliders = colliders };
@@ -8,7 +8,7 @@
 		public Body WithComponent( Rigidbody component )
 			=> this with { Component = component };
 
-		public Body WithBone( int bone )
+		public Body WithBone( BoneCollection.Bone bone )
 			=> this with { Bone = bone };
 
 		public Body WithParent( BoneCollection.Bone parent )
@@ -18,7 +18,8 @@
 			=> this with { Children = children };
 	}
 
-	public Dictionary<BoneCollection.Bone, Body> Bodies { get; protected set; } = new();
+	[Sync]
+	public NetDictionary<int, Body> Bodies { get; protected set; } = new();
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
 	{
@@ -44,7 +45,7 @@
 
 			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders, IsValid: true ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, bone, colliders, IsValid: true ) );
 		}
 
 		SetBodyHierarchyReferences();
@@ -57,15 +58,15 @@
 	{
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			var validParentBone = GetNearestValidParentBody( kvp.Key.Parent );
+			var validParentBone = GetNearestValidParentBody( kvp.Value.Bone.Parent );
 			if ( validParentBone == null )
 				continue;
 			var newBody = kvp.Value.WithParent( GetBoneByBody( validParentBone.Value ) );
 
-			if ( kvp.Key.Children != null && kvp.Key.Children.Count() > 0 )
+			if ( kvp.Value.Bone.Children != null && kvp.Value.Bone.Children.Count() > 0 )
 			{
 				var childrenBodies = new List<BoneCollection.Bone>();
-				foreach ( var childBone in kvp.Key.Children )
+				foreach ( var childBone in kvp.Value.Bone.Children )
 				{
 					var childBody = GetNearestValidChildBody( childBone );
 					if ( childBody != null )
@@ -95,7 +96,7 @@
 			boneObject.WorldTransform = boneTransform;
 
 			var colliders = AddColliders( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone, new Body( rigidbody, bone.Index, colliders ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, bone, colliders ) );
 		}
 	}
 

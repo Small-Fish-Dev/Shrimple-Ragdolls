@@ -11,7 +11,7 @@
 		BodyTransforms.Clear();
 
 		foreach ( var body in Bodies )
-			BodyTransforms.Add( body.Key.Index, body.Value.Component.WorldTransform );
+			BodyTransforms.Add( body.Key, body.Value.Component.WorldTransform );
 	}
 	protected void SetBodyTransforms()
 	{
@@ -19,7 +19,7 @@
 			return;
 
 		foreach ( var body in Bodies )
-			BodyTransforms[body.Key.Index] = body.Value.Component.GameObject.WorldTransform;
+			BodyTransforms[body.Key] = body.Value.Component.GameObject.WorldTransform;
 
 	}
 
@@ -45,8 +45,8 @@
 	{
 		if ( IsProxy )
 		{
+			CreateBoneObjects( Model.Physics );
 			SetBodyHierarchyReferences();
-			MoveGameObject();
 		}
 	}
 
@@ -56,7 +56,17 @@
 
 		if ( IsProxy )
 		{
+			CreateBoneObjects( Model.Physics );
 			SetBodyHierarchyReferences();
 		}
+	}
+
+	protected override async Task OnLoad()
+	{
+		if ( !IsProxy )
+			return;
+
+		CreateBoneObjects( Model.Physics );
+		SetBodyHierarchyReferences();
 	}
 }

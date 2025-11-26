@@ -8,8 +8,8 @@
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-
 		var worldTransform = Renderer.WorldTransform;
+
 		foreach ( var body in Bodies )
 		{
 			//if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled ) // Optimization, don't override if it's sleeping
@@ -33,7 +33,7 @@
 			//if ( body.Value.Component.Sleeping )
 			//	continue;
 			var transform = worldTransform.ToLocal( body.Value.Component.GameObject.WorldTransform );
-			Renderer.SceneModel.SetBoneOverride( body.Key.Index, in transform );
+			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
 	}
 
@@ -64,9 +64,9 @@
 				sceneModel.SetBoneOverride( body.Bone, in transform );
 			}*/
 
-			var boneObject = BoneObjects[body.Key];
+			var boneObject = BoneObjects[body.Value.Bone];
 			Transform transform = worldTransform.ToLocal( boneObject.WorldTransform );
-			Renderer.SceneModel.SetBoneOverride( body.Key.Index, in transform );
+			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
 	}
 
@@ -75,6 +75,7 @@
 	/// </summary>
 	protected void MoveObjectsFromMesh()
 	{
+
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
@@ -111,7 +112,7 @@
 
 		foreach ( var pair in Bodies )
 		{
-			if ( !pair.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( pair.Key, out var transform ) )
+			if ( !pair.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( pair.Value.Bone, out var transform ) )
 				continue;
 
 			pair.Value.Component.SmoothMove( in transform, 0.1f, Time.Delta );
@@ -143,7 +144,7 @@
 		{
 			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
 			var localTransform = Renderer.Model.GetBoneTransform( FollowOptions.Bone.Selected );
-			var currentTransform = Bodies[bone].Component.GameObject.WorldTransform;
+			var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
 			// Maybe there's a better way to get the bones to match without instantiating a new Transform but I couldn't find it haha 
 			var targetTransform = currentTransform.ToWorld( new Transform( -localTransform.Position * localTransform.Rotation.Inverse, localTransform.Rotation.Inverse ) );
 
