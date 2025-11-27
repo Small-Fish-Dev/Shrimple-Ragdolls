@@ -32,7 +32,7 @@
 
 			//if ( body.Value.Component.Sleeping )
 			//	continue;
-			var transform = worldTransform.ToLocal( body.Value.Component.GameObject.WorldTransform );
+			var transform = worldTransform.ToLocal( body.Value.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
 	}
