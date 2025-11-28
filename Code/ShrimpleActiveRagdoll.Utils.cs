@@ -4,9 +4,7 @@
 	public void TestMove()
 	{
 		Move( new Transform( WorldPosition + Vector3.Up * 100f, WorldRotation ) );
-
 	}
-
 
 	/// <summary>
 	/// Calculate the center of mass of the ragdoll based on its bodies' masses and masscenters

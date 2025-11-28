@@ -156,10 +156,13 @@
 		if ( !Active || Mode == RagdollMode.Disabled )
 			return;
 
-		if ( Mode == RagdollMode.Enabled )
+		if ( Mode == RagdollMode.Enabled && LerpToAnimation == null )
 			MoveMeshFromBodies();
 		if ( Mode == RagdollMode.Active )
 			MoveMeshFromBodies();
+
+		if ( LerpToAnimation != null )
+			UpdateLerpAnimations();
 
 		//var attachment = Renderer.GetAttachment( "eyes" );
 		//DebugOverlay.Sphere( new Sphere( attachment.Value.Position, 3.0f ), Color.Red, Time.Delta );

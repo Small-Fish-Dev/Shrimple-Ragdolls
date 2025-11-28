@@ -30,7 +30,7 @@
 		foreach ( var body in Bodies ) // We still use bodies just for the bone references
 		{
 			var boneObject = BoneObjects[body.Value.GetBone( Model )];
-			Transform transform = worldTransform.ToLocal( boneObject.WorldTransform );
+			var transform = worldTransform.ToLocal( boneObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
 	}
