@@ -12,26 +12,7 @@
 
 		foreach ( var body in Bodies )
 		{
-			//if ( body.Value.Component.Sleeping || !body.Value.Component.MotionEnabled ) // Optimization, don't override if it's sleeping
-			//	continue;
-			/*
-			if ( !MotionEnabled && !component.MotionEnabled )
-			{
-				Transform transform = sceneModel.Transform.ToLocal( sceneModel.GetWorldSpaceAnimationTransform( body.Bone ) );
-				sceneModel.SetBoneOverride( body.Bone, in transform );
-				if ( component.Transform.SetLocalTransformFast( worldTransform.ToWorld( in transform ) ) )
-				{
-					component.Transform.TransformChanged( useTargetLocal: true );
-				}
-			}
-			else
-			{
-				Transform transform = worldTransform.ToLocal( component.WorldTransform );
-				sceneModel.SetBoneOverride( body.Bone, in transform );
-			}*/
-
-			//if ( body.Value.Component.Sleeping )
-			//	continue;
+			// Can optimize by not running this if the body is sleeping, but there's times you want it to update anyways so maybe make it a property
 			var transform = worldTransform.ToLocal( body.Value.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
@@ -48,22 +29,6 @@
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies ) // We still use bodies just for the bone references
 		{
-			/*
-			if ( !MotionEnabled && !component.MotionEnabled )
-			{
-				Transform transform = sceneModel.Transform.ToLocal( sceneModel.GetWorldSpaceAnimationTransform( body.Bone ) );
-				sceneModel.SetBoneOverride( body.Bone, in transform );
-				if ( component.Transform.SetLocalTransformFast( worldTransform.ToWorld( in transform ) ) )
-				{
-					component.Transform.TransformChanged( useTargetLocal: true );
-				}
-			}
-			else
-			{
-				Transform transform = worldTransform.ToLocal( component.WorldTransform );
-				sceneModel.SetBoneOverride( body.Bone, in transform );
-			}*/
-
 			var boneObject = BoneObjects[body.Value.GetBone( Model )];
 			Transform transform = worldTransform.ToLocal( boneObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
