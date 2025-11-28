@@ -22,17 +22,12 @@
 				boneObject.WorldTransform = boneTransform;
 			}
 
-			//var child = rigidbody.WorldTransform;
-			//BodyTransforms.Set( Bodies.Count, child );
-
 			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone.Index, new Body( rigidbody, bone.Index, colliders ) );
 		}
 
 		SetBodyHierarchyReferences();
-
-		//rigidbody.PhysicsBody.RebuildMass();
 	}
 
 
@@ -77,7 +72,7 @@
 
 			boneObject.WorldTransform = boneTransform;
 
-			var colliders = AddColliders( Renderer.GameObject, part, boneObject.WorldTransform ).ToList();
+			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 			Bodies.Add( bone.Index, new Body( rigidbody, bone.Index, colliders ) );
 		}
 	}
