@@ -156,6 +156,8 @@
 		if ( !Active || Mode == RagdollMode.Disabled )
 			return;
 
+		// TODO: Bone overrides can be done in a GameObjectSystem in parallel with locks similar to SceneAnimationSystem, look into that later
+
 		if ( Mode == RagdollMode.Enabled && LerpToAnimation == null )
 			MoveMeshFromBodies();
 		if ( Mode == RagdollMode.Active )
@@ -182,7 +184,8 @@
 			if ( Mode == RagdollMode.Active )
 				MoveBodiesFromAnimations();
 
-			MoveGameObject();
+			if ( LerpToAnimation == null )
+				MoveGameObject();
 			SetBodyTransforms();
 
 			foreach ( var collider in Renderer.GameObject.Components.GetAll<Collider>( FindMode.EverythingInSelfAndDescendants ) )
