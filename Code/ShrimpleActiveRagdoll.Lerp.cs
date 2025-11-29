@@ -2,12 +2,30 @@
 
 public partial class ShrimpleActiveRagdoll
 {
-	public TimeUntil? LerpToAnimation { get; set; } = null;
-	protected Dictionary<int, Transform> LerpStartTransforms { get; set; } = new();
+	/// <summary>
+	/// Timer for lerping to the current animation pose<br />
+	/// null if not lerping
+	/// </summary>
+	public TimeUntil? LerpToAnimation { get; protected set; } = null;
+
+	/// <summary>
+	/// Initial transforms for lerping to animation
+	/// </summary>
+	public Dictionary<int, Transform> LerpStartTransforms { get; protected set; } = new();
+
+	/// <summary>
+	/// Which mode to set after lerping is complete
+	/// </summary>
+	public RagdollMode LerpToAnimationTarget { get; protected set; }
+
+	/// <summary>
+	/// Is the ragdoll currently lerping to the animation pose?
+	/// </summary>
+	public bool IsLerpingToAnimation => LerpToAnimation != null;
 
 	protected void UpdateLerpAnimations()
 	{
-		if ( LerpToAnimation == null )
+		if ( !IsLerpingToAnimation )
 			return;
 
 		foreach ( var body in Bodies )
