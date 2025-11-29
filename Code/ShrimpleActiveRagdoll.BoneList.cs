@@ -13,12 +13,17 @@ public partial class ShrimpleActiveRagdoll
 		/// How the renderer will follow the ragdoll
 		/// </summary>
 		[KeyProperty]
-		public RagdollFollowMode FollowMode { get; set; } = RagdollFollowMode.All;
+		public RagdollFollowMode FollowMode { get; set; } = RagdollFollowMode.Position;
 		/// <summary>
 		/// Which bone the renderer will merge to
 		/// </summary>
 		[KeyProperty]
 		public BoneList Bone { get; set; } = new();
+		/// <summary>
+		/// Merge the renderer's bone transform to the selected bone's transform
+		/// </summary>
+		[KeyProperty]
+		public bool MergeBoneTransforms { get; set; } = false;
 	}
 
 	public class BoneList

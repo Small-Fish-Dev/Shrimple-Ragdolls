@@ -26,7 +26,10 @@ public partial class ShrimpleActiveRagdoll
 		MoveObjectsFromMesh();
 
 		if ( LerpToAnimation.Value )
+		{
 			LerpToAnimation = null;
+			Renderer.SceneModel.ClearBoneOverrides();
+		}
 	}
 
 	[Button( "TESTLERP" )]

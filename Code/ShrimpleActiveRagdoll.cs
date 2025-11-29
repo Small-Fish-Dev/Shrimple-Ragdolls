@@ -1,4 +1,4 @@
-﻿public partial class ShrimpleActiveRagdoll : Component
+﻿public partial class ShrimpleActiveRagdoll : Component, IScenePhysicsEvents
 {
 	public enum RagdollMode
 	{
@@ -42,6 +42,7 @@
 	[Flags]
 	public enum RagdollFollowMode
 	{
+		[Hide]
 		[Icon( "cancel" )]
 		None = 0,
 		[Icon( "open_with" )]
@@ -168,6 +169,16 @@
 
 		//var attachment = Renderer.GetAttachment( "eyes" );
 		//DebugOverlay.Sphere( new Sphere( attachment.Value.Position, 3.0f ), Color.Red, Time.Delta );
+	}
+
+	void IScenePhysicsEvents.PostPhysicsStep()
+	{
+
+	}
+
+	void IScenePhysicsEvents.PrePhysicsStep()
+	{
+
 	}
 
 	protected override void OnFixedUpdate()
