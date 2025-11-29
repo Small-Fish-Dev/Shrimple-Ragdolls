@@ -46,12 +46,17 @@ public partial class ShrimpleActiveRagdoll
 		if ( LerpToAnimation.Value )
 		{
 			LerpToAnimation = null;
-			Renderer.SceneModel.ClearBoneOverrides();
+			LerpStartTransforms.Clear();
+			Mode = LerpToAnimationTarget;
 		}
 	}
 
-	[Button( "TESTLERP" )]
-	public void TestLerpToAnimation()
+	/// <summary>
+	/// Start lerping the ragdoll to the current animation pose
+	/// </summary>
+	/// <param name="duration">How long the transition will last</param>
+	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
+	public void StartLerpToAnimation( float duration, RagdollMode targetMode = RagdollMode.Disabled )
 	{
 		foreach ( var body in Bodies )
 		{
@@ -59,6 +64,13 @@ public partial class ShrimpleActiveRagdoll
 			LerpStartTransforms[body.Key] = Renderer.WorldTransform.ToLocal( renderBonePosition );
 		}
 
-		LerpToAnimation = 1f;
+		LerpToAnimationTarget = targetMode;
+		LerpToAnimation = MathF.Max( duration, Time.Delta );
+	}
+
+	[Button( "TESTLERP" )]
+	public void TestLerpToAnimation()
+	{
+		StartLerpToAnimation( 1.0f, RagdollMode.Enabled );
 	}
 }

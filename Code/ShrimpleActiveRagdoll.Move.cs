@@ -63,8 +63,8 @@
 				var previousVel = component.Velocity;
 				component.WorldTransform = worldTransform;
 				component.Velocity = previousVel;
-				//component.Velocity = boneVelocity.Linear;
-				//component.AngularVelocity = boneVelocity.Angular;
+				component.Velocity = boneVelocity.Linear;
+				component.AngularVelocity = boneVelocity.Angular;
 			}
 		}
 	}
