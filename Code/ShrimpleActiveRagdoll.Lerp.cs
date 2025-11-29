@@ -19,6 +19,11 @@ public partial class ShrimpleActiveRagdoll
 	public RagdollMode LerpToAnimationTarget { get; protected set; }
 
 	/// <summary>
+	/// The easing function to use when lerping to animation
+	/// </summary>
+	public Easing.Function LerpToAnimationFunction { get; protected set; } = Easing.EaseIn;
+
+	/// <summary>
 	/// Is the ragdoll currently lerping to the animation pose?
 	/// </summary>
 	public bool IsLerpingToAnimation => LerpToAnimation != null;
@@ -55,8 +60,9 @@ public partial class ShrimpleActiveRagdoll
 	/// Start lerping the ragdoll to the current animation pose
 	/// </summary>
 	/// <param name="duration">How long the transition will last</param>
+	/// <param name="function">Which easing function to use for the interpolation</param>
 	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
-	public void StartLerpToAnimation( float duration, RagdollMode targetMode = RagdollMode.Disabled )
+	public void StartLerpToAnimation( float duration, Easing.Function function, RagdollMode targetMode = RagdollMode.Disabled )
 	{
 		foreach ( var body in Bodies )
 		{
@@ -65,12 +71,23 @@ public partial class ShrimpleActiveRagdoll
 		}
 
 		LerpToAnimationTarget = targetMode;
+		LerpToAnimationFunction = function;
 		LerpToAnimation = MathF.Max( duration, Time.Delta );
+	}
+
+	/// <summary>
+	/// Start lerping the ragdoll to the current animation pose
+	/// </summary>
+	/// <param name="duration">How long the transition will last</param>
+	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
+	public void StartSlerpToAnimation( float duration, RagdollMode targetMode = RagdollMode.Disabled )
+	{
+		StartLerpToAnimation( duration, Easing.EaseIn, targetMode );
 	}
 
 	[Button( "TESTLERP" )]
 	public void TestLerpToAnimation()
 	{
-		StartLerpToAnimation( 1.0f, RagdollMode.Enabled );
+		StartLerpToAnimation( 5f, Easing.Linear, RagdollMode.Statue );
 	}
 }
