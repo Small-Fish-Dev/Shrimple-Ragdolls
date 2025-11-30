@@ -300,5 +300,25 @@
 		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[_boneIndex];
 		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[_parentIndex];
 		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => _childIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
+
+		public static bool operator ==( Body left, Body right )
+		{
+			return left._boneIndex == right._boneIndex && left._parentIndex == right._parentIndex;
+		}
+
+		public static bool operator !=( Body left, Body right )
+		{
+			return !(left == right);
+		}
+
+		public override bool Equals( object obj )
+		{
+			return obj is Body other && this == other;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine( _boneIndex, _parentIndex );
+		}
 	}
 }
