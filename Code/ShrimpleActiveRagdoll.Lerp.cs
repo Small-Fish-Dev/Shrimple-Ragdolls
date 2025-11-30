@@ -41,7 +41,7 @@ public partial class ShrimpleActiveRagdoll
 				continue;
 			startTransform = Renderer.WorldTransform.ToWorld( startTransform );
 
-			var currentTransform = startTransform.LerpTo( animTransform, Easing.ExpoInOut( LerpToAnimation.Value.Fraction ) );
+			var currentTransform = startTransform.LerpTo( animTransform, LerpToAnimationFunction.Invoke( LerpToAnimation.Value.Fraction ) );
 			currentTransform = Renderer.WorldTransform.ToLocal( currentTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in currentTransform );
 		}
@@ -91,6 +91,6 @@ public partial class ShrimpleActiveRagdoll
 	[Button( "TESTLERP" )]
 	public void TestLerpToAnimation()
 	{
-		StartLerpToAnimation( 5f, Easing.Linear, RagdollMode.Enabled );
+		StartLerpToAnimation( 1f, Easing.Linear, RagdollMode.Enabled );
 	}
 }
