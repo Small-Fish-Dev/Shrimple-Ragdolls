@@ -218,6 +218,39 @@
 		}
 	}
 
+	/// <summary>
+	/// Return the nearest valid parent body of this body.
+	/// </summary>
+	/// <param name="body"></param>
+	/// <returns>null if no valid parent body is found.</returns>
+	public Body? GetParentBody( Body body )
+	{
+		var parentBone = body.GetParentBone( Model );
+		if ( parentBone == null )
+			return null;
+
+		return GetNearestValidParentBody( parentBone );
+	}
+
+	/// <summary>
+	/// Return all valid child bodies of this body.
+	/// </summary>
+	/// <param name="body"></param>
+	/// <returns></returns>
+	public IEnumerable<Body> GetChildrenBodies( Body body )
+	{
+		var childrenBones = body.GetChildrenBones( Model );
+
+		if ( childrenBones != null )
+		{
+			foreach ( var childBone in childrenBones )
+			{
+				var childBody = GetNearestValidChildBody( childBone );
+				if ( childBody != null )
+					yield return childBody.Value;
+			}
+		}
+	}
 
 	public struct Body
 	{
