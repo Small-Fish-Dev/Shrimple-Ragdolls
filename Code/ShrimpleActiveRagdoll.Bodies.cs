@@ -241,33 +241,27 @@
 
 		public Body WithColliders( List<Collider> colliders )
 		{
-			Colliders = colliders;
-			return this;
+			return this with { Colliders = colliders };
 		}
 
 		public Body WithComponent( Rigidbody component )
 		{
-			var copy = this;
-			copy.Component = component;
-			return copy;
+			return this with { Component = component };
 		}
 
 		public Body WithBone( BoneCollection.Bone bone )
 		{
-			_boneIndex = bone.Index;
-			return this;
+			return this with { _boneIndex = bone.Index };
 		}
 
 		public Body WithParent( BoneCollection.Bone parent )
 		{
-			_parentIndex = parent.Index;
-			return this;
+			return this with { _parentIndex = parent.Index };
 		}
 
 		public Body WithChildren( List<BoneCollection.Bone> children )
 		{
-			_childIndexes = children?.Select( x => x.Index ).ToList();
-			return this;
+			return this with { _childIndexes = children?.Select( x => x.Index ).ToList() };
 		}
 
 		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[_boneIndex];
