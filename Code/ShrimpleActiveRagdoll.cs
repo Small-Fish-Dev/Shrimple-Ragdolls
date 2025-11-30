@@ -143,7 +143,7 @@
 		Renderer.CreateBoneObjects = true;
 		InternalSetRagdollMode( Mode, Mode );
 
-		if ( !IsProxy )
+		if ( !IsProxy && (Network?.Active ?? false) )
 		{
 			SetupBodyTransforms();
 			GameObject.Root.NetworkSpawn();
@@ -159,16 +159,16 @@
 
 		// TODO: Bone overrides can be done in a GameObjectSystem in parallel with locks similar to SceneAnimationSystem, look into that later
 
-		if ( !IsLerpingToAnimation )
+		if ( IsLerpingToAnimation )
+		{
+			UpdateLerpAnimations();
+		}
+		else
 		{
 			if ( Mode == RagdollMode.Enabled )
 				MoveMeshFromBodies();
 			if ( Mode == RagdollMode.Active )
 				MoveMeshFromBodies();
-		}
-		else
-		{
-			UpdateLerpAnimations();
 		}
 	}
 
@@ -181,7 +181,11 @@
 
 		if ( !IsProxy )
 		{
-			if ( !IsLerpingToAnimation )
+			if ( IsLerpingToAnimation )
+			{
+				MoveObjectsFromMesh();
+			}
+			else
 			{
 				if ( Mode == RagdollMode.Passive )
 					MoveBodiesFromAnimations();
@@ -190,11 +194,6 @@
 
 				MoveGameObject();
 			}
-			else
-			{
-				MoveObjectsFromMesh();
-			}
-
 
 			if ( Network?.Active ?? false )
 				SetBodyTransforms();
@@ -274,7 +273,7 @@
 
 		if ( Renderer.IsValid() )
 			Renderer.ClearPhysicsBones();
-		//BodyTransforms.Clear();
+		BodyTransforms.Clear();
 
 		DestroyJoints();
 		DestroyBodies();
