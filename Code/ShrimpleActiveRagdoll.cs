@@ -153,7 +153,15 @@
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
+	}
 
+	protected override void OnFixedUpdate()
+	{
+		base.OnFixedUpdate();
+	}
+
+	internal void ComputeVisuals()
+	{
 		if ( !Active || Mode == RagdollMode.Disabled )
 			return;
 
@@ -172,10 +180,8 @@
 		}
 	}
 
-	protected override void OnFixedUpdate()
+	internal void ComputePhysics()
 	{
-		base.OnFixedUpdate();
-
 		if ( !Active || Mode == RagdollMode.Disabled )
 			return;
 
