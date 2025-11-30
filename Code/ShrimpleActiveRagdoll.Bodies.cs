@@ -259,13 +259,9 @@
 	/// <returns>null if no such joint exists.</returns>
 	public Joint? GetParentJoint( Body body )
 	{
-		var parentBody = GetParentBody( body );
-		if ( parentBody == null )
-			return null;
-
 		foreach ( var joint in Joints )
 		{
-			if ( joint.Body1 == parentBody.Value && joint.Body2 == body )
+			if ( joint.Body2 == body )
 				return joint;
 		}
 
