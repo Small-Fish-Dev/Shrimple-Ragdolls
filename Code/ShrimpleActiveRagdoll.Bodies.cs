@@ -252,14 +252,24 @@
 		}
 	}
 
+	/// <summary>
+	/// Retrieves the joint that connects the specified body to its parent body, if such a joint exists.
+	/// </summary>
+	/// <param name="body"></param>
+	/// <returns>null if no such joint exists.</returns>
 	public Joint? GetParentJoint( Body body )
 	{
 		var parentBody = GetParentBody( body );
 		if ( parentBody == null )
 			return null;
 
-		return Joints?
-		.FirstOrDefault( j => j.Body1 == parentBody.Value && j.Body2 == body );
+		foreach ( var joint in Joints )
+		{
+			if ( joint.Body1 == parentBody.Value && joint.Body2 == body )
+				return joint;
+		}
+
+		return null;
 	}
 
 	public struct Body
