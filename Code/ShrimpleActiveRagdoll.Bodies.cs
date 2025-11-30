@@ -252,6 +252,16 @@
 		}
 	}
 
+	public Joint? GetParentJoint( Body body )
+	{
+		var parentBody = GetParentBody( body );
+		if ( parentBody == null )
+			return null;
+
+		return Joints?
+		.FirstOrDefault( j => j.Body1 == parentBody.Value && j.Body2 == body );
+	}
+
 	public struct Body
 	{
 		public Rigidbody Component;
