@@ -40,7 +40,6 @@
 	/// </summary>
 	protected void MoveObjectsFromMesh()
 	{
-
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 

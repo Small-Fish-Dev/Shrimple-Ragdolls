@@ -64,7 +64,7 @@ public partial class ShrimpleActiveRagdoll
 	[Rpc.Broadcast( NetFlags.OwnerOnly )]
 	public void StartLerpToAnimation( float duration, Easing.Function function, RagdollMode targetMode = RagdollMode.Disabled )
 	{
-		if ( IsProxy && !(Network?.Active ?? false) )
+		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
 
 		foreach ( var body in Bodies )

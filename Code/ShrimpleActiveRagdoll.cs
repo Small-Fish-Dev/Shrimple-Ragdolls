@@ -196,12 +196,12 @@
 			}
 
 
-			if ( Network.Active )
+			if ( Network?.Active ?? false )
 				SetBodyTransforms();
 		}
 		else
 		{
-			if ( Network.Active )
+			if ( Network?.Active ?? false )
 				SetProxyTransforms();
 		}
 	}
