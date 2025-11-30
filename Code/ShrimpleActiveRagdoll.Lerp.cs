@@ -46,8 +46,6 @@ public partial class ShrimpleActiveRagdoll
 			Renderer.SceneModel.SetBoneOverride( body.Key, in currentTransform );
 		}
 
-		MoveObjectsFromMesh();
-
 		if ( LerpToAnimation.Value )
 		{
 			LerpToAnimation = null;
@@ -88,6 +86,6 @@ public partial class ShrimpleActiveRagdoll
 	[Button( "TESTLERP" )]
 	public void TestLerpToAnimation()
 	{
-		StartLerpToAnimation( 5f, Easing.Linear, RagdollMode.Statue );
+		StartLerpToAnimation( 5f, Easing.Linear, RagdollMode.Enabled );
 	}
 }

@@ -159,26 +159,17 @@
 
 		// TODO: Bone overrides can be done in a GameObjectSystem in parallel with locks similar to SceneAnimationSystem, look into that later
 
-		if ( Mode == RagdollMode.Enabled && LerpToAnimation == null )
-			MoveMeshFromBodies();
-		if ( Mode == RagdollMode.Active )
-			MoveMeshFromBodies();
-
-		if ( LerpToAnimation != null )
+		if ( !IsLerpingToAnimation )
+		{
+			if ( Mode == RagdollMode.Enabled )
+				MoveMeshFromBodies();
+			if ( Mode == RagdollMode.Active )
+				MoveMeshFromBodies();
+		}
+		else
+		{
 			UpdateLerpAnimations();
-
-		//var attachment = Renderer.GetAttachment( "eyes" );
-		//DebugOverlay.Sphere( new Sphere( attachment.Value.Position, 3.0f ), Color.Red, Time.Delta );
-	}
-
-	void IScenePhysicsEvents.PostPhysicsStep()
-	{
-
-	}
-
-	void IScenePhysicsEvents.PrePhysicsStep()
-	{
-
+		}
 	}
 
 	protected override void OnFixedUpdate()
@@ -190,28 +181,38 @@
 
 		if ( !IsProxy )
 		{
-			if ( Mode == RagdollMode.Passive )
-				MoveBodiesFromAnimations();
-			if ( Mode == RagdollMode.Active )
-				MoveBodiesFromAnimations();
-
-			if ( LerpToAnimation == null )
-				MoveGameObject();
-			SetBodyTransforms();
-
-			foreach ( var collider in Renderer.GameObject.Components.GetAll<Collider>( FindMode.EverythingInSelfAndDescendants ) )
+			if ( !IsLerpingToAnimation )
 			{
-				//Log.Info( "Host: " + collider.GameObject.Name + ": " + collider.GetHashCode() );
+				if ( Mode == RagdollMode.Passive )
+					MoveBodiesFromAnimations();
+				if ( Mode == RagdollMode.Active )
+					MoveBodiesFromAnimations();
+				MoveGameObject();
 			}
+			else
+			{
+				MoveObjectsFromMesh();
+			}
+
+
+			if ( Network.Active )
+				SetBodyTransforms();
 		}
 		else
 		{
-			SetProxyTransforms();
-			foreach ( var collider in Renderer.GameObject.Components.GetAll<Collider>( FindMode.EverythingInSelfAndDescendants ) )
-			{
-				//Log.Info( "Proxy: " + collider.GameObject.Name + ": " + collider.GetHashCode() );
-			}
+			if ( Network.Active )
+				SetProxyTransforms();
 		}
+	}
+
+	void IScenePhysicsEvents.PostPhysicsStep()
+	{
+
+	}
+
+	void IScenePhysicsEvents.PrePhysicsStep()
+	{
+
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
