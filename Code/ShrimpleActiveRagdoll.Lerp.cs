@@ -48,6 +48,7 @@ public partial class ShrimpleActiveRagdoll
 
 		if ( LerpToAnimation.Value )
 		{
+			Renderer.ClearPhysicsBones();
 			LerpToAnimation = null;
 			LerpStartTransforms.Clear();
 			Mode = LerpToAnimationTarget;
@@ -60,8 +61,12 @@ public partial class ShrimpleActiveRagdoll
 	/// <param name="duration">How long the transition will last</param>
 	/// <param name="function">Which easing function to use for the interpolation</param>
 	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
 	public void StartLerpToAnimation( float duration, Easing.Function function, RagdollMode targetMode = RagdollMode.Disabled )
 	{
+		if ( IsProxy && !(Network?.Active ?? false) )
+			return;
+
 		foreach ( var body in Bodies )
 		{
 			var renderBonePosition = Renderer.SceneModel.GetBoneWorldTransform( body.Key ); // I'd use GetBoneLocalTransform but I can't find which transform it's local to! Not the renderer or bone object's so idk

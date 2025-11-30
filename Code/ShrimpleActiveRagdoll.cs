@@ -187,6 +187,7 @@
 					MoveBodiesFromAnimations();
 				if ( Mode == RagdollMode.Active )
 					MoveBodiesFromAnimations();
+
 				MoveGameObject();
 			}
 			else
