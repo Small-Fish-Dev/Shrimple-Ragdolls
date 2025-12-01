@@ -141,33 +141,19 @@
 	/// <summary>
 	/// Destroy all rigidbody components and colliders, then clear the bodies list
 	/// </summary>
-	protected void DestroyBodies( bool keepTransform = true )
+	protected void DestroyBodies()
 	{
 		if ( Bodies == null )
 			return;
 
-		var rigidbodies = new HashSet<Rigidbody>();
-
 		foreach ( var body in Bodies.Values )
 		{
-			if ( body.Component.IsValid() )
-				rigidbodies.Add( body.Component );
-
 			foreach ( var collider in body.Colliders )
 				if ( collider.IsValid() )
 					collider.Destroy();
-		}
 
-		foreach ( var rigidbody in rigidbodies )
-		{
-			var oldTransform = rigidbody.WorldTransform;
-			rigidbody.GameObject.Flags &= ~GameObjectFlags.Absolute;
-			rigidbody.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-
-			if ( keepTransform && rigidbody.IsValid() )
-				rigidbody.WorldTransform = oldTransform;
-
-			rigidbody.Destroy();
+			RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+			body.Component.Destroy();
 		}
 
 		Bodies.Clear();
@@ -176,72 +162,38 @@
 	/// <summary>
 	/// Disables all the rigidbodies and colliders
 	/// </summary>
-	protected void DisableBodies( bool keepTransform = true )
+	protected void DisableBodies()
 	{
 		if ( Bodies == null )
 			return;
 
-		var rigidbodies = new HashSet<Rigidbody>();
-
 		foreach ( var body in Bodies.Values )
 		{
-			if ( body.Component.IsValid() )
-			{
-				rigidbodies.Add( body.Component );
+			foreach ( var collider in body.Colliders )
+				if ( collider.IsValid() )
+					collider.Enabled = false;
 
-				foreach ( var collider in body.Colliders )
-				{
-					if ( collider.IsValid() )
-						collider.Enabled = false;
-				}
-			}
-		}
-
-		foreach ( var rigidbody in rigidbodies ) // This avoids doing this stuff multiple times to the same rigidbody if it is used for multiple bones
-		{
-			var oldTransform = rigidbody.WorldTransform;
-			rigidbody.GameObject.Flags &= ~GameObjectFlags.Absolute;
-			rigidbody.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-			rigidbody.Enabled = false;
-
-			if ( keepTransform && rigidbody.IsValid() )
-				rigidbody.WorldTransform = oldTransform;
+			RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+			body.Component.Enabled = false;
 		}
 	}
 
 	/// <summary>
 	/// Enables all the rigidbodies and colliders
 	/// </summary>
-	protected void EnableBodies( bool keepTransform = true )
+	protected void EnableBodies()
 	{
 		if ( Bodies == null )
 			return;
 
-		var rigidbodies = new HashSet<Rigidbody>();
-
 		foreach ( var body in Bodies.Values )
 		{
-			if ( body.Component.IsValid() )
-			{
-				rigidbodies.Add( body.Component );
+			foreach ( var collider in body.Colliders )
+				if ( collider.IsValid() )
+					collider.Enabled = true;
 
-				foreach ( var collider in body.Colliders )
-				{
-					if ( collider.IsValid() )
-						collider.Enabled = true;
-				}
-			}
-		}
-
-		foreach ( var rigidbody in rigidbodies )
-		{
-			var oldTransform = rigidbody.WorldTransform;
-			rigidbody.GameObject.Flags |= GameObjectFlags.Absolute;
-			rigidbody.GameObject.Flags |= GameObjectFlags.PhysicsBone;
-			rigidbody.Enabled = true;
-
-			if ( keepTransform && rigidbody.IsValid() )
-				rigidbody.WorldTransform = oldTransform;
+			AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+			body.Component.Enabled = true;
 		}
 	}
 
