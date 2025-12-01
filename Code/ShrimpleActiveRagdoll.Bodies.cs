@@ -5,6 +5,62 @@
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
 	{
+		if ( !Renderer.IsValid() )
+			return;
+
+		foreach ( var part in physics.Parts )
+			CreateBody( part );
+
+		SetBodyHierarchyReferences();
+	}
+
+	protected void CreateBody( PhysicsGroupDescription.BodyPart part )
+	{
+		var bone = Model.Bones.GetBone( part.BoneName );
+
+		if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
+			return;
+
+		AddFlags( boneObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
+		var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
+		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
+	}
+
+	protected void AddFlags( GameObject gameObject, GameObjectFlags flags )
+	{
+		if ( !gameObject.IsValid() )
+			return;
+
+		if ( flags.Contains( GameObjectFlags.Absolute ) && !gameObject.Flags.Contains( GameObjectFlags.Absolute ) )
+		{
+			var previousTransform = gameObject.WorldTransform;
+			gameObject.Flags |= GameObjectFlags.Absolute;
+			gameObject.WorldTransform = previousTransform; // Keeps WorldTransform
+		}
+
+		gameObject.Flags |= flags;
+	}
+
+	protected void RemoveFlags( GameObject gameObject, GameObjectFlags flags )
+	{
+		if ( !gameObject.IsValid() )
+			return;
+
+		if ( flags.Contains( GameObjectFlags.Absolute ) && gameObject.Flags.Contains( GameObjectFlags.Absolute ) )
+		{
+			var previousTransform = gameObject.WorldTransform;
+			gameObject.Flags &= ~GameObjectFlags.Absolute;
+			gameObject.WorldTransform = previousTransform; // Keeps WorldTransform
+		}
+
+		gameObject.Flags &= ~flags;
+	}
+
+	protected void CreateStatueBodies( PhysicsGroupDescription physics )
+	{
+		var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>( startEnabled: false );
+
 		foreach ( var part in physics.Parts )
 		{
 			var bone = Model.Bones.GetBone( part.BoneName );
@@ -12,22 +68,14 @@
 			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
 				continue;
 
-			if ( !boneObject.Flags.Contains( GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ) )
-			{
-				boneObject.Flags |= GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone;
+			if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
+				boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
 
-				if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
-					boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
+			boneObject.WorldTransform = boneTransform;
 
-				boneObject.WorldTransform = boneTransform;
-			}
-
-			var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone.Index, new Body( rigidbody, bone.Index, colliders ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
 		}
-
-		SetBodyHierarchyReferences();
 	}
 
 
@@ -53,27 +101,6 @@
 			}
 
 			Bodies[kvp.Key] = newBody;
-		}
-	}
-
-	protected void CreateStatueBodies( PhysicsGroupDescription physics )
-	{
-		var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>( startEnabled: false );
-
-		foreach ( var part in physics.Parts )
-		{
-			var bone = Model.Bones.GetBone( part.BoneName );
-
-			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
-				continue;
-
-			if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
-				boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
-
-			boneObject.WorldTransform = boneTransform;
-
-			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone.Index, new Body( rigidbody, bone.Index, colliders ) );
 		}
 	}
 
@@ -271,6 +298,7 @@
 	public struct Body
 	{
 		public Rigidbody Component;
+		public GameObject GameObject;
 		public Model Model;
 		private int _boneIndex;
 		public List<Collider> Colliders = new();
@@ -278,9 +306,10 @@
 		private List<int> _childIndexes = new();
 		public bool IsValid = false;
 
-		public Body( Rigidbody component, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
+		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
 		{
 			Component = component;
+			GameObject = gameObject;
 			_boneIndex = bone;
 			Colliders = colliders;
 			_parentIndex = parent;
@@ -296,6 +325,11 @@
 		public Body WithComponent( Rigidbody component )
 		{
 			return this with { Component = component };
+		}
+
+		public Body WithGameObject( GameObject gameObject )
+		{
+			return this with { GameObject = gameObject };
 		}
 
 		public Body WithBone( BoneCollection.Bone bone )
@@ -314,7 +348,9 @@
 		}
 
 		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[_boneIndex];
+		public BoneCollection.Bone GetBone() => Model.Bones.AllBones[_boneIndex];
 		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[_parentIndex];
+		public BoneCollection.Bone GetParentBone() => Model.Bones.AllBones[_parentIndex];
 		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => _childIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
 
 		public static bool operator ==( Body left, Body right )
