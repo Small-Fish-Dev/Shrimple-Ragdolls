@@ -347,7 +347,7 @@
 				CreateStatuePhysics();
 
 			MakeRendererAbsolute( false );
-			EnablePhysics();
+			//EnablePhysics();
 			MoveObjectsFromMesh();
 		}
 	}

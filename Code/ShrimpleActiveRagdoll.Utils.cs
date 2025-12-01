@@ -39,13 +39,24 @@
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies.Values )
+		if ( Mode == RagdollMode.Statue )
 		{
-			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) ); // TODO: Renderer doesn't follow in Enabled mode, set to follow bone roots
+			var body = Renderer.GetComponent<Rigidbody>().PhysicsBody;
+			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Transform ) );
+			body.UseController = false;
+			body.Move( target, Time.Delta );
+			body.UseController = true;
+		}
+		else
+		{
+			foreach ( var body in Bodies.Values )
+			{
+				var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) );
 
-			body.Component.PhysicsBody.UseController = false;
-			body.Component.PhysicsBody.Move( targetTransform, Time.Delta );
-			body.Component.PhysicsBody.UseController = true;
+				body.Component.PhysicsBody.UseController = false;
+				body.Component.PhysicsBody.Move( targetTransform, Time.Delta );
+				body.Component.PhysicsBody.UseController = true;
+			}
 		}
 	}
 
@@ -90,8 +101,16 @@
 	/// </summary>
 	public void WakePhysics()
 	{
-		foreach ( var body in Bodies )
-			body.Value.Component.Sleeping = false;
+		if ( Mode == RagdollMode.Statue )
+		{
+			var body = Renderer.GetComponent<Rigidbody>();
+			body.Sleeping = false;
+		}
+		else
+		{
+			foreach ( var body in Bodies )
+				body.Value.Component.Sleeping = false;
+		}
 	}
 
 	public Body? GetBodyByBoneName( string boneName )
