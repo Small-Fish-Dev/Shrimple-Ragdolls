@@ -361,7 +361,7 @@
 		}
 	}
 
-	protected void MakeRendererAbsolute( bool absolute )
+	public void MakeRendererAbsolute( bool absolute )
 	{
 		if ( !Renderer.IsValid() )
 			return;

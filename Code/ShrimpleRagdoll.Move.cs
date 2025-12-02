@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Move the bone's mesh based on their Rigidbody transform
 	/// </summary>
-	protected void MoveMeshFromBodies()
+	public void MoveMeshFromBodies()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -21,7 +21,7 @@
 	/// <summary>
 	/// Move the bone's mesh based on their objects transform
 	/// </summary>
-	protected void MoveMeshFromObjects()
+	public void MoveMeshFromObjects()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -38,7 +38,7 @@
 	/// <summary>
 	/// Move the bone's objects based on their mesh transform
 	/// </summary>
-	protected void MoveObjectsFromMesh()
+	public void MoveObjectsFromMesh()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -71,7 +71,7 @@
 	/// <summary>
 	/// Physically move the bone's rigidbodies based on their animation transforms
 	/// </summary>
-	protected void MoveBodiesFromAnimations()
+	public void MoveBodiesFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
@@ -101,7 +101,7 @@
 	/// <summary>
 	/// Follow the <see cref="RagdollFollowMode"/>
 	/// </summary>
-	protected void MoveGameObject()
+	public void MoveGameObject()
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count() == 0 )
 			return;
