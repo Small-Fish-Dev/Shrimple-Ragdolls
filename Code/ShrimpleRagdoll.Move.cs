@@ -1,4 +1,4 @@
-﻿public partial class ShrimpleActiveRagdoll
+﻿public partial class ShrimpleRagdoll
 {
 	/// <summary>
 	/// Move the bone's mesh based on their Rigidbody transform

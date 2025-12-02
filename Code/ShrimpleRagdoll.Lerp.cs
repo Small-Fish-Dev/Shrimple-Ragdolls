@@ -1,6 +1,6 @@
 ﻿using Sandbox.Utility;
 
-public partial class ShrimpleActiveRagdoll
+public partial class ShrimpleRagdoll
 {
 	/// <summary>
 	/// Timer for lerping to the current animation pose<br />

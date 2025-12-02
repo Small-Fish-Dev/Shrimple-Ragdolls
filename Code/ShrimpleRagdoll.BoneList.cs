@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-public partial class ShrimpleActiveRagdoll
+public partial class ShrimpleRagdoll
 {
 	public class BoneFollowOption
 	{

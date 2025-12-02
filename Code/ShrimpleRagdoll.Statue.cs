@@ -1,4 +1,4 @@
-﻿public partial class ShrimpleActiveRagdoll
+﻿public partial class ShrimpleRagdoll
 {
 	protected void CreateStatuePhysics()
 	{

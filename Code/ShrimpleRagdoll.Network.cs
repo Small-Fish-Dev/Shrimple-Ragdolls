@@ -1,4 +1,4 @@
-﻿public partial class ShrimpleActiveRagdoll
+﻿public partial class ShrimpleRagdoll
 {
 	[Sync]
 	public NetDictionary<int, Transform> BodyTransforms { get; set; } = new();

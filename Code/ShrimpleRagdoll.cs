@@ -1,4 +1,4 @@
-﻿public partial class ShrimpleActiveRagdoll : Component, IScenePhysicsEvents
+﻿public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 {
 	public enum RagdollMode
 	{

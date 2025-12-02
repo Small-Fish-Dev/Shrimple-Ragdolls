@@ -8,7 +8,7 @@
 
 	void UpdateVisuals()
 	{
-		var allRagdolls = Scene.GetAllComponents<ShrimpleActiveRagdoll>();
+		var allRagdolls = Scene.GetAllComponents<ShrimpleRagdoll>();
 
 		foreach ( var ragdoll in allRagdolls )
 			ragdoll.ComputeVisuals();
@@ -16,7 +16,7 @@
 
 	void UpdatePhysics()
 	{
-		var allRagdolls = Scene.GetAllComponents<ShrimpleActiveRagdoll>();
+		var allRagdolls = Scene.GetAllComponents<ShrimpleRagdoll>();
 
 		foreach ( var ragdoll in allRagdolls )
 			ragdoll.ComputePhysics();

@@ -1,4 +1,4 @@
-﻿[CustomEditor( typeof( ShrimpleActiveRagdoll.BoneList ) )]
+﻿[CustomEditor( typeof( ShrimpleRagdoll.BoneList ) )]
 internal class BoneListWidget : ControlWidget
 {
 	public override bool IsControlButton => true;
@@ -16,7 +16,7 @@ internal class BoneListWidget : ControlWidget
 
 	protected override void PaintControl()
 	{
-		var value = SerializedProperty.GetValue<ShrimpleActiveRagdoll.BoneList>();
+		var value = SerializedProperty.GetValue<ShrimpleRagdoll.BoneList>();
 
 		var color = IsControlHovered ? Theme.Blue : Theme.TextControl;
 		var rect = LocalRect;
@@ -45,7 +45,7 @@ internal class BoneListWidget : ControlWidget
 		_menu = new Menu();
 		_menu.DeleteOnClose = true;
 
-		var options = SerializedProperty.GetValue<ShrimpleActiveRagdoll.BoneList>().Options;
+		var options = SerializedProperty.GetValue<ShrimpleRagdoll.BoneList>().Options;
 
 		_menu.AddLineEdit( "Filter",
 			placeholder: "Search",
@@ -92,7 +92,7 @@ internal class BoneListWidget : ControlWidget
 		{
 			if ( x != null )
 			{
-				SerializedProperty.GetValue<ShrimpleActiveRagdoll.BoneList>().Selected = x.Split( ". " )[1];
+				SerializedProperty.GetValue<ShrimpleRagdoll.BoneList>().Selected = x.Split( ". " )[1];
 				SignalValuesChanged();
 			}
 		}, flat: useFilter );
