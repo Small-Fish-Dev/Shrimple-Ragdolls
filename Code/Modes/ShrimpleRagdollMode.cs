@@ -1,7 +1,10 @@
-﻿public abstract class ShrimpleRagdollMode
+﻿public interface IShrimpleRagdollMode
 {
-	public abstract void OnEnter( ShrimpleRagdoll ragdoll );
-	public abstract void OnExit( ShrimpleRagdoll ragdoll );
-	public abstract void PhysicsUpdate( ShrimpleRagdoll ragdoll );
-	public abstract void VisualUpdate( ShrimpleRagdoll ragdoll );
+	public static abstract string Name { get; }
+	public static abstract string Description { get; }
+
+	public static abstract void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body );
+	public static abstract void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body );
+	public static abstract void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body );
+	public static abstract void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body );
 }
