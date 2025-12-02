@@ -193,7 +193,7 @@
 					collider.Enabled = true;
 
 			AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-			body.Component.Enabled = true;
+			//body.Component.Enabled = true;
 		}
 	}
 

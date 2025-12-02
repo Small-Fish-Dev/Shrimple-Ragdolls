@@ -5,26 +5,21 @@
 		if ( !Active || IsProxy )
 			return;
 
-		//DestroyPhysics();
+		DestroyPhysics();
 
 		if ( !Model.IsValid() )
 			return;
-		/*
-				var physics = Model.Physics;
-				if ( physics == null || physics.Parts.Count == 0 )
-					return;*/
 
-		//CreateBoneObjects( physics );
-		//CreateStatueBodies( physics );
+		var physics = Model.Physics;
+		if ( physics == null || physics.Parts.Count == 0 )
+			return;
+		CreateBoneObjects( physics );
+		CreateStatueBodies( physics );
+		//var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>();
+		//DisableBodies();
+		//EnableBodies();
+		Renderer.GetComponent<Rigidbody>( true )?.Enabled = true;
 		MoveMeshFromObjects();
-		var rigidbody = Renderer.AddComponent<Rigidbody>();
-		foreach ( var body in Bodies.Values )
-		{
-			RemoveFlags( body.GameObject, GameObjectFlags.Absolute );
-			body.Component.Enabled = false;
-		}
-		DisableJoints();
-		rigidbody.PhysicsBody.RebuildMass();
 		if ( NetworkRefreshOnChange )
 			Renderer?.Network?.Refresh();
 

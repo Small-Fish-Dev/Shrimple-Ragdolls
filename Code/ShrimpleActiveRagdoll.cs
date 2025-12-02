@@ -158,6 +158,15 @@
 	protected override void OnFixedUpdate()
 	{
 		base.OnFixedUpdate();
+
+		// TODO THIS FOR STATUE VVVV
+		Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
+		foreach ( var bone in Bodies )
+		{
+			bone.Value.GameObject.Flags &= ~GameObjectFlags.Absolute;
+			bone.Value.GameObject.Flags &= ~GameObjectFlags.Bone;
+			bone.Value.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
+		}
 	}
 
 	internal void ComputeVisuals()
@@ -347,7 +356,7 @@
 				CreateStatuePhysics();
 
 			MakeRendererAbsolute( false );
-			//EnablePhysics();
+			EnablePhysics();
 			MoveObjectsFromMesh();
 		}
 	}
