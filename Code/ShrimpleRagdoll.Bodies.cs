@@ -27,7 +27,7 @@
 		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
 	}
 
-	protected void AddFlags( GameObject gameObject, GameObjectFlags flags )
+	public void AddFlags( GameObject gameObject, GameObjectFlags flags )
 	{
 		if ( !gameObject.IsValid() )
 			return;
@@ -42,7 +42,7 @@
 		gameObject.Flags |= flags;
 	}
 
-	protected void RemoveFlags( GameObject gameObject, GameObjectFlags flags )
+	public void RemoveFlags( GameObject gameObject, GameObjectFlags flags )
 	{
 		if ( !gameObject.IsValid() )
 			return;
@@ -304,6 +304,20 @@
 		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[_parentIndex];
 		public BoneCollection.Bone GetParentBone() => Model.Bones.AllBones[_parentIndex];
 		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => _childIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
+
+		public void EnableColliders()
+		{
+			foreach ( var collider in Colliders )
+				if ( collider.IsValid() )
+					collider.Enabled = true;
+		}
+
+		public void DisableColliders()
+		{
+			foreach ( var collider in Colliders )
+				if ( collider.IsValid() )
+					collider.Enabled = false;
+		}
 
 		public static bool operator ==( Body left, Body right )
 		{
