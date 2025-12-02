@@ -59,12 +59,26 @@
 			{
 				var worldTransform = renderBonePositions[item.Key.Index];
 				var boneVelocity = renderBoneVelocities[item.Key.Index];
-				var previousVel = component.Velocity;
 				component.WorldTransform = worldTransform;
-				component.Velocity = previousVel;
 				component.Velocity = boneVelocity.Linear;
 				component.AngularVelocity = boneVelocity.Angular;
 			}
+		}
+	}
+
+	public void MoveObjectFromMesh( BoneCollection.Bone bone )
+	{
+		if ( !Renderer.TryGetBoneTransform( bone, out var renderBoneTransform ) )
+			return;
+		var renderBoneVelocity = Renderer.GetBoneVelocities()[bone.Index]; // TODO: Turn into GetBoneVelocity once the PR gets merged
+		var boneObject = BoneObjects[bone];
+
+		var component = boneObject.GetComponent<Rigidbody>(); // TODO: Cache this?
+		if ( component.IsValid() )
+		{
+			component.WorldTransform = renderBoneTransform;
+			component.Velocity = renderBoneVelocity.Linear;
+			component.AngularVelocity = renderBoneVelocity.Angular;
 		}
 	}
 
