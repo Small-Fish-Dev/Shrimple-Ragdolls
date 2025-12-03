@@ -9,7 +9,7 @@
 		ragdoll.GetParentJoint( body )?.Component.Enabled = false; // Disable our parent joint
 		body.Component?.Enabled = false; // Disable our rigidbody
 
-		if ( body.GameObject.Parent == ragdoll.Renderer.GameObject )
+		if ( body.IsRootBone )
 		{
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root
 			ragdoll.Renderer.GetOrAddComponent<Rigidbody>( true ).Enabled = true; // Add rigidbody to model if we're root
@@ -23,7 +23,7 @@
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		if ( body.GameObject.Parent == ragdoll.Renderer.GameObject )
+		if ( body.IsRootBone )
 		{
 			ragdoll.MakeRendererAbsolute( false ); // Remove absolute from model if we're root
 			ragdoll.Renderer.GetComponent<Rigidbody>( true )?.Enabled = false; // Disable model's rigidbody if we're root
