@@ -3,7 +3,7 @@
 	public static string Name => "Statue";
 	public static string Description => "Ragdoll is frozen in place, physics and joints are disabled.";
 
-	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
+	public void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.EnableColliders(); // Enable our colliders
 		ragdoll.GetParentJoint( body )?.Component.Enabled = false; // Disable our parent joint
@@ -20,7 +20,7 @@
 		ragdoll.MoveMeshFromObject( body );
 	}
 
-	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
+	public void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		if ( body.IsRootBone )
 		{
@@ -29,12 +29,12 @@
 		}
 	}
 
-	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
+	public void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		// We're a statue, we don't need to update physics ourselves :)
 	}
 
-	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
+	public void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		// We're a statue, we don't need to update visuals ourselves :)
 	}
