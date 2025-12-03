@@ -31,10 +31,10 @@
 
 	private ShrimpleRagdollModeHandlers _handlers;
 
-	string _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
-	[Property]
+	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
 	[Sync]
-	public string Mode
+	[Property]
+	public ShrimpleRagdollModeProperty Mode
 	{
 		get => _mode;
 		set
@@ -46,9 +46,6 @@
 			_mode = value;
 		}
 	}
-
-	[Property]
-	public ShrimpleRagdollModeProperty RagdollMode { get; set; }
 
 	/// <summary>
 	/// If the ragdoll's renderer is not the root object, how should the root gameobject follow the ragdoll's movement<br />
