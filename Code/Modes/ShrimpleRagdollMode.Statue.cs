@@ -16,6 +16,8 @@
 		}
 
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute ); // Remove absolute tag from our gameobject
+		ragdoll.MoveObjectFromMesh( body.GetBone( ragdoll.Model ) );
+		ragdoll.MoveMeshFromObject( body );
 
 	}
 
