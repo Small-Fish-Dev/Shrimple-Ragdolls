@@ -31,29 +31,24 @@
 
 	private ShrimpleRagdollModeHandlers _handlers;
 
-	string _mode; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
+	string _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
 	[Property]
 	[Sync]
 	public string Mode
 	{
-		get;
+		get => _mode;
 		set
 		{
 			if ( value == _mode )
 				return;
 
-			foreach ( var body in Bodies )
-				_handlers.OnExit?.Invoke( this, body.Value );
-
+			InternalSetRagdollMode( _mode, value );
 			_mode = value;
-
-			if ( !ShrimpleRagdollModeRegistry.TryGet( _mode, out _handlers ) )
-				throw new Exception( $"Unknown ragdoll mode '{_mode}'" );
-
-			foreach ( var body in Bodies )
-				_handlers.OnEnter?.Invoke( this, body.Value );
 		}
-	} = ShrimpleRagdollMode.Statue;
+	}
+
+	[Property]
+	public ShrimpleRagdollModeProperty RagdollMode { get; set; }
 
 	/// <summary>
 	/// If the ragdoll's renderer is not the root object, how should the root gameobject follow the ragdoll's movement<br />
@@ -120,7 +115,8 @@
 		}
 
 		CreatePhysics();
-		DisablePhysics();
+
+		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
 	}
 
 
@@ -157,10 +153,8 @@
 
 	internal void ComputeVisuals()
 	{
-		if ( !Active || Mode == ShrimpleRagdollMode.Disabled )
+		if ( !Active )
 			return;
-
-		// TODO: Bone overrides can be done in a GameObjectSystem in parallel with locks similar to SceneAnimationSystem, look into that later
 
 		if ( IsLerpingToAnimation )
 		{
@@ -168,10 +162,8 @@
 		}
 		else
 		{
-			if ( Mode == ShrimpleRagdollMode.Enabled )
-				MoveMeshFromBodies();
-			if ( Mode == ShrimpleRagdollMode.Active )
-				MoveMeshFromBodies();
+			foreach ( var body in Bodies )
+				_handlers.VisualUpdate?.Invoke( this, body.Value );
 		}
 	}
 
@@ -188,10 +180,8 @@
 			}
 			else
 			{
-				if ( Mode == ShrimpleRagdollMode.Passive )
-					MoveBodiesFromAnimations();
-				if ( Mode == ShrimpleRagdollMode.Active )
-					MoveBodiesFromAnimations();
+				foreach ( var body in Bodies )
+					_handlers.PhysicsUpdate?.Invoke( this, body.Value );
 
 				MoveGameObject();
 			}
@@ -297,6 +287,16 @@
 
 	protected void InternalSetRagdollMode( string oldMode, string newMode )
 	{
+		if ( !ShrimpleRagdollModeRegistry.TryGet( newMode ?? "Disabled", out var newHandler ) )
+			return;
+
+		foreach ( var body in Bodies )
+			_handlers.OnExit?.Invoke( this, body.Value );
+
+		_handlers = newHandler;
+
+		foreach ( var body in Bodies )
+			_handlers.OnEnter?.Invoke( this, body.Value );
 		/*
 		if ( newMode == RagdollMode.Disabled )
 		{
