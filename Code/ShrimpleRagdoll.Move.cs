@@ -35,6 +35,14 @@
 		}
 	}
 
+	public void MoveMeshFromObject( Body body )
+	{
+		var bone = body.GetBone( Model );
+		var boneObject = BoneObjects[bone];
+		var transform = Renderer.WorldTransform.ToLocal( boneObject.WorldTransform );
+		Renderer.SceneModel.SetBoneOverride( bone.Index, in transform );
+	}
+
 	/// <summary>
 	/// Move the bone's objects based on their mesh transform
 	/// </summary>

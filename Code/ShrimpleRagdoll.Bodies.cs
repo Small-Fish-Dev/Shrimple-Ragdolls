@@ -300,7 +300,6 @@
 		}
 
 		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[_boneIndex];
-		public BoneCollection.Bone GetBone() => Model.Bones.AllBones[_boneIndex];
 		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[_parentIndex];
 		public BoneCollection.Bone GetParentBone() => Model.Bones.AllBones[_parentIndex];
 		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => _childIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
