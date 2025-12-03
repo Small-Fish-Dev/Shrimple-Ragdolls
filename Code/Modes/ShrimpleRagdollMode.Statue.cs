@@ -31,7 +31,8 @@
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		// We're a statue, we don't need to update physics ourselves :)
+		if ( body.IsRootBone )
+			ragdoll.MoveGameObject();
 	}
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
