@@ -161,6 +161,13 @@
 	}
 
 	[Button]
+	public void Enable()
+	{
+		foreach ( var body in Bodies )
+			EnabledMode.OnEnter( this, body.Value );
+	}
+
+	[Button]
 	public void Disable()
 	{
 		foreach ( var body in Bodies )
