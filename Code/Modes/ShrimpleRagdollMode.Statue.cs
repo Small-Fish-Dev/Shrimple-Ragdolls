@@ -5,7 +5,7 @@
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		body.EnableColliders(); // Enable our collides
+		body.EnableColliders(); // Enable our colliders
 		ragdoll.GetParentJoint( body )?.Component.Enabled = false; // Disable our parent joint
 		body.Component?.Enabled = false; // Disable our rigidbody
 
@@ -18,7 +18,6 @@
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute ); // Remove absolute tag from our gameobject
 		ragdoll.MoveObjectFromMesh( body.GetBone( ragdoll.Model ) );
 		ragdoll.MoveMeshFromObject( body );
-
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

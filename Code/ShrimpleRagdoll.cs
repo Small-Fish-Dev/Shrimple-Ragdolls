@@ -160,6 +160,13 @@
 			StatueMode.OnEnter( this, body.Value );
 	}
 
+	[Button]
+	public void Disable()
+	{
+		foreach ( var body in Bodies )
+			DisabledMode.OnEnter( this, body.Value );
+	}
+
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
