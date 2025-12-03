@@ -251,21 +251,21 @@
 	{
 		public Rigidbody Component;
 		public GameObject GameObject;
-		public Model Model;
-		private int _boneIndex;
+		public int BoneIndex;
 		public List<Collider> Colliders = new();
-		private int _parentIndex;
-		private List<int> _childIndexes = new();
+		public int ParentIndex;
+		public List<int> ChildIndexes = new();
 		public bool IsValid = false;
+		public bool IsRootBone => BoneIndex == 0;
 
 		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
 		{
 			Component = component;
 			GameObject = gameObject;
-			_boneIndex = bone;
+			BoneIndex = bone;
 			Colliders = colliders;
-			_parentIndex = parent;
-			_childIndexes = children;
+			ParentIndex = parent;
+			ChildIndexes = children;
 			IsValid = isValid;
 		}
 
@@ -286,23 +286,22 @@
 
 		public Body WithBone( BoneCollection.Bone bone )
 		{
-			return this with { _boneIndex = bone.Index };
+			return this with { BoneIndex = bone.Index };
 		}
 
 		public Body WithParent( BoneCollection.Bone parent )
 		{
-			return this with { _parentIndex = parent.Index };
+			return this with { ParentIndex = parent.Index };
 		}
 
 		public Body WithChildren( List<BoneCollection.Bone> children )
 		{
-			return this with { _childIndexes = children?.Select( x => x.Index ).ToList() };
+			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
 		}
 
-		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[_boneIndex];
-		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[_parentIndex];
-		public BoneCollection.Bone GetParentBone() => Model.Bones.AllBones[_parentIndex];
-		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => _childIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
+		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[BoneIndex];
+		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[ParentIndex];
+		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => ChildIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
 
 		public void EnableColliders()
 		{
@@ -320,7 +319,7 @@
 
 		public static bool operator ==( Body left, Body right )
 		{
-			return left._boneIndex == right._boneIndex && left._parentIndex == right._parentIndex;
+			return left.BoneIndex == right.BoneIndex && left.ParentIndex == right.ParentIndex;
 		}
 
 		public static bool operator !=( Body left, Body right )
@@ -335,7 +334,7 @@
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine( _boneIndex, _parentIndex );
+			return HashCode.Combine( BoneIndex, ParentIndex );
 		}
 	}
 }
