@@ -300,8 +300,8 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "ShrimpleActiveRagdoll",
-          "__guid": "cf4b4f23-f6da-4018-aae2-e9a5a254d432",
+          "__type": "ShrimpleRagdoll",
+          "__guid": "c19c6c81-25fb-4917-abc5-2e55e8d5858e",
           "__enabled": true,
           "FollowOptions": {
             "RootObjectFollow": true,
