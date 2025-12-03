@@ -1,44 +1,5 @@
 ﻿public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 {
-	public enum RagdollMode
-	{
-		/// <summary>
-		/// ❌ Collisions<br />
-		/// ❌ Physics<br />
-		/// ✅ Animations
-		/// </summary>
-		[Icon( "person_off" )]
-		Disabled,
-		/// <summary>
-		/// ✅ Collisions<br />
-		/// ✅ Physics<br />
-		/// ❌ Animations
-		/// </summary>
-		[Icon( "airline_seat_individual_suite" )]
-		Enabled,
-		/// <summary>
-		/// ✅ Collisions<br />
-		/// ❌ Physics<br />
-		/// ✅ Animations
-		/// </summary>
-		[Icon( "man_2" )]
-		Passive,
-		/// <summary>
-		/// ✅ Collisions<br />
-		/// ✅ Physics<br />
-		/// ✅ Animations
-		/// </summary>
-		[Icon( "sports_gymnastics" )]
-		Active,
-		/// <summary>
-		/// ✅ Collisions<br />
-		/// ❌ Physics<br />
-		/// ❌ Animations
-		/// </summary>
-		[Icon( "accessibility" )]
-		Statue
-	}
-
 	[Flags]
 	public enum RagdollFollowMode
 	{
@@ -68,22 +29,31 @@
 		}
 	}
 
-	RagdollMode _mode; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
+	private ShrimpleRagdollModeHandlers _handlers;
+
+	string _mode; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
 	[Property]
 	[Sync]
-	[Change( nameof( OnModeChanged ) )]
-	public RagdollMode Mode
+	public string Mode
 	{
-		get => _mode;
+		get;
 		set
 		{
-			var old = _mode;
+			if ( value == _mode )
+				return;
+
+			foreach ( var body in Bodies )
+				_handlers.OnExit?.Invoke( this, body.Value );
+
 			_mode = value;
 
-			if ( Game.IsPlaying )
-				InternalSetRagdollMode( old, value );
+			if ( !ShrimpleRagdollModeRegistry.TryGet( _mode, out _handlers ) )
+				throw new Exception( $"Unknown ragdoll mode '{_mode}'" );
+
+			foreach ( var body in Bodies )
+				_handlers.OnEnter?.Invoke( this, body.Value );
 		}
-	}
+	} = ShrimpleRagdollMode.Statue;
 
 	/// <summary>
 	/// If the ragdoll's renderer is not the root object, how should the root gameobject follow the ragdoll's movement<br />
@@ -123,14 +93,14 @@
 
 	/// <summary>
 	/// The GameObject's position depends on physics simulation<br />
-	/// <see cref="RagdollMode.Enabled"/> or <see cref="RagdollMode.Statue"/>
+	/// <see cref="ShrimpleRagdollMode.Enabled"/> or <see cref="ShrimpleRagdollMode.Statue"/>
 	/// </summary>
-	public bool PhysicsDriven => Mode == RagdollMode.Enabled || Mode == RagdollMode.Statue;
+	public bool PhysicsDriven => Mode == ShrimpleRagdollMode.Enabled || Mode == ShrimpleRagdollMode.Statue;
 	/// <summary>
 	/// The GameObject's position depends on animations or local transform<br />
-	/// <see cref="RagdollMode.Passive"/> or <see cref="RagdollMode.Active"/>
+	/// <see cref="ShrimpleRagdollMode.Passive"/> or <see cref="ShrimpleRagdollMode.Active"/>
 	/// </summary>
-	public bool AnimationsDriven => Mode == RagdollMode.Passive || Mode == RagdollMode.Active;
+	public bool AnimationsDriven => Mode == ShrimpleRagdollMode.Passive || Mode == ShrimpleRagdollMode.Active;
 
 	public Model Model => Renderer?.Model;
 
@@ -152,6 +122,7 @@
 		CreatePhysics();
 		DisablePhysics();
 	}
+
 
 	[Button]
 	public void TurnIntoStatue()
@@ -186,7 +157,7 @@
 
 	internal void ComputeVisuals()
 	{
-		if ( !Active || Mode == RagdollMode.Disabled )
+		if ( !Active || Mode == ShrimpleRagdollMode.Disabled )
 			return;
 
 		// TODO: Bone overrides can be done in a GameObjectSystem in parallel with locks similar to SceneAnimationSystem, look into that later
@@ -197,16 +168,16 @@
 		}
 		else
 		{
-			if ( Mode == RagdollMode.Enabled )
+			if ( Mode == ShrimpleRagdollMode.Enabled )
 				MoveMeshFromBodies();
-			if ( Mode == RagdollMode.Active )
+			if ( Mode == ShrimpleRagdollMode.Active )
 				MoveMeshFromBodies();
 		}
 	}
 
 	internal void ComputePhysics()
 	{
-		if ( !Active || Mode == RagdollMode.Disabled )
+		if ( !Active || Mode == ShrimpleRagdollMode.Disabled )
 			return;
 
 		if ( !IsProxy )
@@ -217,9 +188,9 @@
 			}
 			else
 			{
-				if ( Mode == RagdollMode.Passive )
+				if ( Mode == ShrimpleRagdollMode.Passive )
 					MoveBodiesFromAnimations();
-				if ( Mode == RagdollMode.Active )
+				if ( Mode == ShrimpleRagdollMode.Active )
 					MoveBodiesFromAnimations();
 
 				MoveGameObject();
@@ -316,7 +287,7 @@
 	/// Set the ragdoll mode
 	/// </summary>
 	/// <param name="mode"></param>
-	public void SetRagdollMode( RagdollMode mode )
+	public void SetRagdollMode( string mode )
 	{
 		if ( Mode == mode )
 			return;
@@ -324,8 +295,9 @@
 		Mode = mode;
 	}
 
-	protected void InternalSetRagdollMode( RagdollMode oldMode, RagdollMode newMode )
+	protected void InternalSetRagdollMode( string oldMode, string newMode )
 	{
+		/*
 		if ( newMode == RagdollMode.Disabled )
 		{
 			//MakeRendererAbsolute( false );
@@ -374,6 +346,7 @@
 			EnablePhysics();
 			MoveObjectsFromMesh();
 		}
+		*/
 	}
 
 	public void MakeRendererAbsolute( bool absolute )
@@ -417,7 +390,7 @@
 		EnableBodies();
 		EnableJoints();
 
-		if ( Mode == RagdollMode.Statue )
+		if ( Mode == ShrimpleRagdollMode.Statue )
 			MoveMeshFromObjects();
 	}
 

@@ -29,7 +29,7 @@
 
 	private void BakeIntoStatue() // TESTING, DO NOT USE
 	{
-		InternalSetRagdollMode( Mode, RagdollMode.Statue );
+		InternalSetRagdollMode( Mode, ShrimpleRagdollMode.Statue );
 		StatuePhysicsWereCreated = true;
 	}
 }

@@ -16,7 +16,7 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Which mode to set after lerping is complete
 	/// </summary>
-	public RagdollMode LerpToAnimationTarget { get; protected set; }
+	public string LerpToAnimationTarget { get; protected set; }
 
 	/// <summary>
 	/// The easing function to use when lerping to animation
@@ -68,7 +68,7 @@ public partial class ShrimpleRagdoll
 	/// <param name="function">Which easing function to use for the interpolation</param>
 	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
 	[Rpc.Broadcast( NetFlags.OwnerOnly )]
-	public void StartLerpToAnimation( float duration, Easing.Function function, RagdollMode targetMode = RagdollMode.Disabled )
+	public void StartLerpToAnimation( float duration, Easing.Function function, string targetMode = "Disabled" )
 	{
 		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
@@ -89,7 +89,7 @@ public partial class ShrimpleRagdoll
 	/// </summary>
 	/// <param name="duration">How long the transition will last</param>
 	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
-	public void StartSlerpToAnimation( float duration, RagdollMode targetMode = RagdollMode.Disabled )
+	public void StartSlerpToAnimation( float duration, string targetMode = "Disabled" )
 	{
 		StartLerpToAnimation( duration, Easing.EaseIn, targetMode );
 	}
@@ -97,6 +97,6 @@ public partial class ShrimpleRagdoll
 	[Button( "TESTLERP" )]
 	public void TestLerpToAnimation()
 	{
-		StartLerpToAnimation( 1f, Easing.Linear, RagdollMode.Enabled );
+		StartLerpToAnimation( 1f, Easing.Linear, ShrimpleRagdollMode.Enabled );
 	}
 }

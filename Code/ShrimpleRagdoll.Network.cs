@@ -42,7 +42,7 @@
 		MoveGameObject();
 	}
 
-	protected void OnModeChanged( RagdollMode oldMode, RagdollMode newMode )
+	protected void OnModeChanged( string oldMode, string newMode )
 	{
 		if ( IsProxy )
 		{

@@ -39,7 +39,7 @@
 	{
 		WakePhysics();
 
-		if ( Mode == RagdollMode.Statue )
+		if ( Mode == ShrimpleRagdollMode.Statue )
 		{
 			var body = Renderer.GetComponent<Rigidbody>().PhysicsBody;
 			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Transform ) );
@@ -101,7 +101,7 @@
 	/// </summary>
 	public void WakePhysics()
 	{
-		if ( Mode == RagdollMode.Statue )
+		if ( Mode == ShrimpleRagdollMode.Statue )
 		{
 			var body = Renderer.GetComponent<Rigidbody>();
 			body.Sleeping = false;

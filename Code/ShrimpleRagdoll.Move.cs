@@ -128,7 +128,7 @@
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count() == 0 )
 			return;
 
-		if ( Mode == RagdollMode.Enabled )
+		if ( Mode == ShrimpleRagdollMode.Enabled )
 		{
 			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
 			var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
@@ -157,7 +157,7 @@
 			}
 		}
 
-		if ( Mode == RagdollMode.Statue )
+		if ( Mode == ShrimpleRagdollMode.Statue )
 		{
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
 			{
