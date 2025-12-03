@@ -141,12 +141,24 @@
 		base.OnStart();
 
 		Renderer.CreateBoneObjects = true;
-		InternalSetRagdollMode( Mode, Mode );
+		//InternalSetRagdollMode( Mode, Mode );
 
 		if ( !IsProxy && (Network?.Active ?? false) )
 		{
 			SetupBodyTransforms();
 			GameObject.Root.NetworkSpawn();
+		}
+
+		CreatePhysics();
+		DisablePhysics();
+	}
+
+	[Button]
+	public void TurnIntoStatue()
+	{
+		foreach ( var body in Bodies )
+		{
+			StatueMode.OnEnter( this, body.Value );
 		}
 	}
 
@@ -158,15 +170,6 @@
 	protected override void OnFixedUpdate()
 	{
 		base.OnFixedUpdate();
-
-		// TODO THIS FOR STATUE VVVV
-		Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
-		foreach ( var bone in Bodies )
-		{
-			bone.Value.GameObject.Flags &= ~GameObjectFlags.Absolute;
-			bone.Value.GameObject.Flags &= ~GameObjectFlags.Bone;
-			bone.Value.GameObject.Flags &= ~GameObjectFlags.PhysicsBone;
-		}
 	}
 
 	internal void ComputeVisuals()
@@ -313,8 +316,8 @@
 	{
 		if ( newMode == RagdollMode.Disabled )
 		{
-			MakeRendererAbsolute( false );
-			DisablePhysics();
+			//MakeRendererAbsolute( false );
+			//DisablePhysics();
 		}
 
 		if ( newMode == RagdollMode.Enabled )
@@ -369,7 +372,11 @@
 		if ( absolute )
 		{
 			if ( !Renderer.GameObject.Flags.Contains( GameObjectFlags.Absolute ) )
+			{
+				var worldTransform = Renderer.WorldTransform;
 				Renderer.GameObject.Flags |= GameObjectFlags.Absolute;
+				Renderer.WorldTransform = worldTransform;
+			}
 		}
 		else
 		{
