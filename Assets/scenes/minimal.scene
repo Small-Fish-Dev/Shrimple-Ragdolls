@@ -312,7 +312,9 @@
             },
             "MergeBoneTransforms": false
           },
-          "Mode": "Disabled",
+          "Mode": {
+            "Name": "Disabled"
+          },
           "NetworkRefreshOnChange": true,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
