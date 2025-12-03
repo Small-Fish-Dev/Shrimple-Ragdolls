@@ -32,11 +32,11 @@
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-
+		// We're a statue, we don't need to update physics ourselves :)
 	}
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-
+		// We're a statue, we don't need to update visuals ourselves :)
 	}
 }

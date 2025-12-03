@@ -157,9 +157,7 @@
 	public void TurnIntoStatue()
 	{
 		foreach ( var body in Bodies )
-		{
 			StatueMode.OnEnter( this, body.Value );
-		}
 	}
 
 	protected override void OnUpdate()
