@@ -50,13 +50,67 @@ public static class ShrimpleRagdollModeRegistry
 
 	public static bool TryGet( string name, out ShrimpleRagdollModeHandlers handlers )
 		=> _modes.TryGetValue( name, out handlers );
+
+	/// <summary>
+	/// Exposed for the editor widget – gives you all the mode names + descriptions.
+	/// </summary>
+	public static IEnumerable<ShrimpleRagdollModeInfo> GetRegisteredModes()
+	{
+		foreach ( var kv in _modes )
+		{
+			yield return new ShrimpleRagdollModeInfo( kv.Key, kv.Value.Description );
+		}
+	}
 }
 
-public static class ShrimpleRagdollMode
+public class ShrimpleRagdollMode
 {
 	public static string Disabled => "Disabled";
 	public static string Enabled => "Enabled";
 	public static string Passive => "Passive";
 	public static string Active => "Active";
 	public static string Statue => "Statue";
+}
+
+public static class ShrimpleRagdollModeExtensions
+{
+	// This is an example if you want to add your own
+	extension( ShrimpleRagdollMode target )
+	{
+		public static string GmodStatue => "GmodStatue";
+	}
+}
+
+public readonly struct ShrimpleRagdollModeInfo
+{
+	public readonly string Name;
+	public readonly string Description;
+
+	public ShrimpleRagdollModeInfo( string name, string description )
+	{
+		Name = name;
+		Description = description;
+	}
+}
+
+[Serializable]
+public struct ShrimpleRagdollModeProperty
+{
+	/// <summary>
+	/// The string key we use to look up the handlers in the registry.
+	/// </summary>
+	public string Name;
+
+	public ShrimpleRagdollModeProperty( string name )
+	{
+		Name = name;
+	}
+
+	public override string ToString() => Name ?? string.Empty;
+
+	public static implicit operator string( ShrimpleRagdollModeProperty value )
+		=> value.Name;
+
+	public static implicit operator ShrimpleRagdollModeProperty( string name )
+		=> new ShrimpleRagdollModeProperty( name );
 }
