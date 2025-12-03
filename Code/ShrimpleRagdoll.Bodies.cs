@@ -256,7 +256,7 @@
 		public int ParentIndex;
 		public List<int> ChildIndexes = new();
 		public bool IsValid = false;
-		public bool IsRootBone => BoneIndex == 0;
+		public bool IsRootBone => ParentIndex == -1;
 
 		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
 		{
