@@ -99,7 +99,8 @@ public struct ShrimpleRagdollModeProperty
 	/// <summary>
 	/// The string key we use to look up the handlers in the registry.
 	/// </summary>
-	public string Name;
+	[Property, KeyProperty]
+	public string Name { get; set; }
 
 	public ShrimpleRagdollModeProperty( string name )
 	{
