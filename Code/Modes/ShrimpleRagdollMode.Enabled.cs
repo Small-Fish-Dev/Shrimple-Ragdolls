@@ -1,4 +1,4 @@
-﻿public sealed class EnabledMode : IShrimpleRagdollMode<EnabledMode>
+﻿public class EnabledMode : IShrimpleRagdollMode<EnabledMode>
 {
 	public static string Name => "Enabled";
 	public static string Description => "Classic ragdoll behaviour, drop on the ground and flop around";

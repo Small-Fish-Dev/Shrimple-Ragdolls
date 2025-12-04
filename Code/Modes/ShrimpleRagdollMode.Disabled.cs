@@ -1,4 +1,4 @@
-﻿public sealed class DisabledMode : IShrimpleRagdollMode<DisabledMode>
+﻿public class DisabledMode : IShrimpleRagdollMode<DisabledMode>
 {
 	public static string Name => "Disabled";
 	public static string Description => "Disables all bodies and joints";

@@ -1,4 +1,4 @@
-﻿public sealed class StatueMode : IShrimpleRagdollMode<StatueMode>
+﻿public class StatueMode : IShrimpleRagdollMode<StatueMode>
 {
 	public static string Name => "Statue";
 	public static string Description => "Ragdoll is frozen in place, physics and joints are disabled.";
