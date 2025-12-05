@@ -6,8 +6,8 @@
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.EnableColliders(); // Enable our colliders
+		body.Component?.Enabled = true; // Make sure to enable rigidbody before joint to build the physicsbody or else the joint freaks out!
 		ragdoll.GetParentJoint( body )?.Component.Enabled = true; // Enable our parent joint
-		body.Component?.Enabled = true; // Enable our rigidbody
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root
