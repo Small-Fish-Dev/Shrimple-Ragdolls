@@ -11,6 +11,22 @@
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
+		var joint = ragdoll.GetParentJoint( body )?.Component ?? null;
+		if ( !joint.IsValid() ) return;
+
+		if ( joint is BallJoint ballJoint )
+		{
+			ballJoint.Motor = BallJoint.MotorMode.Disabled;
+			ballJoint.Frequency = 0f;
+			ballJoint.TargetRotation = Rotation.Identity;
+		}
+		if ( joint is HingeJoint hingeJoint )
+		{
+			hingeJoint.Motor = HingeJoint.MotorMode.Disabled;
+			hingeJoint.Frequency = 0f;
+			hingeJoint.TargetAngle = 0f;
+		}
+
 		EnabledMode.OnExit( ragdoll, body );
 	}
 
