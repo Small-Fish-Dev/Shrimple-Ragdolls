@@ -128,7 +128,7 @@
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count() == 0 )
 			return;
 
-		if ( Mode == ShrimpleRagdollMode.Enabled )
+		if ( RagdollHandler.PhysicsDriven )
 		{
 			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
 			var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
@@ -156,8 +156,7 @@
 					GameObject.Root.WorldRotation = Renderer.WorldRotation;
 			}
 		}
-
-		if ( Mode == ShrimpleRagdollMode.Statue )
+		else // We still want this option even if we're not physically driven
 		{
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
 			{

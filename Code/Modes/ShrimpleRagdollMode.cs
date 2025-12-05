@@ -79,6 +79,8 @@ public static class ShrimpleRagdollModeRegistry
 
 public class ShrimpleRagdollMode
 {
+	// Default ones VVV
+
 	public static string Disabled => "Disabled";
 	public static string Enabled => "Enabled";
 	public static string Passive => "Passive";

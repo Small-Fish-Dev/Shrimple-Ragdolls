@@ -29,7 +29,8 @@
 		}
 	}
 
-	private ShrimpleRagdollModeHandlers _handlers;
+
+	public ShrimpleRagdollModeHandlers RagdollHandler { get; protected set; }
 
 	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
 	[Sync]
@@ -160,7 +161,7 @@
 		else
 		{
 			foreach ( var body in Bodies )
-				_handlers.VisualUpdate?.Invoke( this, body.Value );
+				RagdollHandler.VisualUpdate?.Invoke( this, body.Value );
 		}
 	}
 
@@ -178,7 +179,7 @@
 			else
 			{
 				foreach ( var body in Bodies )
-					_handlers.PhysicsUpdate?.Invoke( this, body.Value );
+					RagdollHandler.PhysicsUpdate?.Invoke( this, body.Value );
 
 				MoveGameObject();
 			}
@@ -288,12 +289,12 @@
 			return;
 
 		foreach ( var body in Bodies )
-			_handlers.OnExit?.Invoke( this, body.Value );
+			RagdollHandler.OnExit?.Invoke( this, body.Value );
 
-		_handlers = newHandler;
+		RagdollHandler = newHandler;
 
 		foreach ( var body in Bodies )
-			_handlers.OnEnter?.Invoke( this, body.Value );
+			RagdollHandler.OnEnter?.Invoke( this, body.Value );
 		/*
 		if ( newMode == RagdollMode.Disabled )
 		{
