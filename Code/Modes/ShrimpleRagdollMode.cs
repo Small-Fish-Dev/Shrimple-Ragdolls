@@ -1,8 +1,18 @@
 ﻿public interface IShrimpleRagdollMode<TSelf>
 	where TSelf : IShrimpleRagdollMode<TSelf>
 {
+	/// <summary>
+	///  The naame of this mode, must be unique as it's used as an id
+	/// </summary>
 	static abstract string Name { get; }
+	/// <summary>
+	/// A short description of what this mode does
+	/// </summary>
 	static abstract string Description { get; }
+	/// <summary>
+	/// The renderer should follow the ragdoll's MoveMode
+	/// </summary>
+	static abstract bool PhysicsDriven { get; }
 
 	static abstract void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body );
 	static abstract void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body );
@@ -17,19 +27,22 @@ public readonly struct ShrimpleRagdollModeHandlers
 	public readonly Action<ShrimpleRagdoll, ShrimpleRagdoll.Body> PhysicsUpdate;
 	public readonly Action<ShrimpleRagdoll, ShrimpleRagdoll.Body> VisualUpdate;
 	public readonly string Description;
+	public readonly bool PhysicsDriven;
 
 	public ShrimpleRagdollModeHandlers(
 		Action<ShrimpleRagdoll, ShrimpleRagdoll.Body> enter,
 		Action<ShrimpleRagdoll, ShrimpleRagdoll.Body> exit,
 		Action<ShrimpleRagdoll, ShrimpleRagdoll.Body> physics,
 		Action<ShrimpleRagdoll, ShrimpleRagdoll.Body> visual,
-		string desc )
+		string desc,
+		bool physicsDriven )
 	{
 		OnEnter = enter;
 		OnExit = exit;
 		PhysicsUpdate = physics;
 		VisualUpdate = visual;
 		Description = desc;
+		PhysicsDriven = physicsDriven;
 	}
 }
 
@@ -44,7 +57,8 @@ public static class ShrimpleRagdollModeRegistry
 			T.OnExit,
 			T.PhysicsUpdate,
 			T.VisualUpdate,
-			T.Description
+			T.Description,
+			T.PhysicsDriven
 		);
 	}
 
@@ -58,7 +72,7 @@ public static class ShrimpleRagdollModeRegistry
 	{
 		foreach ( var kv in _modes )
 		{
-			yield return new ShrimpleRagdollModeInfo( kv.Key, kv.Value.Description );
+			yield return new ShrimpleRagdollModeInfo( kv.Key, kv.Value.Description, kv.Value.PhysicsDriven );
 		}
 	}
 }
@@ -85,11 +99,13 @@ public readonly struct ShrimpleRagdollModeInfo
 {
 	public readonly string Name;
 	public readonly string Description;
+	public readonly bool PhysicsDriven;
 
-	public ShrimpleRagdollModeInfo( string name, string description )
+	public ShrimpleRagdollModeInfo( string name, string description, bool physicsDriven )
 	{
 		Name = name;
 		Description = description;
+		PhysicsDriven = physicsDriven;
 	}
 }
 

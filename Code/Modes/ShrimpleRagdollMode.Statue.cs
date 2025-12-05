@@ -2,6 +2,7 @@
 {
 	public static string Name => "Statue";
 	public static string Description => "Ragdoll is frozen in place, physics and joints are disabled.";
+	public static bool PhysicsDriven => false; // Despite being physically simulated, the renderer and the physicsbody are one thing so we don't need to respect MoveMode!
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
