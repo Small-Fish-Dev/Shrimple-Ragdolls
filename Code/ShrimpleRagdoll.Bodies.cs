@@ -83,7 +83,7 @@
 	{
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			var validParentBone = GetNearestValidParentBody( kvp.Value.GetBone( Model ).Parent );
+			var validParentBone = GetNearestValidParentBody( kvp.Value.GetBone( Model )?.Parent );
 			if ( validParentBone == null )
 				continue;
 			var newBody = kvp.Value.WithParent( GetBoneByBody( validParentBone.Value ) );
@@ -299,8 +299,8 @@
 			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
 		}
 
-		public BoneCollection.Bone GetBone( Model model ) => model.Bones.AllBones[BoneIndex];
-		public BoneCollection.Bone GetParentBone( Model model ) => model.Bones.AllBones[ParentIndex];
+		public BoneCollection.Bone GetBone( Model model ) => BoneIndex >= 0 && BoneIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[BoneIndex] : null;
+		public BoneCollection.Bone GetParentBone( Model model ) => ParentIndex >= 0 && ParentIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[ParentIndex] : null;
 		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => ChildIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
 
 		public void EnableColliders()
