@@ -117,28 +117,6 @@
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
 	}
 
-
-	[Button]
-	public void TurnIntoStatue()
-	{
-		//foreach ( var body in Bodies )
-		//	StatueMode.OnEnter( this, body.Value );
-	}
-
-	[Button]
-	public void Enable()
-	{
-		//foreach ( var body in Bodies )
-		//	EnabledMode.OnEnter( this, body.Value );
-	}
-
-	[Button]
-	public void Disable()
-	{
-		//foreach ( var body in Bodies )
-		//	DisabledMode.OnEnter( this, body.Value );
-	}
-
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
