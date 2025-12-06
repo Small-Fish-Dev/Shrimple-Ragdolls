@@ -7,6 +7,14 @@
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		EnabledMode.OnEnter( ragdoll, body );
+
+		var joint = ragdoll.GetParentJoint( body )?.Component ?? null;
+		if ( !joint.IsValid() ) return;
+
+		if ( joint is BallJoint ballJoint )
+			ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
+		else if ( joint is HingeJoint hingeJoint )
+			hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
@@ -15,17 +23,9 @@
 		if ( !joint.IsValid() ) return;
 
 		if ( joint is BallJoint ballJoint )
-		{
 			ballJoint.Motor = BallJoint.MotorMode.Disabled;
-			ballJoint.Frequency = 0f;
-			ballJoint.TargetRotation = Rotation.Identity;
-		}
-		if ( joint is HingeJoint hingeJoint )
-		{
+		else if ( joint is HingeJoint hingeJoint )
 			hingeJoint.Motor = HingeJoint.MotorMode.Disabled;
-			hingeJoint.Frequency = 0f;
-			hingeJoint.TargetAngle = 0f;
-		}
 
 		EnabledMode.OnExit( ragdoll, body );
 	}
@@ -37,13 +37,11 @@
 
 		if ( joint is BallJoint ballJoint )
 		{
-			ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
-			ballJoint.Frequency = 100f;
+			ballJoint.Frequency = 10f;
 			ballJoint.TargetRotation = Rotation.FromPitch( MathF.Cos( Time.Now * 10f ) * 70f );
 		}
 		if ( joint is HingeJoint hingeJoint )
 		{
-			hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
 			hingeJoint.Frequency = 10f;
 			hingeJoint.TargetAngle = MathF.Cos( Time.Now * 5f ) * 20f;
 		}
