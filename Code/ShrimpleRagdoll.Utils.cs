@@ -39,23 +39,16 @@
 	{
 		WakePhysics();
 
-		if ( Mode == ShrimpleRagdollMode.Statue )
+		foreach ( var bone in BoneObjects )
 		{
-			var body = Renderer.GetComponent<Rigidbody>().PhysicsBody;
-			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Transform ) );
-			body.UseController = false;
-			body.Move( target, Time.Delta );
-			body.UseController = true;
-		}
-		else
-		{
-			foreach ( var body in Bodies.Values )
+			if ( bone.Value.Flags.Contains( GameObjectFlags.Absolute ) )
 			{
-				var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) );
-
-				body.Component.PhysicsBody.UseController = false;
-				body.Component.PhysicsBody.Move( targetTransform, Time.Delta );
-				body.Component.PhysicsBody.UseController = true;
+				var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( bone.Value.WorldTransform ) );
+				bone.Value.WorldTransform = targetTransform;
+			}
+			else if ( bone.Key.Index == 0 )
+			{
+				Renderer.WorldTransform = target;
 			}
 		}
 	}
@@ -64,12 +57,12 @@
 	/// Apply a velocity to the ragdoll as a whole rather than on every body individually
 	/// </summary>
 	/// <param name="velocity">The velocity applied</param>
-	public void ApplyVelocityToRagdoll( Vector3 velocity )
+	public void ApplyVelocity( Vector3 velocity )
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies.Values )
-			body.Component.Velocity += velocity;
+		foreach ( var body in Bodies?.Values )
+			body.Component?.Velocity += velocity;
 	}
 
 	/// <summary>
@@ -88,11 +81,11 @@
 		var rotationCenter = Renderer.TryGetBoneTransform( "pelvis", out var trasform ) ? trasform.Position : massCenter;
 		var centerLinearVelocity = Vector3.Cross( angularVelocity, (massCenter - rotationCenter) );
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies?.Values )
 		{
 			var bodyVelocity = centerLinearVelocity + Vector3.Cross( angularVelocity, body.Component.WorldPosition - massCenter );
-			body.Component.Velocity += bodyVelocity;
-			body.Component.AngularVelocity += angularVelocity;
+			body.Component?.Velocity += bodyVelocity;
+			body.Component?.AngularVelocity += angularVelocity;
 		}
 	}
 
