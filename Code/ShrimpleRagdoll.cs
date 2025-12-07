@@ -145,7 +145,7 @@
 
 	internal void ComputePhysics()
 	{
-		if ( !Active || Mode == ShrimpleRagdollMode.Disabled )
+		if ( !Active )
 			return;
 
 		if ( !IsProxy )
