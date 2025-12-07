@@ -121,7 +121,7 @@
           "Name": "Plane",
           "Position": "91.31972,39.9817,22.55168",
           "Rotation": "0,0,0,1",
-          "Scale": "5,5,5",
+          "Scale": "500,500,5",
           "Tags": "",
           "Enabled": true,
           "NetworkMode": 2,
