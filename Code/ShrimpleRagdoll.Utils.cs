@@ -192,28 +192,33 @@
 	{
 		axis = axis.Normal;
 
-		// Pick any reference direction not parallel to the axis
+		// Pick reference direction perpendicular to axis
 		var refDir = Vector3.Cross( axis, Vector3.Up );
 		if ( refDir.LengthSquared < 1e-4f )
 			refDir = Vector3.Cross( axis, Vector3.Right );
-
 		refDir = refDir.Normal;
 
-		// Rotate that reference by the relative rotation
+		// Rotate reference by the relative rotation
 		var rotatedDir = rel * refDir;
 
-		// Project both onto the plane orthogonal to the axis
+		// Project both onto plane perpendicular to axis
 		refDir -= axis * Vector3.Dot( refDir, axis );
 		rotatedDir -= axis * Vector3.Dot( rotatedDir, axis );
-		refDir = refDir.Normal;
-		rotatedDir = rotatedDir.Normal;
 
-		// Signed angle between the two, around `axis`
+		// Safety check: ensure vectors aren't zero after projection
+		var refLen = refDir.Length;
+		var rotLen = rotatedDir.Length;
+		if ( refLen < 1e-6f || rotLen < 1e-6f )
+			return 0f; // No meaningful rotation in this plane
+
+		refDir = refDir / refLen;
+		rotatedDir = rotatedDir / rotLen;
+
+		// Signed angle using atan2
 		var cross = Vector3.Cross( refDir, rotatedDir );
 		var dot = Vector3.Dot( refDir, rotatedDir );
 		var angleRad = MathF.Atan2( Vector3.Dot( cross, axis ), dot );
 
-		// Convert to degrees to match s&box's Rotation.Angles()
 		return angleRad * (180f / MathF.PI);
 	}
 }

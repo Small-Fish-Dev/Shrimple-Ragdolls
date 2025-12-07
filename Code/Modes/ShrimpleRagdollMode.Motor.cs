@@ -32,8 +32,9 @@
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		var joint = ragdoll.GetParentJoint( body )?.Component ?? null;
+		var joint = ragdoll.GetParentJoint( body )?.Component;
 		if ( !joint.IsValid() ) return;
+
 		var parent = ragdoll.GetParentBody( body ).Value;
 
 		if ( !ragdoll.Renderer.TryGetBoneTransformAnimation( ragdoll.GetBoneByBody( body ), out var animSelfTransform ) )
@@ -43,39 +44,35 @@
 		if ( !ragdoll.Renderer.TryGetBoneTransformLocal( ragdoll.GetBoneByBody( body ), out var currentSelfTransformLocal ) )
 			return;
 
-		var animRotation = animParentTransform.ToLocal( animSelfTransform ).Rotation; // The rotation our animations want to be
-		var currentRotation = currentSelfTransformLocal.Rotation; // The rotation our bones are right now
+		var animRotation = animParentTransform.ToLocal( animSelfTransform ).Rotation;
+		var currentRotation = currentSelfTransformLocal.Rotation;
 
+		// Debug visualization
 		ragdoll.DebugOverlay.Sphere( new Sphere( animSelfTransform.Position, 3f ), Color.Red, Time.Delta );
-		//Log.Info( currentRotation.Angles() );
-		//Log.Info( targetJointRotation.Angles() );
 
+		// Handle ball joint
 		if ( joint is BallJoint ballJoint )
 		{
-			var currentJointRotation = ballJoint.LocalRotation * ballJoint.Point1.LocalRotation * ballJoint.Point2.LocalRotation.Inverse; // The rotation our joint is right now
-			var targetJointRotation = ballJoint.TargetRotation * ballJoint.Point1.LocalRotation * ballJoint.Point2.LocalRotation.Inverse; // The rotation our joint wants to be
-			var rotationDifference = Rotation.Difference( currentJointRotation, targetJointRotation ); // how far off we are
-			ballJoint.Frequency = 2f;
+			var targetJointRotation = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation;
+			var currentJointRotation = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
+
+			ballJoint.Frequency = 30f;
 			ballJoint.DampingRatio = 1f;
-			ballJoint.TargetRotation = rotationDifference;
-			Log.Info( currentJointRotation.Angles() + " " + targetJointRotation.Angles() + " " + rotationDifference.Angles() );
+			ballJoint.TargetRotation = targetJointRotation;
 		}
+
+		// Handle hinge joint
 		if ( joint is HingeJoint hingeJoint )
 		{
-			var hingeJointRot = currentRotation * hingeJoint.Point1.LocalRotation.Inverse * hingeJoint.Point2.LocalRotation;
-			var animationRot = animRotation * hingeJoint.Point1.LocalRotation.Inverse * hingeJoint.Point2.LocalRotation;
+			var currentJointRot = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
+			var targetJointRot = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation;
 
-			var hingeAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( hingeJointRot, hingeJoint.Axis );
-			var animationAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( animationRot, hingeJoint.Axis );
+			var currentAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( currentJointRot, hingeJoint.Axis );
+			var targetAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( targetJointRot, hingeJoint.Axis );
 
-			hingeJoint.Frequency = 100f;
+			hingeJoint.Frequency = 30f;
 			hingeJoint.DampingRatio = 1f;
-			hingeJoint.TargetAngle = animationAngle;
-
-			//Log.Info( "----------" + body.GetBone( ragdoll.Model ).Name + "----------" );
-			//Log.Info( hingeJoint.Point1.LocalRotation.Angles() + " | " + hingeJoint.Point2.LocalRotation.Angles() );
-			//Log.Info( animRotation.Angles() + " | " + currentRotation.Angles() );
-			//Log.Info( animationAngle + " | " + hingeAngle + " | " + hingeJoint.Angle );
+			hingeJoint.TargetAngle = targetAngle;
 		}
 	}
 
