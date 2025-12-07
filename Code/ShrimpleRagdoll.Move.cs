@@ -78,7 +78,7 @@
 	{
 		if ( !Renderer.TryGetBoneTransform( bone, out var renderBoneTransform ) )
 			return;
-		var renderBoneVelocity = Renderer.GetBoneVelocities()[bone.Index]; // TODO: Turn into GetBoneVelocity once the PR gets merged
+		var renderBoneVelocity = Renderer.GetBoneVelocity( bone.Index );
 		var boneObject = BoneObjects[bone];
 
 		var component = boneObject.GetComponent<Rigidbody>(); // TODO: Cache this?
