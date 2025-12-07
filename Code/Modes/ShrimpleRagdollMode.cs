@@ -85,6 +85,7 @@ public class ShrimpleRagdollMode
 	public static string Enabled => "Enabled";
 	public static string Passive => "Passive";
 	public static string Active => "Active";
+	public static string Motor => "Motor";
 	public static string Statue => "Statue";
 }
 
