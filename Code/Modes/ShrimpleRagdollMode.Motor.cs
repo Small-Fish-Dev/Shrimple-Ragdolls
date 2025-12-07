@@ -47,21 +47,20 @@
 		var animRotation = animParentTransform.ToLocal( animSelfTransform ).Rotation;
 		var currentRotation = currentSelfTransformLocal.Rotation;
 
-		// Debug visualization
-		ragdoll.DebugOverlay.Sphere( new Sphere( animSelfTransform.Position, 3f ), Color.Red, Time.Delta );
+		//ragdoll.DebugOverlay.Sphere( new Sphere( animSelfTransform.Position, 3f ), Color.Red, Time.Delta );
 
-		// Handle ball joint
+		// Ball joint logic
 		if ( joint is BallJoint ballJoint )
 		{
-			var targetJointRotation = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation;
+			var targetJointRotation = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation; // The order we multiple for is important, from right to left we start with the child's point of reference
 			var currentJointRotation = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
 
-			ballJoint.Frequency = 30f;
+			ballJoint.Frequency = 30f; // TODO: Make this configurable
 			ballJoint.DampingRatio = 1f;
 			ballJoint.TargetRotation = targetJointRotation;
 		}
 
-		// Handle hinge joint
+		// Hinge joint logic
 		if ( joint is HingeJoint hingeJoint )
 		{
 			var currentJointRot = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
