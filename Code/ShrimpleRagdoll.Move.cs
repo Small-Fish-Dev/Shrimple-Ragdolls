@@ -91,20 +91,17 @@
 	}
 
 	/// <summary>
-	/// Physically move the bone's rigidbodies based on their animation transforms
+	/// Physically move the bone's rigidbody based on their animation transforms
 	/// </summary>
-	public void MoveBodiesFromAnimations()
+	public void MoveBodyFromAnimations( Body body )
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		foreach ( var pair in Bodies )
-		{
-			if ( !pair.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( pair.Value.GetBone( Model ), out var transform ) )
-				continue;
+		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.GetBone( Model ), out var transform ) )
+			return;
 
-			pair.Value.Component.SmoothMove( in transform, 0.1f, Time.Delta );
-		}
+		body.Component.SmoothMove( in transform, 0.1f, Time.Delta );
 	}
 
 	/// <summary>
