@@ -1,7 +1,7 @@
 ﻿public class MotorMode : IShrimpleRagdollMode<MotorMode>
 {
 	public static string Name => "Motor";
-	public static string Description => "A ragdoll driven by the joint's motors, each joint tries following their parent's animation rotation";
+	public static string Description => "A ragdoll driven by the joint's motors, each joint tries following their parent's animation rotation.";
 	public static bool PhysicsDriven => true;
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

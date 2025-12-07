@@ -1,7 +1,7 @@
 ﻿public class EnabledMode : IShrimpleRagdollMode<EnabledMode>
 {
 	public static string Name => "Enabled";
-	public static string Description => "Classic ragdoll behaviour, drop on the ground and flop around";
+	public static string Description => "Classic ragdoll behaviour, drop on the ground and flop around.";
 	public static bool PhysicsDriven => true;
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

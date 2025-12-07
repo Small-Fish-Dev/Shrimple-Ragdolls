@@ -1,7 +1,7 @@
 ﻿public class DisabledMode : IShrimpleRagdollMode<DisabledMode>
 {
 	public static string Name => "Disabled";
-	public static string Description => "Disables all bodies and joints";
+	public static string Description => "Disables all bodies and joints.";
 	public static bool PhysicsDriven => false;
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
