@@ -13,6 +13,7 @@
 		foreach ( var body in Bodies )
 			BodyTransforms.Add( body.Key, body.Value.Component.WorldTransform );
 	}
+
 	protected void SetBodyTransforms()
 	{
 		if ( IsProxy )
@@ -20,7 +21,6 @@
 
 		foreach ( var body in Bodies )
 			BodyTransforms[body.Key] = body.Value.Component.GameObject.WorldTransform;
-
 	}
 
 	protected void SetProxyTransforms()
@@ -42,13 +42,26 @@
 		MoveGameObject();
 	}
 
+	/// <summary>
+	/// Initialize all body modes
+	/// </summary>
+	protected void InitializeBodyModes()
+	{
+		foreach ( var body in Bodies.Values )
+			body.ModeHandler.OnEnter?.Invoke( this, body );
+	}
+
+	protected void InitializeProxy()
+	{
+		CreateBoneObjects( Model.Physics );
+		SetBodyHierarchyReferences();
+		InitializeBodyModes();
+	}
+
 	protected void OnModeChanged( string oldMode, string newMode )
 	{
 		if ( IsProxy )
-		{
-			CreateBoneObjects( Model.Physics );
-			SetBodyHierarchyReferences();
-		}
+			InitializeProxy();
 	}
 
 	protected override void OnRefresh()
@@ -56,18 +69,15 @@
 		base.OnRefresh();
 
 		if ( IsProxy )
-		{
-			CreateBoneObjects( Model.Physics );
-			SetBodyHierarchyReferences();
-		}
+			InitializeProxy();
 	}
 
 	protected override async Task OnLoad()
 	{
-		if ( !IsProxy )
-			return;
+		await base.OnLoad();
 
-		CreateBoneObjects( Model.Physics );
-		SetBodyHierarchyReferences();
+		if ( IsProxy )
+			InitializeProxy();
+
 	}
 }
