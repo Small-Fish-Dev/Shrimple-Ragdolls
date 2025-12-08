@@ -305,12 +305,12 @@
           "__enabled": true,
           "FollowOptions": {
             "RootObjectFollow": true,
-            "FollowMode": "Position",
+            "FollowMode": "All",
             "Bone": {
               "Model": "models/citizen/citizen.vmdl",
               "Selected": "pelvis"
             },
-            "MergeBoneTransforms": false
+            "MergeBoneTransforms": true
           },
           "Mode": {
             "Name": "Disabled"
