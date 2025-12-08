@@ -122,8 +122,9 @@
 	/// </summary>
 	public void MoveGameObject()
 	{
-		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count() == 0 )
+		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
+
 
 		if ( RagdollHandler.PhysicsDriven )
 		{
@@ -134,37 +135,31 @@
 			if ( FollowOptions.MergeBoneTransforms )
 			{
 				var localTransform = Renderer.Model.GetBoneTransform( FollowOptions.Bone.Selected );
-				// Maybe there's a better way to get the bones to match without instantiating a new Transform but I couldn't find it haha 
-				targetTransform = currentTransform.ToWorld( new Transform( -localTransform.Position * localTransform.Rotation.Inverse, localTransform.Rotation.Inverse ) );
+				var invRotation = localTransform.Rotation.Inverse;
+
+				// Transform the bone's world transform back to root space
+				// Position: remove the rotated local offset, then rotate to root orientation
+				var rotatedLocalPos = currentTransform.Rotation * (localTransform.Position * invRotation);
+				targetTransform = new Transform(
+					currentTransform.Position - rotatedLocalPos,
+					currentTransform.Rotation * invRotation
+				);
 			}
 
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
-			{
 				Renderer.WorldPosition = targetTransform.Position;
 
-				if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
-					GameObject.Root.WorldPosition = Renderer.WorldPosition;
-			}
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
-			{
 				Renderer.WorldRotation = targetTransform.Rotation;
-
-				if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
-					GameObject.Root.WorldRotation = Renderer.WorldRotation;
-			}
 		}
-		else // We still want this option even if we're not physically driven
+
+		if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
 		{
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
-			{
-				if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
-					GameObject.Root.WorldPosition = Renderer.WorldPosition;
-			}
+				GameObject.Root.WorldPosition = Renderer.WorldPosition;
+
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
-			{
-				if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
-					GameObject.Root.WorldRotation = Renderer.WorldRotation;
-			}
+				GameObject.Root.WorldRotation = Renderer.WorldRotation;
 		}
 	}
 }
