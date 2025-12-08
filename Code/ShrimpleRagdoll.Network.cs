@@ -75,9 +75,5 @@
 	protected override async Task OnLoad()
 	{
 		await base.OnLoad();
-
-		if ( IsProxy )
-			InitializeProxy();
-
 	}
 }

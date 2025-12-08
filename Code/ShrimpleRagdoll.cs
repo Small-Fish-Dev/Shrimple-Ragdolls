@@ -92,6 +92,9 @@
 
 		CreatePhysics();
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
+
+		if ( IsProxy )
+			InitializeProxy();
 	}
 
 	protected override void OnUpdate()
