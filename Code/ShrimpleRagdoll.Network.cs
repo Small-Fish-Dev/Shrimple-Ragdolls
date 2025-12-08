@@ -32,7 +32,7 @@
 		{
 			var body = GetBodyByBoneIndex( bodyTransform.Key );
 
-			if ( body != null )
+			if ( body != null && body.Value.Component.Enabled && body.Value.Component.PhysicsBody.IsValid() )
 			{
 				body.Value.Component.WorldTransform = bodyTransform.Value;
 				body.Value.Component.PhysicsBody.Move( bodyTransform.Value, Time.Delta );
