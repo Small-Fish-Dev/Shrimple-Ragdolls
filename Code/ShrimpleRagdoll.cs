@@ -254,13 +254,13 @@
 		// Exit old mode
 		body.ModeHandler.OnExit?.Invoke( this, body );
 
-		// Update body with new handler
-		var updatedBody = body.WithModeHandler( newHandler );
+		// Update body with new mode name
+		var updatedBody = body.WithModeName( modeName );
 		Bodies.Remove( body.BoneIndex );
 		Bodies.Add( body.BoneIndex, updatedBody );
 
 		// Enter new mode
-		newHandler.OnEnter?.Invoke( this, updatedBody );
+		updatedBody.ModeHandler.OnEnter?.Invoke( this, updatedBody );
 	}
 
 	/// <summary>
@@ -287,10 +287,10 @@
 		// Set all bodies to the new mode and enter
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			var updatedBody = kvp.Value.WithModeHandler( newHandler );
+			var updatedBody = kvp.Value.WithModeName( newMode );
 			Bodies.Remove( kvp.Key );
 			Bodies.Add( kvp.Key, updatedBody );
-			newHandler.OnEnter?.Invoke( this, updatedBody );
+			updatedBody.ModeHandler.OnEnter?.Invoke( this, updatedBody );
 		}
 	}
 

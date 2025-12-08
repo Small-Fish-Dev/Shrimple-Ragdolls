@@ -25,11 +25,10 @@
 		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 		var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 
-		// Initialize with the ragdoll's default mode
-		if ( !ShrimpleRagdollModeRegistry.TryGet( Mode, out var defaultHandler ) )
-			ShrimpleRagdollModeRegistry.TryGet( ShrimpleRagdollMode.Disabled, out defaultHandler );
+		// Initialize with the ragdoll's default mode name
+		var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
 
-		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, modeHandler: defaultHandler ) );
+		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, -1, null, true, modeName ) );
 	}
 
 	public void AddFlags( GameObject gameObject, GameObjectFlags flags )
@@ -80,11 +79,10 @@
 
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 
-			// Initialize with the ragdoll's default mode
-			if ( !ShrimpleRagdollModeRegistry.TryGet( Mode, out var defaultHandler ) )
-				ShrimpleRagdollModeRegistry.TryGet( ShrimpleRagdollMode.Disabled, out defaultHandler );
+			// Initialize with the ragdoll's default mode name
+			var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
 
-			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, modeHandler: defaultHandler ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, -1, null, true, modeName ) );
 		}
 	}
 
@@ -110,7 +108,8 @@
 				newBody = newBody.WithChildren( childrenBodies );
 			}
 
-			Bodies[kvp.Key] = newBody;
+			Bodies.Remove( kvp.Key );
+			Bodies.Add( kvp.Key, newBody );
 		}
 	}
 
@@ -267,9 +266,31 @@
 		public List<int> ChildIndexes = new();
 		public bool IsValid = false;
 		public bool IsRootBone => ParentIndex == -1;
-		public ShrimpleRagdollModeHandlers ModeHandler; // Per-body mode
+		public string ModeName; // Store mode name instead of handler for networking
 
-		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true, ShrimpleRagdollModeHandlers modeHandler = default )
+		// Cached handler - not synced
+		[NonSerialized]
+		private ShrimpleRagdollModeHandlers? _cachedHandler;
+
+		public ShrimpleRagdollModeHandlers ModeHandler
+		{
+			get
+			{
+				if ( _cachedHandler == null || _cachedHandler.Value.Description == null )
+				{
+					if ( ShrimpleRagdollModeRegistry.TryGet( ModeName ?? "Disabled", out var handler ) )
+						_cachedHandler = handler;
+					else
+					{
+						ShrimpleRagdollModeRegistry.TryGet( "Disabled", out handler );
+						_cachedHandler = handler;
+					}
+				}
+				return _cachedHandler.Value;
+			}
+		}
+
+		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true, string modeName = "Disabled" )
 		{
 			Component = component;
 			GameObject = gameObject;
@@ -278,7 +299,8 @@
 			ParentIndex = parent;
 			ChildIndexes = children;
 			IsValid = isValid;
-			ModeHandler = modeHandler;
+			ModeName = modeName ?? "Disabled";
+			_cachedHandler = null;
 		}
 
 		public Body WithColliders( List<Collider> colliders )
@@ -311,9 +333,9 @@
 			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
 		}
 
-		public Body WithModeHandler( ShrimpleRagdollModeHandlers handler )
+		public Body WithModeName( string modeName )
 		{
-			return this with { ModeHandler = handler };
+			return this with { ModeName = modeName, _cachedHandler = null };
 		}
 
 		public BoneCollection.Bone GetBone( Model model ) => BoneIndex >= 0 && BoneIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[BoneIndex] : null;
