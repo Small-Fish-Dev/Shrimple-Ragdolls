@@ -72,28 +72,7 @@
 	/// All the bodies and joints for ragdoll mode were created
 	/// </summary>
 	[Sync]
-	public bool RagdollPhysicsWereCreated { get; protected set; } = false;
-	/// <summary>
-	/// All the colliders were created for statue mode
-	/// </summary>
-	[Sync]
-	public bool StatuePhysicsWereCreated { get; protected set; } = false;
-
-	/// <summary>
-	/// All the bodies and joints were created for any mode
-	/// </summary>
-	public bool PhysicsWereCreated => RagdollPhysicsWereCreated || StatuePhysicsWereCreated;
-
-	/// <summary>
-	/// The GameObject's position depends on physics simulation<br />
-	/// <see cref="ShrimpleRagdollMode.Enabled"/> or <see cref="ShrimpleRagdollMode.Statue"/>
-	/// </summary>
-	public bool PhysicsDriven => Mode == ShrimpleRagdollMode.Enabled || Mode == ShrimpleRagdollMode.Statue;
-	/// <summary>
-	/// The GameObject's position depends on animations or local transform<br />
-	/// <see cref="ShrimpleRagdollMode.Passive"/> or <see cref="ShrimpleRagdollMode.Active"/>
-	/// </summary>
-	public bool AnimationsDriven => Mode == ShrimpleRagdollMode.Passive || Mode == ShrimpleRagdollMode.Active;
+	public bool PhysicsWereCreated { get; protected set; } = false;
 
 	public Model Model => Renderer?.Model;
 
@@ -104,7 +83,6 @@
 		base.OnStart();
 
 		Renderer.CreateBoneObjects = true;
-		//InternalSetRagdollMode( Mode, Mode );
 
 		if ( !IsProxy && (Network?.Active ?? false) )
 		{
@@ -113,7 +91,6 @@
 		}
 
 		CreatePhysics();
-
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
 	}
 
@@ -230,13 +207,12 @@
 		if ( NetworkRefreshOnChange )
 			Renderer?.Network?.Refresh(); // Only refresh the renderer as that's where we added the bone objects
 
-		RagdollPhysicsWereCreated = true;
+		PhysicsWereCreated = true;
 	}
 
 	public void DestroyPhysics()
 	{
-		RagdollPhysicsWereCreated = false;
-		StatuePhysicsWereCreated = false;
+		PhysicsWereCreated = false;
 
 		if ( Renderer.IsValid() )
 			Renderer.ClearPhysicsBones();
@@ -273,56 +249,6 @@
 
 		foreach ( var body in Bodies )
 			RagdollHandler.OnEnter?.Invoke( this, body.Value );
-		/*
-		if ( newMode == RagdollMode.Disabled )
-		{
-			//MakeRendererAbsolute( false );
-			//DisablePhysics();
-		}
-
-		if ( newMode == RagdollMode.Enabled )
-		{
-			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated || RebuildPhysicsOnChange ) // If we were statue we need to recreate the physics
-				CreatePhysics();
-
-			MakeRendererAbsolute( true );
-			EnablePhysics();
-			Renderer?.ClearPhysicsBones();
-			MoveObjectsFromMesh();
-		}
-
-		if ( newMode == RagdollMode.Passive )
-		{
-			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated || RebuildPhysicsOnChange )
-				CreatePhysics();
-
-			MakeRendererAbsolute( false );
-			EnablePhysics();
-			Renderer?.ClearPhysicsBones();
-			MoveObjectsFromMesh();
-		}
-
-		if ( newMode == RagdollMode.Active )
-		{
-			if ( StatuePhysicsWereCreated || !RagdollPhysicsWereCreated || RebuildPhysicsOnChange )
-				CreatePhysics();
-
-			MakeRendererAbsolute( false );
-			EnablePhysics();
-			Renderer?.ClearPhysicsBones();
-			MoveObjectsFromMesh();
-		}
-
-		if ( newMode == RagdollMode.Statue )
-		{
-			if ( !StatuePhysicsWereCreated || RagdollPhysicsWereCreated || RebuildPhysicsOnChange )
-				CreateStatuePhysics();
-
-			MakeRendererAbsolute( false );
-			EnablePhysics();
-			MoveObjectsFromMesh();
-		}
-		*/
 	}
 
 	public void MakeRendererAbsolute( bool absolute )
