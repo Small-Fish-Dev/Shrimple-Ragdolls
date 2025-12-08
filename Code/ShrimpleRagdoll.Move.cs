@@ -125,7 +125,6 @@
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
 
-
 		if ( RagdollHandler.PhysicsDriven )
 		{
 			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
@@ -138,7 +137,6 @@
 				var invRotation = localTransform.Rotation.Inverse;
 
 				// Transform the bone's world transform back to root space
-				// Position: remove the rotated local offset, then rotate to root orientation
 				var rotatedLocalPos = currentTransform.Rotation * (localTransform.Position * invRotation);
 				targetTransform = new Transform(
 					currentTransform.Position - rotatedLocalPos,

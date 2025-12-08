@@ -116,7 +116,10 @@
 		else
 		{
 			foreach ( var body in Bodies )
-				RagdollHandler.VisualUpdate?.Invoke( this, body.Value );
+			{
+				// Use the body's individual mode handler
+				body.Value.ModeHandler.VisualUpdate?.Invoke( this, body.Value );
+			}
 		}
 	}
 
@@ -134,7 +137,10 @@
 			else
 			{
 				foreach ( var body in Bodies )
-					RagdollHandler.PhysicsUpdate?.Invoke( this, body.Value );
+				{
+					// Use the body's individual mode handler
+					body.Value.ModeHandler.PhysicsUpdate?.Invoke( this, body.Value );
+				}
 
 				MoveGameObject();
 			}
@@ -226,7 +232,7 @@
 	}
 
 	/// <summary>
-	/// Set the ragdoll mode
+	/// Set the ragdoll mode for all bodies
 	/// </summary>
 	/// <param name="mode"></param>
 	public void SetRagdollMode( string mode )
@@ -237,18 +243,55 @@
 		Mode = mode;
 	}
 
+	/// <summary>
+	/// Set the mode for a specific body
+	/// </summary>
+	public void SetBodyMode( Body body, string modeName )
+	{
+		if ( !ShrimpleRagdollModeRegistry.TryGet( modeName, out var newHandler ) )
+			return;
+
+		// Exit old mode
+		body.ModeHandler.OnExit?.Invoke( this, body );
+
+		// Update body with new handler
+		var updatedBody = body.WithModeHandler( newHandler );
+		Bodies.Remove( body.BoneIndex );
+		Bodies.Add( body.BoneIndex, updatedBody );
+
+		// Enter new mode
+		newHandler.OnEnter?.Invoke( this, updatedBody );
+	}
+
+	/// <summary>
+	/// Set the mode for a specific body by bone name
+	/// </summary>
+	public void SetBodyModeByName( string boneName, string modeName )
+	{
+		var body = GetBodyByBoneName( boneName );
+		if ( body.HasValue )
+			SetBodyMode( body.Value, modeName );
+	}
+
 	protected void InternalSetRagdollMode( string oldMode, string newMode )
 	{
 		if ( !ShrimpleRagdollModeRegistry.TryGet( newMode ?? "Disabled", out var newHandler ) )
 			return;
 
+		// Exit all bodies from their current modes
 		foreach ( var body in Bodies )
-			RagdollHandler.OnExit?.Invoke( this, body.Value );
+			body.Value.ModeHandler.OnExit?.Invoke( this, body.Value );
 
 		RagdollHandler = newHandler;
 
-		foreach ( var body in Bodies )
-			RagdollHandler.OnEnter?.Invoke( this, body.Value );
+		// Set all bodies to the new mode and enter
+		foreach ( var kvp in Bodies.ToList() )
+		{
+			var updatedBody = kvp.Value.WithModeHandler( newHandler );
+			Bodies.Remove( kvp.Key );
+			Bodies.Add( kvp.Key, updatedBody );
+			newHandler.OnEnter?.Invoke( this, updatedBody );
+		}
 	}
 
 	public void MakeRendererAbsolute( bool absolute )

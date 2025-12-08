@@ -24,7 +24,12 @@
 		AddFlags( boneObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 		var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
+
+		// Initialize with the ragdoll's default mode
+		if ( !ShrimpleRagdollModeRegistry.TryGet( Mode, out var defaultHandler ) )
+			ShrimpleRagdollModeRegistry.TryGet( ShrimpleRagdollMode.Disabled, out defaultHandler );
+
+		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, modeHandler: defaultHandler ) );
 	}
 
 	public void AddFlags( GameObject gameObject, GameObjectFlags flags )
@@ -74,7 +79,12 @@
 			boneObject.WorldTransform = boneTransform;
 
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
+
+			// Initialize with the ragdoll's default mode
+			if ( !ShrimpleRagdollModeRegistry.TryGet( Mode, out var defaultHandler ) )
+				ShrimpleRagdollModeRegistry.TryGet( ShrimpleRagdollMode.Disabled, out defaultHandler );
+
+			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, modeHandler: defaultHandler ) );
 		}
 	}
 
@@ -257,8 +267,9 @@
 		public List<int> ChildIndexes = new();
 		public bool IsValid = false;
 		public bool IsRootBone => ParentIndex == -1;
+		public ShrimpleRagdollModeHandlers ModeHandler; // Per-body mode
 
-		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
+		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true, ShrimpleRagdollModeHandlers modeHandler = default )
 		{
 			Component = component;
 			GameObject = gameObject;
@@ -267,6 +278,7 @@
 			ParentIndex = parent;
 			ChildIndexes = children;
 			IsValid = isValid;
+			ModeHandler = modeHandler;
 		}
 
 		public Body WithColliders( List<Collider> colliders )
@@ -297,6 +309,11 @@
 		public Body WithChildren( List<BoneCollection.Bone> children )
 		{
 			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
+		}
+
+		public Body WithModeHandler( ShrimpleRagdollModeHandlers handler )
+		{
+			return this with { ModeHandler = handler };
 		}
 
 		public BoneCollection.Bone GetBone( Model model ) => BoneIndex >= 0 && BoneIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[BoneIndex] : null;
