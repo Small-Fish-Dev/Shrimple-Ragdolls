@@ -13,7 +13,10 @@
 		if ( body.IsRootBone )
 		{
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root
-			ragdoll.Renderer.GetOrAddComponent<Rigidbody>( true ).Enabled = true; // Add rigidbody to model if we're root
+			var rigidBody = ragdoll.Renderer.GetOrAddComponent<Rigidbody>( true ); // Add rigidbody to model if we're root
+			rigidBody.Enabled = true;
+			rigidBody.Locking = ragdoll.Locking;
+			rigidBody.RigidbodyFlags = ragdoll.RigidbodyFlags;
 		}
 
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute ); // Remove absolute tag from our gameobject
