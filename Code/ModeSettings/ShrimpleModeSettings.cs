@@ -2,7 +2,7 @@
 /// Base class for mode-specific settings components.
 /// Attach these to the same GameObject as ShrimpleRagdoll to configure mode behavior.
 /// </summary>
-public abstract class ModeSettings : Component
+public abstract class ShrimpleModeSettings : Component
 {
 	/// <summary>
 	/// The mode name this settings component targets (e.g. "Motor", "Active")

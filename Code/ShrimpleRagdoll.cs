@@ -329,7 +329,7 @@
 	/// </summary>
 	protected void ApplyModeSettings( Body body, string modeName )
 	{
-		var modeSettings = GetComponents<ModeSettings>();
+		var modeSettings = GetComponents<ShrimpleModeSettings>();
 		foreach ( var settings in modeSettings )
 		{
 			if ( settings.TargetMode == modeName )

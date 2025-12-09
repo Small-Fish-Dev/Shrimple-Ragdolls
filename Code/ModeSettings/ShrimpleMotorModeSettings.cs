@@ -2,7 +2,7 @@
 /// Settings component for Motor mode.
 /// Controls joint motor frequency and damping for physics-driven animation following.
 /// </summary>
-public class MotorModeSettings : ModeSettings
+public class ShrimpleMotorModeSettings : ShrimpleModeSettings
 {
 	public override string TargetMode => ShrimpleRagdollMode.Motor;
 
