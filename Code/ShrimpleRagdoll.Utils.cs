@@ -1,5 +1,28 @@
 ﻿public partial class ShrimpleRagdoll
 {
+	/// <summary>
+	/// Returns the local center of mass of every <see cref="Rigidbody"/>
+	/// </summary>
+	public Vector3 MassCenter
+	{
+		get
+		{
+			var mass = 0.0f;
+			var center = Vector3.Zero;
+
+			foreach ( var body in Bodies.Values )
+			{
+				var rb = body.Component;
+				if ( !rb.IsValid() ) continue;
+
+				mass += rb.Mass;
+				center += rb.Mass * rb.MassCenter;
+			}
+
+			return mass > 0.0f ? center / mass : Vector3.Zero;
+		}
+	}
+
 	[Button]
 	public void TestMove()
 	{
