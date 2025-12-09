@@ -49,16 +49,10 @@ public partial class ShrimpleRagdoll
 		if ( LerpToAnimation.Value )
 		{
 			Renderer.ClearPhysicsBones();
-			ResetLerpAnimations(); // TODO: Don't
+			LerpToAnimation = null;
+			LerpStartTransforms.Clear();
+			Mode = LerpToAnimationTarget;
 		}
-	}
-
-	async void ResetLerpAnimations()
-	{
-		await Task.FixedUpdate(); // TODO: If we don't wait a tick and this ends before the fixedupdate, you can see the mesh pop up for a frame, probably MoveObject is called too early?
-		LerpToAnimation = null;
-		LerpStartTransforms.Clear();
-		Mode = LerpToAnimationTarget;
 	}
 
 	/// <summary>
@@ -97,6 +91,6 @@ public partial class ShrimpleRagdoll
 	[Button( "TESTLERP" )]
 	public void TestLerpToAnimation()
 	{
-		StartLerpToAnimation( 1f, Easing.Linear, ShrimpleRagdollMode.Enabled );
+		StartLerpToAnimation( 1f, Easing.Linear, ShrimpleRagdollMode.Disabled );
 	}
 }
