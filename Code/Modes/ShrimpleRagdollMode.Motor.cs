@@ -12,9 +12,17 @@
 		if ( !joint.IsValid() ) return;
 
 		if ( joint is BallJoint ballJoint )
+		{
 			ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
+			ballJoint.Frequency = 30f;
+			ballJoint.DampingRatio = 1f;
+		}
 		else if ( joint is HingeJoint hingeJoint )
+		{
 			hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
+			hingeJoint.Frequency = 30f;
+			hingeJoint.DampingRatio = 1f;
+		}
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
@@ -55,8 +63,6 @@
 			var targetJointRotation = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation; // The order we multiple for is important, from right to left we start with the child's point of reference
 			var currentJointRotation = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
 
-			ballJoint.Frequency = 30f; // TODO: Make this configurable
-			ballJoint.DampingRatio = 1f;
 			ballJoint.TargetRotation = targetJointRotation;
 		}
 
@@ -69,8 +75,6 @@
 			var currentAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( currentJointRot, hingeJoint.Axis );
 			var targetAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( targetJointRot, hingeJoint.Axis );
 
-			hingeJoint.Frequency = 30f;
-			hingeJoint.DampingRatio = 1f;
 			hingeJoint.TargetAngle = targetAngle;
 		}
 	}

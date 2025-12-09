@@ -329,6 +329,19 @@
             "go": "ddf8c384-2ae3-4745-82c5-e5d7db9efa3e",
             "component_type": "SkinnedModelRenderer"
           }
+        },
+        {
+          "__type": "MotorModeSettings",
+          "__guid": "a83b0636-ac35-4ec2-879b-715243bddc3f",
+          "__enabled": true,
+          "DampingRatio": 1,
+          "Frequency": 30,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
         }
       ],
       "Children": [
