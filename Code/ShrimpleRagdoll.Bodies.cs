@@ -3,6 +3,9 @@
 	[Sync]
 	public NetDictionary<int, Body> Bodies { get; protected set; } = new();
 
+	[Sync]
+	public NetDictionary<int, string> BodyModes { get; set; } = new();
+
 	protected void CreateBodies( PhysicsGroupDescription physics )
 	{
 		if ( !Renderer.IsValid() )
@@ -25,10 +28,7 @@
 		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 		var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 
-		// Initialize with the ragdoll's default mode name
-		var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
-
-		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, -1, null, true, modeName ) );
+		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
 	}
 
 	public void AddFlags( GameObject gameObject, GameObjectFlags flags )
@@ -79,10 +79,7 @@
 
 			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 
-			// Initialize with the ragdoll's default mode name
-			var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
-
-			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders, -1, null, true, modeName ) );
+			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
 		}
 	}
 
@@ -145,6 +142,19 @@
 			hullCollider.Center = localTransform.Position;
 			yield return hullCollider;
 		}
+	}
+
+	protected void SetupBodyModes()
+	{
+		if ( IsProxy )
+			return;
+
+		BodyModes.Clear();
+
+		// Initialize all bodies with the ragdoll's default mode
+		var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
+		foreach ( var body in Bodies )
+			BodyModes.Add( body.Key, modeName );
 	}
 
 	/// <summary>
@@ -256,6 +266,22 @@
 		return null;
 	}
 
+	/// <summary>
+	/// Get the mode handler for a specific body by looking up its mode from BodyModes
+	/// </summary>
+	public ShrimpleRagdollModeHandlers GetBodyModeHandler( Body body )
+	{
+		if ( BodyModes.TryGetValue( body.BoneIndex, out var modeName ) &&
+			 ShrimpleRagdollModeRegistry.TryGet( modeName, out var handler ) )
+		{
+			return handler;
+		}
+
+		// Fallback to disabled mode
+		ShrimpleRagdollModeRegistry.TryGet( ShrimpleRagdollMode.Disabled, out var disabledHandler );
+		return disabledHandler;
+	}
+
 	public struct Body
 	{
 		public Rigidbody Component;
@@ -266,31 +292,8 @@
 		public List<int> ChildIndexes = new();
 		public bool IsValid = false;
 		public bool IsRootBone => ParentIndex == -1;
-		public string ModeName; // Store mode name instead of handler for networking
 
-		// Cached handler - not synced
-		[NonSerialized]
-		private ShrimpleRagdollModeHandlers? _cachedHandler;
-
-		public ShrimpleRagdollModeHandlers ModeHandler
-		{
-			get
-			{
-				if ( _cachedHandler == null || _cachedHandler.Value.Description == null )
-				{
-					if ( ShrimpleRagdollModeRegistry.TryGet( ModeName ?? "Disabled", out var handler ) )
-						_cachedHandler = handler;
-					else
-					{
-						ShrimpleRagdollModeRegistry.TryGet( "Disabled", out handler );
-						_cachedHandler = handler;
-					}
-				}
-				return _cachedHandler.Value;
-			}
-		}
-
-		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true, string modeName = "Disabled" )
+		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
 		{
 			Component = component;
 			GameObject = gameObject;
@@ -299,8 +302,6 @@
 			ParentIndex = parent;
 			ChildIndexes = children;
 			IsValid = isValid;
-			ModeName = modeName ?? "Disabled";
-			_cachedHandler = null;
 		}
 
 		public Body WithColliders( List<Collider> colliders )
@@ -318,11 +319,6 @@
 			return this with { GameObject = gameObject };
 		}
 
-		public Body WithBone( BoneCollection.Bone bone )
-		{
-			return this with { BoneIndex = bone.Index };
-		}
-
 		public Body WithParent( BoneCollection.Bone parent )
 		{
 			return this with { ParentIndex = parent.Index };
@@ -331,11 +327,6 @@
 		public Body WithChildren( List<BoneCollection.Bone> children )
 		{
 			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
-		}
-
-		public Body WithModeName( string modeName )
-		{
-			return this with { ModeName = modeName, _cachedHandler = null };
 		}
 
 		public BoneCollection.Bone GetBone( Model model ) => BoneIndex >= 0 && BoneIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[BoneIndex] : null;

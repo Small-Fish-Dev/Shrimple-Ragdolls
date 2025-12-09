@@ -29,7 +29,6 @@
 		}
 	}
 
-	// TODO: CAN'T THIS BE JUST THE INTERFACE?
 	public ShrimpleRagdollModeHandlers RagdollHandler { get; protected set; }
 
 	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
@@ -87,14 +86,12 @@
 		if ( !IsProxy && (Network?.Active ?? false) )
 		{
 			SetupBodyTransforms();
+			SetupBodyModes();
 			GameObject.Root.NetworkSpawn();
 		}
 
 		CreatePhysics();
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
-
-		if ( IsProxy )
-			InitializeProxy();
 	}
 
 	protected override void OnUpdate()
@@ -121,7 +118,8 @@
 			foreach ( var body in Bodies )
 			{
 				// Use the body's individual mode handler
-				body.Value.ModeHandler.VisualUpdate?.Invoke( this, body.Value );
+				var handler = GetBodyModeHandler( body.Value );
+				handler.VisualUpdate?.Invoke( this, body.Value );
 			}
 		}
 	}
@@ -142,7 +140,8 @@
 				foreach ( var body in Bodies )
 				{
 					// Use the body's individual mode handler
-					body.Value.ModeHandler.PhysicsUpdate?.Invoke( this, body.Value );
+					var handler = GetBodyModeHandler( body.Value );
+					handler.PhysicsUpdate?.Invoke( this, body.Value );
 				}
 
 				MoveGameObject();
@@ -254,16 +253,25 @@
 		if ( !ShrimpleRagdollModeRegistry.TryGet( modeName, out var newHandler ) )
 			return;
 
-		// Exit old mode
-		body.ModeHandler.OnExit?.Invoke( this, body );
+		// Get old handler
+		var oldHandler = GetBodyModeHandler( body );
 
-		// Update body with new mode name
-		var updatedBody = body.WithModeName( modeName );
-		Bodies.Remove( body.BoneIndex );
-		Bodies.Add( body.BoneIndex, updatedBody );
+		// Exit old mode
+		oldHandler.OnExit?.Invoke( this, body );
+
+		// Update mode in network dict
+		if ( !IsProxy && (Network?.Active ?? false) )
+		{
+			BodyModes.Remove( body.BoneIndex );
+			BodyModes.Add( body.BoneIndex, modeName );
+		}
+		else
+		{
+			BodyModes[body.BoneIndex] = modeName;
+		}
 
 		// Enter new mode
-		updatedBody.ModeHandler.OnEnter?.Invoke( this, updatedBody );
+		newHandler.OnEnter?.Invoke( this, body );
 	}
 
 	/// <summary>
@@ -283,17 +291,29 @@
 
 		// Exit all bodies from their current modes
 		foreach ( var body in Bodies )
-			body.Value.ModeHandler.OnExit?.Invoke( this, body.Value );
+		{
+			var oldHandler = GetBodyModeHandler( body.Value );
+			oldHandler.OnExit?.Invoke( this, body.Value );
+		}
 
 		RagdollHandler = newHandler;
 
-		// Set all bodies to the new mode and enter
+		// Set all bodies to the new mode
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			var updatedBody = kvp.Value.WithModeName( newMode );
-			Bodies.Remove( kvp.Key );
-			Bodies.Add( kvp.Key, updatedBody );
-			updatedBody.ModeHandler.OnEnter?.Invoke( this, updatedBody );
+			// Update network dict
+			if ( !IsProxy && (Network?.Active ?? false) )
+			{
+				BodyModes.Remove( kvp.Key );
+				BodyModes.Add( kvp.Key, newMode );
+			}
+			else
+			{
+				BodyModes[kvp.Key] = newMode;
+			}
+
+			// Enter new mode
+			newHandler.OnEnter?.Invoke( this, kvp.Value );
 		}
 	}
 
@@ -338,7 +358,18 @@
 		EnableBodies();
 		EnableJoints();
 
-		if ( Mode == ShrimpleRagdollMode.Statue )
+		// Check if any body is in Statue mode
+		bool hasStatueMode = false;
+		foreach ( var body in Bodies )
+		{
+			if ( BodyModes.TryGetValue( body.Key, out var modeName ) && modeName == ShrimpleRagdollMode.Statue )
+			{
+				hasStatueMode = true;
+				break;
+			}
+		}
+
+		if ( hasStatueMode )
 			MoveMeshFromObjects();
 	}
 

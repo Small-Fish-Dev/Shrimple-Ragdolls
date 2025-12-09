@@ -43,25 +43,25 @@
 	}
 
 	/// <summary>
-	/// Initialize all body modes
+	/// Initialize all body modes - calls OnEnter for each body's mode
 	/// </summary>
 	protected void InitializeBodyModes()
 	{
 		foreach ( var body in Bodies.Values )
-			body.ModeHandler.OnEnter?.Invoke( this, body );
-	}
-
-	protected void InitializeProxy()
-	{
-		CreateBoneObjects( Model.Physics );
-		SetBodyHierarchyReferences();
-		InitializeBodyModes();
+		{
+			var handler = GetBodyModeHandler( body );
+			handler.OnEnter?.Invoke( this, body );
+		}
 	}
 
 	protected void OnModeChanged( string oldMode, string newMode )
 	{
 		if ( IsProxy )
-			InitializeProxy();
+		{
+			CreateBoneObjects( Model.Physics );
+			SetBodyHierarchyReferences();
+			InitializeBodyModes();
+		}
 	}
 
 	protected override void OnRefresh()
@@ -69,11 +69,20 @@
 		base.OnRefresh();
 
 		if ( IsProxy )
-			InitializeProxy();
+		{
+			CreateBoneObjects( Model.Physics );
+			SetBodyHierarchyReferences();
+			InitializeBodyModes();
+		}
 	}
 
 	protected override async Task OnLoad()
 	{
-		await base.OnLoad();
+		if ( !IsProxy )
+			return;
+
+		CreateBoneObjects( Model.Physics );
+		SetBodyHierarchyReferences();
+		InitializeBodyModes();
 	}
 }
