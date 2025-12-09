@@ -61,29 +61,6 @@
 		gameObject.Flags &= ~flags;
 	}
 
-	protected void CreateStatueBodies( PhysicsGroupDescription physics )
-	{
-		var rigidbody = Renderer.GameObject.AddComponent<Rigidbody>( startEnabled: false );
-
-		foreach ( var part in physics.Parts )
-		{
-			var bone = Model.Bones.GetBone( part.BoneName );
-
-			if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
-				continue;
-
-			if ( !Renderer.IsValid() || !Renderer.TryGetBoneTransform( in bone, out var boneTransform ) )
-				boneTransform = Renderer.WorldTransform.ToWorld( part.Transform );
-
-			boneObject.WorldTransform = boneTransform;
-
-			var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
-
-			Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
-		}
-	}
-
-
 	protected void SetBodyHierarchyReferences()
 	{
 		foreach ( var kvp in Bodies.ToList() )
