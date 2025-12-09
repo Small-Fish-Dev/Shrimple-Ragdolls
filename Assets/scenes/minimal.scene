@@ -2189,7 +2189,7 @@
       "Flags": 0,
       "Name": "Walking Terry",
       "Position": "-16,-112,0.00001049042",
-      "Rotation": "0,0,1,-0.00000004371139",
+      "Rotation": "0,0,0.9659258,0.258819",
       "Scale": "1,1,1",
       "Tags": "",
       "Enabled": true,
@@ -2203,7 +2203,7 @@
           "__type": "ShrimpleRagdoll",
           "__guid": "727eadd0-796c-463d-90b4-1aa6ccb180f0",
           "__enabled": true,
-          "AngularDamping": 0,
+          "AngularDamping": 5,
           "ColliderFlags": 0,
           "FollowOptions": {
             "RootObjectFollow": true,
@@ -2216,7 +2216,7 @@
           },
           "Gravity": true,
           "GravityScale": 1,
-          "LinearDamping": 0,
+          "LinearDamping": 5,
           "Locking": {
             "X": false,
             "Y": false,
@@ -2225,7 +2225,7 @@
             "Yaw": false,
             "Roll": false
           },
-          "MassOverride": 0,
+          "MassOverride": 10000,
           "Mode": {
             "Name": "Motor"
           },
@@ -2252,7 +2252,7 @@
           "__guid": "d982c55f-ac26-4bc7-b518-5c4fe435cafb",
           "__enabled": true,
           "DampingRatio": 4,
-          "Frequency": 50,
+          "Frequency": 100,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -4198,7 +4198,7 @@
             "MergeBoneTransforms": true
           },
           "Gravity": true,
-          "GravityScale": 1,
+          "GravityScale": 2,
           "LinearDamping": 0,
           "Locking": {
             "X": false,
