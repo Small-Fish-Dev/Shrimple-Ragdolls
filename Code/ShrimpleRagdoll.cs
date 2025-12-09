@@ -93,7 +93,6 @@
 
 		CreatePhysics();
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
-		SetupPhysics();
 	}
 
 	protected override void OnUpdate()
@@ -217,6 +216,7 @@
 		if ( NetworkRefreshOnChange )
 			Renderer?.Network?.Refresh(); // Only refresh the renderer as that's where we added the bone objects
 
+		SetupPhysics();
 		PhysicsWereCreated = true;
 	}
 
