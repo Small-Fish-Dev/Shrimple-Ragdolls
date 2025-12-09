@@ -331,8 +331,8 @@
           }
         },
         {
-          "__type": "MotorModeSettings",
-          "__guid": "a83b0636-ac35-4ec2-879b-715243bddc3f",
+          "__type": "ShrimpleMotorModeSettings",
+          "__guid": "05113a50-c390-48d0-b236-a04e3a4b25e0",
           "__enabled": true,
           "DampingRatio": 1,
           "Frequency": 30,
