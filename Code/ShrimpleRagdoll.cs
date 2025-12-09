@@ -99,6 +99,8 @@
 
 		SetGravity( Gravity );
 		SetGravityScale( GravityScale );
+		SetLinearDamping( LinearDamping );
+		SetAngularDamping( LinearDamping );
 		SetRigidbodyFlags( RigidbodyFlags );
 		SetLocking( Locking );
 		SetSurface( Surface );

@@ -35,6 +35,40 @@
 	}
 
 	/// <summary>
+	/// Set the linear damping to all bodies.
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public float LinearDamping
+	{
+		get;
+		set
+		{
+			if ( field == value )
+				return;
+
+			field = value;
+			SetLinearDamping( value );
+		}
+	}
+
+	/// <summary>
+	/// Set the angular damping to all bodies.
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public float AngularDamping
+	{
+		get;
+		set
+		{
+			if ( field == value )
+				return;
+
+			field = value;
+			SetAngularDamping( value );
+		}
+	}
+
+	/// <summary>
 	/// Rigidbody flags applied to all bodies.
 	/// </summary>
 	[Property, Group( "Physics" )]
@@ -145,6 +179,32 @@
 
 		foreach ( var body in Bodies.Values )
 			body.Component?.GravityScale = gravityScale;
+	}
+
+	/// <summary>
+	/// Sets the linear damping to all rigid bodies
+	/// </summary>
+	/// <param name="damping"></param>
+	public void SetLinearDamping( float damping )
+	{
+		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.LinearDamping = damping;
+
+		foreach ( var body in Bodies.Values )
+			body.Component?.LinearDamping = damping;
+	}
+
+	/// <summary>
+	/// Sets the linear damping to all rigid bodies
+	/// </summary>
+	/// <param name="damping"></param>
+	public void SetAngularDamping( float damping )
+	{
+		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.AngularDamping = damping;
+
+		foreach ( var body in Bodies.Values )
+			body.Component?.AngularDamping = damping;
 	}
 
 	/// <summary>
