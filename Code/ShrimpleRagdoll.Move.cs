@@ -118,7 +118,7 @@
 	}
 
 	/// <summary>
-	/// Follow the <see cref="RagdollFollowMode"/>
+	/// Set the Renderer and Root's transform following the <see cref="RagdollFollowMode"/>
 	/// </summary>
 	public void MoveGameObject()
 	{
@@ -127,22 +127,7 @@
 
 		if ( RagdollHandler.PhysicsDriven )
 		{
-			var bone = Renderer.Model.Bones.GetBone( FollowOptions.Bone.Selected );
-			var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
-			var targetTransform = currentTransform;
-
-			if ( FollowOptions.MergeBoneTransforms )
-			{
-				var localTransform = Renderer.Model.GetBoneTransform( FollowOptions.Bone.Selected );
-				var invRotation = localTransform.Rotation.Inverse;
-
-				// Transform the bone's world transform back to root space
-				var rotatedLocalPos = currentTransform.Rotation * (localTransform.Position * invRotation);
-				targetTransform = new Transform(
-					currentTransform.Position - rotatedLocalPos,
-					currentTransform.Rotation * invRotation
-				);
-			}
+			var targetTransform = GetRagdollTransform( FollowOptions.Bone.Selected, FollowOptions.MergeBoneTransforms );
 
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
 				Renderer.WorldPosition = targetTransform.Position;
@@ -159,5 +144,33 @@
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
 				GameObject.Root.WorldRotation = Renderer.WorldRotation;
 		}
+	}
+
+	/// <summary>
+	/// Get the ragdoll's ideal transform from the provided bone
+	/// </summary>
+	/// <param name="boneName">Which bone to base off of</param>
+	/// <param name="mergedBoneTransforms">The final renderer's transform should match the bone's transform</param>
+	/// <returns></returns>
+	public Transform GetRagdollTransform( string boneName, bool mergedBoneTransforms = true )
+	{
+		var bone = Renderer.Model.Bones.GetBone( boneName );
+		var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
+		var targetTransform = currentTransform;
+
+		if ( mergedBoneTransforms )
+		{
+			var localTransform = Renderer.Model.GetBoneTransform( boneName );
+			var invRotation = localTransform.Rotation.Inverse;
+
+			// Transform the bone's world transform back to root space
+			var rotatedLocalPos = currentTransform.Rotation * (localTransform.Position * invRotation);
+			targetTransform = new Transform(
+				currentTransform.Position - rotatedLocalPos,
+				currentTransform.Rotation * invRotation
+			);
+		}
+
+		return targetTransform;
 	}
 }
