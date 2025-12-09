@@ -20,6 +20,12 @@
 		}
 
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute ); // Remove absolute tag from our gameobject
+		_ = StatueMode.SetNextFrame( ragdoll, body );
+	}
+
+	protected static async Task SetNextFrame( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
+	{
+		await GameTask.DelaySeconds( Time.Delta );
 		ragdoll.MoveObjectFromMesh( body.GetBone( ragdoll.Model ) );
 		ragdoll.MoveMeshFromObject( body );
 	}
