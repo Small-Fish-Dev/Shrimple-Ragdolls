@@ -29,6 +29,7 @@
 		}
 	}
 
+	// TODO: CAN'T THIS BE JUST THE INTERFACE?
 	public ShrimpleRagdollModeHandlers RagdollHandler { get; protected set; }
 
 	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
@@ -272,6 +273,9 @@
 
 		// Enter new mode
 		newHandler.OnEnter?.Invoke( this, body );
+
+		// Apply mode settings if available
+		ApplyModeSettings( body, modeName );
 	}
 
 	/// <summary>
@@ -314,6 +318,24 @@
 
 			// Enter new mode
 			newHandler.OnEnter?.Invoke( this, kvp.Value );
+
+			// Apply mode settings if available
+			ApplyModeSettings( kvp.Value, newMode );
+		}
+	}
+
+	/// <summary>
+	/// Apply mode settings from attached ModeSettings components
+	/// </summary>
+	protected void ApplyModeSettings( Body body, string modeName )
+	{
+		var modeSettings = GetComponents<ModeSettings>();
+		foreach ( var settings in modeSettings )
+		{
+			if ( settings.TargetMode == modeName )
+			{
+				settings.ApplySettings( this, body );
+			}
 		}
 	}
 
