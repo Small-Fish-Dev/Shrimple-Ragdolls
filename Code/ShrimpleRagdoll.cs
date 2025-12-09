@@ -97,6 +97,8 @@
 		if ( StartAsleep )
 			SleepPhysics();
 
+		SetGravity( Gravity );
+		SetGravityScale( GravityScale );
 		SetRigidbodyFlags( RigidbodyFlags );
 		SetLocking( Locking );
 		SetSurface( Surface );

@@ -1,6 +1,40 @@
 ﻿public partial class ShrimpleRagdoll
 {
 	/// <summary>
+	/// Enable/Disable gravity to all bodies.
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public bool Gravity
+	{
+		get;
+		set
+		{
+			if ( field == value )
+				return;
+
+			field = value;
+			SetGravity( value );
+		}
+	}
+
+	/// <summary>
+	/// Set the gravity scale to all bodies.
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public float GravityScale
+	{
+		get;
+		set
+		{
+			if ( field == value )
+				return;
+
+			field = value;
+			SetGravityScale( value );
+		}
+	}
+
+	/// <summary>
 	/// Rigidbody flags applied to all bodies.
 	/// </summary>
 	[Property, Group( "Physics" )]
@@ -85,6 +119,32 @@
 
 		foreach ( var body in Bodies.Values )
 			body.Component?.Sleeping = true;
+	}
+
+	/// <summary>
+	/// Sets gravity to all rigid bodies
+	/// </summary>
+	/// <param name="gravity"></param>
+	public void SetGravity( bool gravity )
+	{
+		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.Gravity = gravity;
+
+		foreach ( var body in Bodies.Values )
+			body.Component?.Gravity = gravity;
+	}
+
+	/// <summary>
+	/// Sets gravity scale to all rigid bodies
+	/// </summary>
+	/// <param name="gravityScale"></param>
+	public void SetGravityScale( float gravityScale )
+	{
+		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.GravityScale = gravityScale;
+
+		foreach ( var body in Bodies.Values )
+			body.Component?.GravityScale = gravityScale;
 	}
 
 	/// <summary>
