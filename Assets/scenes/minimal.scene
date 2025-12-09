@@ -191,8 +191,8 @@
       "__version": 1,
       "Flags": 0,
       "Name": "Camera",
-      "Position": "-140,-120,302",
-      "Rotation": "-0.1468531,0.3534413,0.3544781,0.8531464",
+      "Position": "-184,-92,204",
+      "Rotation": "-0.0901464,0.3732216,0.2167887,0.8975421",
       "Scale": "1,1,1",
       "Tags": "",
       "Enabled": true,
@@ -2183,7 +2183,7 @@
       "__version": 1,
       "Flags": 0,
       "Name": "Metal Terry",
-      "Position": "-56,-104,0.00001049042",
+      "Position": "-16,8,140",
       "Rotation": "0,0,1,-0.00000004371139",
       "Scale": "1,1,1",
       "Tags": "",
@@ -2306,7 +2306,7 @@
               "RenderType": "On",
               "Sequence": {
                 "Name": "Dab",
-                "Looping": true,
+                "Looping": false,
                 "Blending": false
               },
               "Tint": "1,1,1,1",
