@@ -35,12 +35,15 @@
 	/// <returns></returns>
 	public Vector3 GetMassCenter()
 	{
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			return rigidbody.MassCenter;
+
 		var masses = 0f;
 		var centers = Vector3.Zero;
 
 		foreach ( var body in Bodies.Values )
 		{
-			if ( !body.Component.IsValid() )
+			if ( !body.Component.IsValid() || !body.Component.Active )
 				continue;
 
 			var mass = body.Component.PhysicsBody.Mass;
@@ -86,6 +89,10 @@
 
 		foreach ( var body in Bodies?.Values )
 			body.Component?.Velocity += velocity;
+
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.Velocity += velocity;
+
 	}
 
 	/// <summary>
@@ -110,6 +117,9 @@
 			body.Component?.Velocity += bodyVelocity;
 			body.Component?.AngularVelocity += angularVelocity;
 		}
+
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.AngularVelocity += angularVelocity;
 	}
 
 	/// <summary>
@@ -119,8 +129,8 @@
 	{
 		if ( Mode == ShrimpleRagdollMode.Statue )
 		{
-			var body = Renderer.GetComponent<Rigidbody>();
-			body.Sleeping = false;
+			if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+				rigidbody.Sleeping = false;
 		}
 		else
 		{
