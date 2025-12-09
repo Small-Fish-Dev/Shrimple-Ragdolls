@@ -17,6 +17,7 @@
 			rigidBody.Enabled = true;
 			rigidBody.Locking = ragdoll.Locking;
 			rigidBody.RigidbodyFlags = ragdoll.RigidbodyFlags;
+			ragdoll.SetupPhysics(); // We created a new rigidbody, so we gotta give it all the settings we have
 		}
 
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute ); // Remove absolute tag from our gameobject
