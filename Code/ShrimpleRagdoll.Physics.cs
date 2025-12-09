@@ -303,7 +303,7 @@
 		// Set proportional masses so they sum to massOverride
 		foreach ( var body in Bodies.Values )
 		{
-			if ( !body.Component.IsValid() )
+			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
 				continue;
 
 			float proportion = body.Component.PhysicsBody.Mass / totalDefaultMass;
