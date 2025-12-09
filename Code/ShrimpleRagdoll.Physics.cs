@@ -15,7 +15,7 @@
 			field = value;
 			SetGravity( value );
 		}
-	}
+	} = true;
 
 	/// <summary>
 	/// Set the gravity scale to all bodies.
@@ -32,7 +32,7 @@
 			field = value;
 			SetGravityScale( value );
 		}
-	}
+	} = 1f;
 
 	/// <summary>
 	/// Set the linear damping to all bodies.
@@ -49,7 +49,7 @@
 			field = value;
 			SetLinearDamping( value );
 		}
-	}
+	} = 0f;
 
 	/// <summary>
 	/// Set the angular damping to all bodies.
@@ -66,7 +66,7 @@
 			field = value;
 			SetAngularDamping( value );
 		}
-	}
+	} = 0f;
 
 	/// <summary>
 	/// Rigidbody flags applied to all bodies.
@@ -98,6 +98,22 @@
 			SetLocking( value );
 		}
 	}
+
+	/// <summary>
+	/// Sets the mass override of this ragdoll<br />
+	/// Each body part will have their proportionally changed so they combine to the desired total mass<br />
+	/// Set to 0 for the default value
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public float MassOverride
+	{
+		get;
+		set
+		{
+			field = value;
+			SetMassOverride( value );
+		}
+	} = 0f;
 
 	/// <summary>
 	/// All bodies will be put to sleep on start.
@@ -266,6 +282,36 @@
 	}
 
 	/// <summary>
+	/// Sets the mass override, each body piece will have their mass proportional so that the total combines to the desired value
+	/// </summary>
+	/// <param name="massOverride"></param>
+	public void SetMassOverride( float massOverride )
+	{
+		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.MassOverride = massOverride;
+
+		float totalDefaultMass = 0f;
+		foreach ( var body in Bodies.Values )
+		{
+			if ( body.Component.IsValid() && body.Component.PhysicsBody.IsValid() )
+				totalDefaultMass += body.Component.PhysicsBody.Mass;
+		}
+
+		if ( totalDefaultMass <= 0f )
+			return;
+
+		// Set proportional masses so they sum to massOverride
+		foreach ( var body in Bodies.Values )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
+
+			float proportion = body.Component.PhysicsBody.Mass / totalDefaultMass;
+			body.Component.MassOverride = massOverride * proportion;
+		}
+	}
+
+	/// <summary>
 	/// Sets up all physics related settings for colliders and rigidbodies
 	/// </summary>
 	public void SetupPhysics()
@@ -281,5 +327,6 @@
 		SetLocking( Locking );
 		SetSurface( Surface );
 		SetColliderFlags( ColliderFlags );
+		SetMassOverride( MassOverride );
 	}
 }
