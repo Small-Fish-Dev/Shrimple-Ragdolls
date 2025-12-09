@@ -303,6 +303,7 @@
           "__type": "ShrimpleRagdoll",
           "__guid": "c19c6c81-25fb-4917-abc5-2e55e8d5858e",
           "__enabled": true,
+          "AngularDamping": 0,
           "ColliderFlags": 0,
           "FollowOptions": {
             "RootObjectFollow": true,
@@ -313,6 +314,9 @@
             },
             "MergeBoneTransforms": true
           },
+          "Gravity": true,
+          "GravityScale": 1,
+          "LinearDamping": 0,
           "Locking": {
             "X": false,
             "Y": false,
@@ -321,6 +325,7 @@
             "Yaw": false,
             "Roll": false
           },
+          "MassOverride": 0,
           "Mode": {
             "Name": "Enabled"
           },
@@ -2198,6 +2203,7 @@
           "__type": "ShrimpleRagdoll",
           "__guid": "727eadd0-796c-463d-90b4-1aa6ccb180f0",
           "__enabled": true,
+          "AngularDamping": 0,
           "ColliderFlags": 0,
           "FollowOptions": {
             "RootObjectFollow": true,
@@ -2208,6 +2214,9 @@
             },
             "MergeBoneTransforms": true
           },
+          "Gravity": true,
+          "GravityScale": 1,
+          "LinearDamping": 0,
           "Locking": {
             "X": false,
             "Y": false,
@@ -2216,6 +2225,7 @@
             "Yaw": false,
             "Roll": false
           },
+          "MassOverride": 0,
           "Mode": {
             "Name": "Motor"
           },
@@ -2241,8 +2251,8 @@
           "__type": "ShrimpleMotorModeSettings",
           "__guid": "d982c55f-ac26-4bc7-b518-5c4fe435cafb",
           "__enabled": true,
-          "DampingRatio": 3,
-          "Frequency": 40,
+          "DampingRatio": 4,
+          "Frequency": 50,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
@@ -4100,10 +4110,10 @@
               },
               "BreakForce": 0,
               "BreakTorque": 0,
-              "Damping": 0.7,
+              "Damping": 1,
               "EnableCollision": false,
-              "ForceMode": "Both",
-              "Frequency": 5,
+              "ForceMode": "Pull",
+              "Frequency": 4,
               "LocalFrame1": {
                 "Position": "0,0,0",
                 "Scale": "0,0,0",
@@ -4114,7 +4124,7 @@
                 "Scale": "0,0,0",
                 "Rotation": "0,0,0,0"
               },
-              "MaxLength": 30,
+              "MaxLength": 40,
               "MinLength": 0,
               "OnBreak": null,
               "OnComponentDestroy": null,
@@ -4123,7 +4133,7 @@
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null,
-              "RestLength": 15,
+              "RestLength": 20,
               "StartBroken": false
             },
             {
@@ -4161,7 +4171,7 @@
       "__version": 1,
       "Flags": 0,
       "Name": "Metal Terry",
-      "Position": "-16,8,140",
+      "Position": "-4,8,140",
       "Rotation": "0,0,1,-0.00000004371139",
       "Scale": "1,1,1",
       "Tags": "",
@@ -4176,6 +4186,7 @@
           "__type": "ShrimpleRagdoll",
           "__guid": "f0a45e8c-15dd-45b7-9d12-fb1e5af49776",
           "__enabled": true,
+          "AngularDamping": 0,
           "ColliderFlags": 0,
           "FollowOptions": {
             "RootObjectFollow": true,
@@ -4186,6 +4197,9 @@
             },
             "MergeBoneTransforms": true
           },
+          "Gravity": true,
+          "GravityScale": 1,
+          "LinearDamping": 0,
           "Locking": {
             "X": false,
             "Y": false,
@@ -4194,6 +4208,7 @@
             "Yaw": false,
             "Roll": false
           },
+          "MassOverride": 5000,
           "Mode": {
             "Name": "Statue"
           },
