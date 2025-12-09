@@ -38,6 +38,32 @@
 	public bool StartAsleep { get; set; } = false;
 
 	/// <summary>
+	/// Surface to apply to all colliders<br />
+	/// Set to null for the surfaces defined in the ragdoll
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public Surface Surface
+	{
+		get;
+		set
+		{
+			field = value;
+			SetSurface( value );
+		}
+	} = null;
+
+	[Property, Group( "Physics" )]
+	public ColliderFlags ColliderFlags
+	{
+		get;
+		set
+		{
+			field = value;
+			SetColliderFlags( value );
+		}
+	}
+
+	/// <summary>
 	/// Makes sure to wake up all bodies
 	/// </summary>
 	public void WakePhysics()
@@ -95,5 +121,27 @@
 
 			body.Component?.Locking = locking;
 		}
+	}
+
+	/// <summary>
+	/// Apply a surface to every collider
+	/// </summary>
+	/// <param name="surface"></param>
+	public void SetSurface( Surface surface )
+	{
+		foreach ( var body in Bodies.Values )
+			foreach ( var collider in body.Colliders )
+				collider.Surface = surface;
+	}
+
+	/// <summary>
+	/// Apply collider flags to every collider
+	/// </summary>
+	/// <param name="flags"></param>
+	public void SetColliderFlags( ColliderFlags flags )
+	{
+		foreach ( var body in Bodies.Values )
+			foreach ( var collider in body.Colliders )
+				collider.ColliderFlags = flags;
 	}
 }

@@ -99,6 +99,8 @@
 
 		SetRigidbodyFlags( RigidbodyFlags );
 		SetLocking( Locking );
+		SetSurface( Surface );
+		SetColliderFlags( ColliderFlags );
 	}
 
 	protected override void OnUpdate()
