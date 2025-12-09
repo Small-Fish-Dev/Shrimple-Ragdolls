@@ -175,7 +175,7 @@
 	/// Sets gravity to all rigid bodies
 	/// </summary>
 	/// <param name="gravity"></param>
-	public void SetGravity( bool gravity )
+	protected void SetGravity( bool gravity )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.Gravity = gravity;
@@ -188,7 +188,7 @@
 	/// Sets gravity scale to all rigid bodies
 	/// </summary>
 	/// <param name="gravityScale"></param>
-	public void SetGravityScale( float gravityScale )
+	protected void SetGravityScale( float gravityScale )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.GravityScale = gravityScale;
@@ -201,7 +201,7 @@
 	/// Sets the linear damping to all rigid bodies
 	/// </summary>
 	/// <param name="damping"></param>
-	public void SetLinearDamping( float damping )
+	protected void SetLinearDamping( float damping )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.LinearDamping = damping;
@@ -214,7 +214,7 @@
 	/// Sets the linear damping to all rigid bodies
 	/// </summary>
 	/// <param name="damping"></param>
-	public void SetAngularDamping( float damping )
+	protected void SetAngularDamping( float damping )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.AngularDamping = damping;
@@ -227,7 +227,7 @@
 	/// Sets rigidbody flags to every body
 	/// </summary>
 	/// <param name="flags"></param>
-	public void SetRigidbodyFlags( RigidbodyFlags flags )
+	protected void SetRigidbodyFlags( RigidbodyFlags flags )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.RigidbodyFlags = flags;
@@ -245,7 +245,7 @@
 	/// Sets the physics locking to every body
 	/// </summary>
 	/// <param name="locking"></param>
-	public void SetLocking( PhysicsLock locking )
+	protected void SetLocking( PhysicsLock locking )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.Locking = locking;
@@ -263,7 +263,7 @@
 	/// Apply a surface to every collider
 	/// </summary>
 	/// <param name="surface"></param>
-	public void SetSurface( Surface surface )
+	protected void SetSurface( Surface surface )
 	{
 		foreach ( var body in Bodies.Values )
 			foreach ( var collider in body.Colliders )
@@ -274,7 +274,7 @@
 	/// Apply collider flags to every collider
 	/// </summary>
 	/// <param name="flags"></param>
-	public void SetColliderFlags( ColliderFlags flags )
+	protected void SetColliderFlags( ColliderFlags flags )
 	{
 		foreach ( var body in Bodies.Values )
 			foreach ( var collider in body.Colliders )
@@ -285,7 +285,7 @@
 	/// Sets the mass override, each body piece will have their mass proportional so that the total combines to the desired value
 	/// </summary>
 	/// <param name="massOverride"></param>
-	public void SetMassOverride( float massOverride )
+	protected void SetMassOverride( float massOverride )
 	{
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.MassOverride = massOverride;
