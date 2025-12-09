@@ -121,24 +121,6 @@
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.AngularVelocity += angularVelocity;
 	}
-
-	/// <summary>
-	/// Makes sure to wake up all bodies
-	/// </summary>
-	public void WakePhysics()
-	{
-		if ( Mode == ShrimpleRagdollMode.Statue )
-		{
-			if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-				rigidbody.Sleeping = false;
-		}
-		else
-		{
-			foreach ( var body in Bodies )
-				body.Value.Component.Sleeping = false;
-		}
-	}
-
 	public Body? GetBodyByBoneName( string boneName )
 	{
 		var bone = Renderer.Model.Bones.GetBone( boneName );

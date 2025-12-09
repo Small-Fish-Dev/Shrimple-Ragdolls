@@ -93,6 +93,12 @@
 
 		CreatePhysics();
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
+
+		if ( StartAsleep )
+			SleepPhysics();
+
+		SetRigidbodyFlags( RigidbodyFlags );
+		SetLocking( Locking );
 	}
 
 	protected override void OnUpdate()
