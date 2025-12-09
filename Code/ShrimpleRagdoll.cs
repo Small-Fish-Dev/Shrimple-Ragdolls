@@ -93,18 +93,7 @@
 
 		CreatePhysics();
 		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
-
-		if ( StartAsleep )
-			SleepPhysics();
-
-		SetGravity( Gravity );
-		SetGravityScale( GravityScale );
-		SetLinearDamping( LinearDamping );
-		SetAngularDamping( LinearDamping );
-		SetRigidbodyFlags( RigidbodyFlags );
-		SetLocking( Locking );
-		SetSurface( Surface );
-		SetColliderFlags( ColliderFlags );
+		SetupPhysics();
 	}
 
 	protected override void OnUpdate()

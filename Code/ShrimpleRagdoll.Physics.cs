@@ -264,4 +264,22 @@
 			foreach ( var collider in body.Colliders )
 				collider.ColliderFlags = flags;
 	}
+
+	/// <summary>
+	/// Sets up all physics related settings for colliders and rigidbodies
+	/// </summary>
+	public void SetupPhysics()
+	{
+		if ( StartAsleep )
+			SleepPhysics();
+
+		SetGravity( Gravity );
+		SetGravityScale( GravityScale );
+		SetLinearDamping( LinearDamping );
+		SetAngularDamping( LinearDamping );
+		SetRigidbodyFlags( RigidbodyFlags );
+		SetLocking( Locking );
+		SetSurface( Surface );
+		SetColliderFlags( ColliderFlags );
+	}
 }
