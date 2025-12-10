@@ -92,7 +92,6 @@
 
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.Velocity += velocity;
-
 	}
 
 	/// <summary>
@@ -121,6 +120,7 @@
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.AngularVelocity += angularVelocity;
 	}
+
 	public Body? GetBodyByBoneName( string boneName )
 	{
 		var bone = Renderer.Model.Bones.GetBone( boneName );
@@ -144,20 +144,6 @@
 		if ( Bodies.TryGetValue( bone.Index, out var body ) )
 			return body;
 
-		return null;
-	}
-
-	public BoneCollection.Bone GetBoneByBody( Body body )
-	{
-		if ( !body.IsValid )
-			return null;
-
-		foreach ( var pair in Bodies )
-		{
-			var bone = pair.Value.GetBone( Model );
-			if ( bone == body.GetBone( Model ) )
-				return bone;
-		}
 		return null;
 	}
 
