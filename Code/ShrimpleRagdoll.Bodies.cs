@@ -28,7 +28,7 @@
 		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
 		var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
 
-		Bodies.Add( bone.Index, new Body( rigidbody, boneObject, bone.Index, colliders ) );
+		Bodies.Add( bone.Index, new Body( this, rigidbody, boneObject, bone.Index, colliders ) );
 	}
 
 	public void AddFlags( GameObject gameObject, GameObjectFlags flags )
@@ -65,11 +65,11 @@
 	{
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			var validParentBone = GetNearestValidParentBody( kvp.Value.GetBone( Model )?.Parent );
+			var validParentBone = GetNearestValidParentBody( kvp.Value.GetBone()?.Parent );
 			if ( validParentBone == null )
 				continue;
-			var newBody = kvp.Value.WithParent( GetBoneByBody( validParentBone.Value ) );
-			var children = kvp.Value.GetBone( Model ).Children;
+			var newBody = kvp.Value.WithParent( validParentBone.Value.GetBone() );
+			var children = kvp.Value.GetBone().Children;
 			if ( children != null && children.Count() > 0 )
 			{
 				var childrenBodies = new List<BoneCollection.Bone>();
@@ -77,7 +77,7 @@
 				{
 					var childBody = GetNearestValidChildBody( childBone );
 					if ( childBody != null )
-						childrenBodies.Add( GetBoneByBody( childBody.Value ) );
+						childrenBodies.Add( childBody.Value.GetBone() );
 				}
 				newBody = newBody.WithChildren( childrenBodies );
 			}
@@ -113,7 +113,7 @@
 			var hullCollider = parent.AddComponent<HullCollider>();
 			hullCollider.Type = HullCollider.PrimitiveType.Points;
 			hullCollider.Points = hull.GetPoints()
-				.Select( x => localTransform.PointToWorld( x ) ) // Looks weird but we're turning local points into world points relative to the parent which is still local in the grand scheme of things
+				.Select( x => localTransform.PointToWorld( x ) )
 				.ToList();
 			hullCollider.Surface = hull.Surface;
 			hullCollider.Center = localTransform.Position;
@@ -128,15 +128,11 @@
 
 		BodyModes.Clear();
 
-		// Initialize all bodies with the ragdoll's default mode
 		var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
 		foreach ( var body in Bodies )
 			BodyModes.Add( body.Key, modeName );
 	}
 
-	/// <summary>
-	/// Destroy all rigidbody components and colliders, then clear the bodies list
-	/// </summary>
 	protected void DestroyBodies()
 	{
 		if ( Bodies == null )
@@ -155,9 +151,6 @@
 		Bodies.Clear();
 	}
 
-	/// <summary>
-	/// Disables all the rigidbodies and colliders
-	/// </summary>
 	protected void DisableBodies()
 	{
 		if ( Bodies == null )
@@ -174,9 +167,6 @@
 		}
 	}
 
-	/// <summary>
-	/// Enables all the rigidbodies and colliders
-	/// </summary>
 	protected void EnableBodies()
 	{
 		if ( Bodies == null )
@@ -189,32 +179,21 @@
 					collider.Enabled = true;
 
 			AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-			//body.Component.Enabled = true;
 		}
 	}
 
-	/// <summary>
-	/// Return the nearest valid parent body of this body.
-	/// </summary>
-	/// <param name="body"></param>
-	/// <returns>null if no valid parent body is found.</returns>
 	public Body? GetParentBody( Body body )
 	{
-		var parentBone = body.GetParentBone( Model );
+		var parentBone = body.GetParentBone();
 		if ( parentBone == null )
 			return null;
 
 		return GetNearestValidParentBody( parentBone );
 	}
 
-	/// <summary>
-	/// Return all valid child bodies of this body.
-	/// </summary>
-	/// <param name="body"></param>
-	/// <returns></returns>
 	public IEnumerable<Body> GetChildrenBodies( Body body )
 	{
-		var childrenBones = body.GetChildrenBones( Model );
+		var childrenBones = body.GetChildrenBones();
 
 		if ( childrenBones != null )
 		{
@@ -227,11 +206,6 @@
 		}
 	}
 
-	/// <summary>
-	/// Retrieves the joint that connects the specified body to its parent body, if such a joint exists.
-	/// </summary>
-	/// <param name="body"></param>
-	/// <returns>null if no such joint exists.</returns>
 	public Joint? GetParentJoint( Body body )
 	{
 		foreach ( var joint in Joints )
@@ -243,9 +217,6 @@
 		return null;
 	}
 
-	/// <summary>
-	/// Get the mode handler for a specific body by looking up its mode from BodyModes
-	/// </summary>
 	public ShrimpleRagdollModeHandlers GetBodyModeHandler( Body body )
 	{
 		if ( BodyModes.TryGetValue( body.BoneIndex, out var modeName ) &&
@@ -254,13 +225,13 @@
 			return handler;
 		}
 
-		// Fallback to disabled mode
 		ShrimpleRagdollModeRegistry.TryGet( ShrimpleRagdollMode.Disabled, out var disabledHandler );
 		return disabledHandler;
 	}
 
 	public struct Body
 	{
+		public ShrimpleRagdoll Ragdoll;
 		public Rigidbody Component;
 		public GameObject GameObject;
 		public int BoneIndex;
@@ -270,8 +241,9 @@
 		public bool IsValid = false;
 		public bool IsRootBone => ParentIndex == -1;
 
-		public Body( Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
+		public Body( ShrimpleRagdoll ragdoll, Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
 		{
+			Ragdoll = ragdoll;
 			Component = component;
 			GameObject = gameObject;
 			BoneIndex = bone;
@@ -306,9 +278,22 @@
 			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
 		}
 
-		public BoneCollection.Bone GetBone( Model model ) => BoneIndex >= 0 && BoneIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[BoneIndex] : null;
-		public BoneCollection.Bone GetParentBone( Model model ) => ParentIndex >= 0 && ParentIndex < model.Bones.AllBones.Count() ? model.Bones.AllBones[ParentIndex] : null;
-		public List<BoneCollection.Bone> GetChildrenBones( Model model ) => ChildIndexes?.Select( x => model.Bones.AllBones[x] ).ToList();
+		// Convenience methods using the ragdoll reference
+		public BoneCollection.Bone GetBone() => BoneIndex >= 0 && BoneIndex < Ragdoll.Model.Bones.AllBones.Count() ? Ragdoll.Model.Bones.AllBones[BoneIndex] : null;
+		public BoneCollection.Bone GetParentBone() => ParentIndex >= 0 && ParentIndex < Ragdoll.Model.Bones.AllBones.Count() ? Ragdoll.Model.Bones.AllBones[ParentIndex] : null;
+		public List<BoneCollection.Bone> GetChildrenBones()
+		{
+			if ( ChildIndexes == null )
+				return null;
+
+			var ragdoll = Ragdoll; // Copy to local variable to avoid capturing 'this'
+			return ChildIndexes.Select( x => ragdoll.Model.Bones.AllBones[x] ).ToList();
+		}
+
+		public Body? GetParentBody() => Ragdoll.GetParentBody( this );
+		public IEnumerable<Body> GetChildrenBodies() => Ragdoll.GetChildrenBodies( this );
+		public Joint? GetParentJoint() => Ragdoll.GetParentJoint( this );
+		public ShrimpleRagdollModeHandlers GetModeHandler() => Ragdoll.GetBodyModeHandler( this );
 
 		public void EnableColliders()
 		{
