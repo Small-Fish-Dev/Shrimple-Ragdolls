@@ -14,18 +14,20 @@
 		All = Position | Rotation
 	}
 
+	SkinnedModelRenderer _renderer;
+
 	[Property]
-	//[Sync] // TODO: MAKE SYNCS WHEN FIELDS WORK
+	[Sync]
 	public SkinnedModelRenderer Renderer
 	{
-		get;
+		get => _renderer;
 		set
 		{
 			if ( !value.IsValid() )
 				return;
 
-			field = value;
-			field.CreateBoneObjects = true;
+			_renderer = value;
+			_renderer.CreateBoneObjects = true;
 		}
 	}
 
@@ -43,7 +45,8 @@
 			if ( value == _mode )
 				return;
 
-			InternalSetRagdollMode( _mode, value );
+			if ( !IsProxy )
+				InternalSetRagdollMode( _mode, value );
 			_mode = value;
 		}
 	}
@@ -106,7 +109,8 @@
 			}
 
 			CreatePhysics();
-			InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
+			if ( !IsProxy )
+				InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
 		} );
 	}
 
