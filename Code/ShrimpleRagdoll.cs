@@ -69,6 +69,13 @@
 	public bool NetworkRefreshOnChange { get; set; } = true;
 
 	/// <summary>
+	/// Delay the physics creation by 1 tick so that animations/overrides get picked up<br />
+	/// Useful for statues etc..
+	/// </summary>
+	[Property]
+	public bool DelayOnStart { get; set; } = true;
+
+	/// <summary>
 	/// All the bodies and joints for ragdoll mode were created
 	/// </summary>
 	[Sync]
@@ -84,15 +91,23 @@
 
 		Renderer.CreateBoneObjects = true;
 
-		if ( !IsProxy && (Network?.Active ?? false) )
+		Task.RunInThreadAsync( async () =>
 		{
-			SetupBodyTransforms();
-			SetupBodyModes();
-			GameObject.Root.NetworkSpawn();
-		}
+			await Task.MainThread();
 
-		CreatePhysics();
-		InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
+			if ( DelayOnStart )
+				await Task.FixedUpdate();
+
+			if ( !IsProxy && (Network?.Active ?? false) )
+			{
+				SetupBodyTransforms();
+				SetupBodyModes();
+				GameObject.Root.NetworkSpawn();
+			}
+
+			CreatePhysics();
+			InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
+		} );
 	}
 
 	protected override void OnUpdate()
