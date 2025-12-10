@@ -37,7 +37,7 @@ public partial class ShrimpleRagdoll
 		{
 			if ( !LerpStartTransforms.TryGetValue( body.Key, out var startTransform ) )
 				continue;
-			if ( !Renderer.TryGetBoneTransformAnimation( GetBoneByBody( body.Value ), out var animTransform ) )
+			if ( !Renderer.TryGetBoneTransformAnimation( body.Value.GetBone(), out var animTransform ) )
 				continue;
 			startTransform = Renderer.WorldTransform.ToWorld( startTransform );
 

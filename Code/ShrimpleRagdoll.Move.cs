@@ -29,7 +29,7 @@
 		var worldTransform = Renderer.WorldTransform;
 		foreach ( var body in Bodies ) // We still use bodies just for the bone references
 		{
-			var boneObject = BoneObjects[body.Value.GetBone( Model )];
+			var boneObject = BoneObjects[body.Value.GetBone()];
 			var transform = worldTransform.ToLocal( boneObject.WorldTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
 		}
@@ -37,7 +37,7 @@
 
 	public void MoveMeshFromObject( Body body )
 	{
-		var bone = body.GetBone( Model );
+		var bone = body.GetBone();
 		var boneObject = BoneObjects[bone];
 		var transform = Renderer.WorldTransform.ToLocal( boneObject.WorldTransform );
 		Renderer.SceneModel.SetBoneOverride( bone.Index, in transform );
@@ -62,7 +62,7 @@
 			if ( item.Key == null || !item.Value.IsValid() || item.Key.Index >= renderBonePositions.Length || item.Key.Index >= renderBoneVelocities.Length )
 				continue;
 
-			var component = item.Value.GetComponent<Rigidbody>(); // TODO: Cache this?
+			var component = item.Value.GetComponent<Rigidbody>();
 			if ( component.IsValid() )
 			{
 				var worldTransform = renderBonePositions[item.Key.Index];
@@ -81,7 +81,7 @@
 		var renderBoneVelocity = Renderer.GetBoneVelocity( bone.Index );
 		var boneObject = BoneObjects[bone];
 
-		var component = boneObject.GetComponent<Rigidbody>(); // TODO: Cache this?
+		var component = boneObject.GetComponent<Rigidbody>();
 		if ( component.IsValid() )
 		{
 			component.WorldTransform = renderBoneTransform;
@@ -98,7 +98,7 @@
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.GetBone( Model ), out var transform ) )
+		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.GetBone(), out var transform ) )
 			return;
 
 		body.Component.SmoothMove( in transform, 0.1f, Time.Delta );

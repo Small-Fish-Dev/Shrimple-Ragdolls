@@ -36,7 +36,7 @@ public class ShrimpleMotorModeSettings : ShrimpleModeSettings
 
 	public override void ApplySettings( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		var joint = ragdoll.GetParentJoint( body )?.Component;
+		var joint = body.GetParentJoint()?.Component;
 		if ( !joint.IsValid() )
 			return;
 

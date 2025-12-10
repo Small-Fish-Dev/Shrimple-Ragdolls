@@ -42,14 +42,11 @@
 		MoveGameObject();
 	}
 
-	/// <summary>
-	/// Initialize all body modes - calls OnEnter for each body's mode
-	/// </summary>
 	protected void InitializeBodyModes()
 	{
 		foreach ( var body in Bodies.Values )
 		{
-			var handler = GetBodyModeHandler( body );
+			var handler = body.GetModeHandler();
 			handler.OnEnter?.Invoke( this, body );
 		}
 	}
