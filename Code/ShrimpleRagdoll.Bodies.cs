@@ -295,6 +295,18 @@
 		public Joint? GetParentJoint() => Ragdoll.GetParentJoint( this );
 		public ShrimpleRagdollModeHandlers GetModeHandler() => Ragdoll.GetBodyModeHandler( this );
 
+		/// <summary>
+		/// Get this body and all its descendants recursively
+		/// </summary>
+		public IEnumerable<Body> GetHierarchy()
+		{
+			yield return this;
+
+			foreach ( var child in GetChildrenBodies() )
+				foreach ( var descendant in child.GetHierarchy() )
+					yield return descendant;
+		}
+
 		public void EnableColliders()
 		{
 			foreach ( var collider in Colliders )
