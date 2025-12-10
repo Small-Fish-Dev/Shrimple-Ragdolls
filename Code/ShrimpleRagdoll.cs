@@ -137,7 +137,6 @@
 		{
 			foreach ( var body in Bodies )
 			{
-				// Use the body's individual mode handler
 				var handler = GetBodyModeHandler( body.Value );
 				handler.VisualUpdate?.Invoke( this, body.Value );
 			}
@@ -159,7 +158,6 @@
 			{
 				foreach ( var body in Bodies )
 				{
-					// Use the body's individual mode handler
 					var handler = GetBodyModeHandler( body.Value );
 					handler.PhysicsUpdate?.Invoke( this, body.Value );
 				}
@@ -269,18 +267,36 @@
 	/// <summary>
 	/// Set the mode for a specific body
 	/// </summary>
-	public void SetBodyMode( Body body, string modeName )
+	/// <param name="body">The body to set the mode for</param>
+	/// <param name="modeName">The name of the mode</param>
+	/// <param name="includeChildren">If true, also sets the mode for all children and descendants</param>
+	public void SetBodyMode( Body body, string modeName, bool includeChildren = false )
 	{
 		if ( !ShrimpleRagdollModeRegistry.TryGet( modeName, out var newHandler ) )
 			return;
 
-		// Get old handler
+		if ( includeChildren )
+		{
+			foreach ( var hierarchyBody in body.GetHierarchy() )
+			{
+				SetBodyModeInternal( hierarchyBody, modeName, newHandler );
+			}
+		}
+		else
+		{
+			SetBodyModeInternal( body, modeName, newHandler );
+		}
+	}
+
+	/// <summary>
+	/// Internal method to set a single body's mode without recursion
+	/// </summary>
+	private void SetBodyModeInternal( Body body, string modeName, ShrimpleRagdollModeHandlers newHandler )
+	{
 		var oldHandler = GetBodyModeHandler( body );
 
-		// Exit old mode
 		oldHandler.OnExit?.Invoke( this, body );
 
-		// Update mode in network dict
 		if ( !IsProxy && (Network?.Active ?? false) )
 		{
 			BodyModes.Remove( body.BoneIndex );
@@ -291,21 +307,22 @@
 			BodyModes[body.BoneIndex] = modeName;
 		}
 
-		// Enter new mode
 		newHandler.OnEnter?.Invoke( this, body );
 
-		// Apply mode settings if available
 		ApplyModeSettings( body, modeName );
 	}
 
 	/// <summary>
 	/// Set the mode for a specific body by bone name
 	/// </summary>
-	public void SetBodyModeByName( string boneName, string modeName )
+	/// <param name="boneName">The name of the bone</param>
+	/// <param name="modeName">The name of the mode</param>
+	/// <param name="includeChildren">If true, also sets the mode for all children and descendants</param>
+	public void SetBodyModeByName( string boneName, string modeName, bool includeChildren = false )
 	{
 		var body = GetBodyByBoneName( boneName );
 		if ( body.HasValue )
-			SetBodyMode( body.Value, modeName );
+			SetBodyMode( body.Value, modeName, includeChildren );
 	}
 
 	protected void InternalSetRagdollMode( string oldMode, string newMode )
@@ -322,10 +339,8 @@
 
 		RagdollHandler = newHandler;
 
-		// Set all bodies to the new mode
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			// Update network dict
 			if ( !IsProxy && (Network?.Active ?? false) )
 			{
 				BodyModes.Remove( kvp.Key );
@@ -336,17 +351,12 @@
 				BodyModes[kvp.Key] = newMode;
 			}
 
-			// Enter new mode
 			newHandler.OnEnter?.Invoke( this, kvp.Value );
 
-			// Apply mode settings if available
 			ApplyModeSettings( kvp.Value, newMode );
 		}
 	}
 
-	/// <summary>
-	/// Apply mode settings from attached ModeSettings components
-	/// </summary>
 	protected void ApplyModeSettings( Body body, string modeName )
 	{
 		var modeSettings = GetComponents<ShrimpleModeSettings>();
@@ -400,7 +410,6 @@
 		EnableBodies();
 		EnableJoints();
 
-		// Check if any body is in Statue mode
 		bool hasStatueMode = false;
 		foreach ( var body in Bodies )
 		{
