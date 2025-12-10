@@ -8,7 +8,7 @@
 	{
 		EnabledMode.OnEnter( ragdoll, body );
 
-		var joint = ragdoll.GetParentJoint( body )?.Component ?? null;
+		var joint = body.GetParentJoint()?.Component;
 		if ( !joint.IsValid() ) return;
 
 		if ( joint is BallJoint ballJoint )
@@ -27,7 +27,7 @@
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		var joint = ragdoll.GetParentJoint( body )?.Component ?? null;
+		var joint = body.GetParentJoint()?.Component;
 		if ( !joint.IsValid() ) return;
 
 		if ( joint is BallJoint ballJoint )
@@ -40,33 +40,28 @@
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		var joint = ragdoll.GetParentJoint( body )?.Component;
+		var joint = body.GetParentJoint()?.Component;
 		if ( !joint.IsValid() ) return;
 
-		var parent = ragdoll.GetParentBody( body ).Value;
+		var parent = body.GetParentBody();
+		if ( parent == null ) return;
 
-		if ( !ragdoll.Renderer.TryGetBoneTransformAnimation( ragdoll.GetBoneByBody( body ), out var animSelfTransform ) )
+		if ( !ragdoll.Renderer.TryGetBoneTransformAnimation( body.GetBone(), out var animSelfTransform ) )
 			return;
-		if ( !ragdoll.Renderer.TryGetBoneTransformAnimation( ragdoll.GetBoneByBody( parent ), out var animParentTransform ) )
+		if ( !ragdoll.Renderer.TryGetBoneTransformAnimation( parent.Value.GetBone(), out var animParentTransform ) )
 			return;
-		if ( !ragdoll.Renderer.TryGetBoneTransformLocal( ragdoll.GetBoneByBody( body ), out var currentSelfTransformLocal ) )
+		if ( !ragdoll.Renderer.TryGetBoneTransformLocal( body.GetBone(), out var currentSelfTransformLocal ) )
 			return;
 
 		var animRotation = animParentTransform.ToLocal( animSelfTransform ).Rotation;
 		var currentRotation = currentSelfTransformLocal.Rotation;
 
-		//ragdoll.DebugOverlay.Sphere( new Sphere( animSelfTransform.Position, 3f ), Color.Red, Time.Delta );
-
-		// Ball joint logic
 		if ( joint is BallJoint ballJoint )
 		{
-			var targetJointRotation = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation; // The order we multiple for is important, from right to left we start with the child's point of reference
-			var currentJointRotation = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
-
+			var targetJointRotation = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation;
 			ballJoint.TargetRotation = targetJointRotation;
 		}
 
-		// Hinge joint logic
 		if ( joint is HingeJoint hingeJoint )
 		{
 			var currentJointRot = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;

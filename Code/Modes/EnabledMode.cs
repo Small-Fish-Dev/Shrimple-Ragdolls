@@ -6,15 +6,15 @@
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		body.EnableColliders(); // Enable our colliders
+		body.EnableColliders();
 		body.Component?.Enabled = true; // Make sure to enable rigidbody before joint to build the physicsbody or else the joint freaks out!
-		ragdoll.GetParentJoint( body )?.Component.Enabled = true; // Enable our parent joint
+		body.GetParentJoint()?.Component.Enabled = true;
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root
 
 		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-		ragdoll.MoveObjectFromMesh( body.GetBone( ragdoll.Model ) );
+		ragdoll.MoveObjectFromMesh( body.GetBone() );
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

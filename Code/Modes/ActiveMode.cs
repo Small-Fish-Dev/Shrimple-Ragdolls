@@ -9,13 +9,13 @@
 		body.EnableColliders();
 		body.Component?.Enabled = true;
 		body.Component?.Gravity = false; // Gravity's hard to combat when we want it to be as close to the animations as possible while not using crazy amounts of force!
-		ragdoll.GetParentJoint( body )?.Component.Enabled = true;
+		body.GetParentJoint()?.Component.Enabled = true;
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root
 
 		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-		ragdoll.MoveObjectFromMesh( body.GetBone( ragdoll.Model ) );
+		ragdoll.MoveObjectFromMesh( body.GetBone() );
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

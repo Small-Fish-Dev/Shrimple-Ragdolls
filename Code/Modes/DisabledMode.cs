@@ -6,20 +6,19 @@
 
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		body.DisableColliders(); // Disable colliders
-		ragdoll.GetParentJoint( body )?.Component.Enabled = false; // Disable our parent joint
-		body.Component?.Enabled = false; // Disable our rigidbody
+		body.DisableColliders();
+		body.GetParentJoint()?.Component.Enabled = false;
+		body.Component?.Enabled = false;
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false ); // Remove absolute from model if we're root
 
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone ); // Remove tags
-		ragdoll.Renderer.SceneModel.ClearBoneOverrides(); // TODO: Make this only ClearBoneOverride( boneIndex ) once feature request gets accepte
+		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		ragdoll.Renderer.SceneModel.ClearBoneOverrides(); // TODO: Make this only ClearBoneOverride( boneIndex ) once feature request gets accepted
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-
 	}
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
