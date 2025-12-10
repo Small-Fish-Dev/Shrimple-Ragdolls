@@ -37,6 +37,9 @@
 
 	public void MoveMeshFromObject( Body body )
 	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
 		var bone = body.GetBone();
 		var boneObject = BoneObjects[bone];
 		var transform = Renderer.WorldTransform.ToLocal( boneObject.WorldTransform );
@@ -76,6 +79,8 @@
 
 	public void MoveObjectFromMesh( BoneCollection.Bone bone )
 	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
 		if ( !Renderer.TryGetBoneTransform( bone, out var renderBoneTransform ) )
 			return;
 		var renderBoneVelocity = Renderer.GetBoneVelocity( bone.Index );
@@ -122,6 +127,8 @@
 	/// </summary>
 	public void MoveGameObject()
 	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
 
@@ -154,6 +161,8 @@
 	/// <returns></returns>
 	public Transform GetRagdollTransform( string boneName, bool mergedBoneTransforms = true )
 	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return WorldTransform;
 		var bone = Renderer.Model.Bones.GetBone( boneName );
 		var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
 		var targetTransform = currentTransform;
