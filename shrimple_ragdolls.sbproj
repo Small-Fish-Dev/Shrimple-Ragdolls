@@ -1,8 +1,8 @@
 {
-  "Title": "Shrimple-Active-Ragdoll",
+  "Title": "Shrimple Ragdolls",
   "Type": "game",
   "Org": "local",
-  "Ident": "shrimple_active_ragdoll",
+  "Ident": "shrimple_ragdolls",
   "Schema": 1,
   "IncludeSourceFiles": false,
   "Resources": null,
@@ -23,6 +23,7 @@
     "PerMapRanking": false,
     "LeaderboardType": "None",
     "CsProjName": "",
-    "StartupScene": "scenes/minimal.scene"
+    "StartupScene": "scenes/minimal.scene",
+    "LaunchMode": "Normal"
   }
 }
