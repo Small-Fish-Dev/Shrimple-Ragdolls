@@ -109,7 +109,7 @@
 			await Task.MainThread();
 
 			if ( DelayOnStart )
-				await Task.FixedUpdate();
+				await Task.DelaySeconds( Time.Delta ); // I'd use Task.FixedUpdate() but it doesn't seem to be long enough for the bones to create?
 
 			if ( !IsProxy && (Network?.Active ?? false) )
 			{
@@ -120,6 +120,8 @@
 
 			SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
 			CreatePhysics();
+			MoveObjectsFromMesh();
+
 			if ( !IsProxy )
 				InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
 		} );
