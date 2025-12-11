@@ -84,6 +84,13 @@
 	[Sync]
 	public bool PhysicsWereCreated { get; protected set; } = false;
 
+	/// <summary>
+	/// Per-body mode overrides that are applied on start or when physics is created.
+	/// These override the default ragdoll mode for specific bones.
+	/// </summary>
+	[Property, Group( "Body Mode Overrides" )]
+	public List<BodyModeOverride> BodyModeOverrides { get; set; } = new();
+
 	public Model Model => Renderer?.Model;
 
 	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; } = new();
@@ -92,7 +99,10 @@
 	{
 		base.OnStart();
 
-		Renderer.CreateBoneObjects = true;
+		Assert.NotNull( Renderer, "Ragdoll's renderer can't be null" );
+		Assert.NotNull( Model, "Ragdoll's model can't be null" );
+
+		Renderer.CreateBoneObjects = false; // Sorry this breaks MoveMeshFromObject. But don't worry if you had it on we still keep the objects
 
 		Task.RunInThreadAsync( async () =>
 		{
@@ -108,6 +118,7 @@
 				GameObject.Root.NetworkSpawn();
 			}
 
+			SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
 			CreatePhysics();
 			if ( !IsProxy )
 				InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
@@ -235,6 +246,30 @@
 
 		SetupPhysics();
 		PhysicsWereCreated = true;
+
+		// Apply body mode overrides
+		ApplyBodyModeOverrides();
+	}
+
+	/// <summary>
+	/// Apply all configured body mode overrides
+	/// </summary>
+	public void ApplyBodyModeOverrides()
+	{
+		// Don't apply overrides if physics hasn't been created yet
+		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
+			return;
+
+		if ( BodyModeOverrides == null || BodyModeOverrides.Count == 0 )
+			return;
+
+		foreach ( var modeOverride in BodyModeOverrides )
+		{
+			if ( string.IsNullOrEmpty( modeOverride.Bone.Selected ) )
+				continue;
+
+			SetBodyModeByName( modeOverride.Bone.Selected, modeOverride.Mode, modeOverride.IncludeChildren );
+		}
 	}
 
 	public void DestroyPhysics()
@@ -339,8 +374,10 @@
 
 		RagdollHandler = newHandler;
 
+		// Set all bodies to the new mode
 		foreach ( var kvp in Bodies.ToList() )
 		{
+			// Update network dict
 			if ( !IsProxy && (Network?.Active ?? false) )
 			{
 				BodyModes.Remove( kvp.Key );
@@ -351,12 +388,20 @@
 				BodyModes[kvp.Key] = newMode;
 			}
 
+			// Enter new mode
 			newHandler.OnEnter?.Invoke( this, kvp.Value );
 
+			// Apply mode settings if available
 			ApplyModeSettings( kvp.Value, newMode );
 		}
+
+		// Re-apply body mode overrides after setting global mode
+		ApplyBodyModeOverrides();
 	}
 
+	/// <summary>
+	/// Apply mode settings from attached ModeSettings components
+	/// </summary>
 	protected void ApplyModeSettings( Body body, string modeName )
 	{
 		var modeSettings = GetComponents<ShrimpleModeSettings>();
@@ -410,7 +455,7 @@
 		EnableBodies();
 		EnableJoints();
 
-		bool hasStatueMode = false;
+		bool hasStatueMode = false; // TODO: Don't do this! Can probably check IsPhysical? But it's false for Statue! So what..?
 		foreach ( var body in Bodies )
 		{
 			if ( BodyModes.TryGetValue( body.Key, out var modeName ) && modeName == ShrimpleRagdollMode.Statue )
@@ -443,6 +488,6 @@
 		if ( !Game.IsEditor || Game.IsPlaying )
 			return;
 
-		SetupBoneList();
+		SetupBoneLists();
 	}
 }
