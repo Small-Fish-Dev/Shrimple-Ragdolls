@@ -2,11 +2,37 @@
 
 public partial class ShrimpleRagdoll
 {
+	public class BoneList
+	{
+		[JsonIgnore]
+		public List<string> Options => Model?.Physics?.Parts?.Select( x => x.BoneName ).ToList() ?? new List<string>();
+
+		[JsonIgnore, Hide]
+		public Model Model { get; set; }
+
+		public string Selected { get; set; }
+
+		/// <summary>
+		/// Updates the model reference and sets a default selection if needed
+		/// </summary>
+		public void Setup( Model model )
+		{
+			if ( !model.IsValid() )
+				return;
+
+			// Always update the model reference since it's not serialized
+			Model = model;
+
+			// Set default selection if empty
+			if ( string.IsNullOrEmpty( Selected ) && model?.Physics?.Parts?.Count > 0 )
+			{
+				Selected = model.Physics.Parts.Select( x => x.BoneName ).FirstOrDefault();
+			}
+		}
+	}
+
 	public class BoneFollowOption
 	{
-		/// <summary>
-		/// If the root object is not the renderer, make that follow the renderer
-		/// </summary>
 		[KeyProperty]
 		public bool RootObjectFollow { get; set; } = true;
 		/// <summary>
@@ -26,21 +52,28 @@ public partial class ShrimpleRagdoll
 		public bool MergeBoneTransforms { get; set; } = true;
 	}
 
-	public class BoneList
+	protected void SetupBoneLists()
 	{
-		[JsonIgnore]
-		public List<string> Options => Model.Physics.Parts.Select( x => x.BoneName ).ToList();
-		public Model Model { get; set; }
-		public string Selected { get; set; }
-	}
+		if ( !Model.IsValid() )
+			return;
 
-	protected void SetupBoneList()
-	{
-		// Can't do this inside of OnValidate, still broken somehow
-		if ( !FollowOptions.Bone.Model.IsValid() || FollowOptions.Bone.Model != Renderer.Model )
+		// Setup FollowOptions bone list
+		if ( FollowOptions != null )
 		{
-			FollowOptions.Bone?.Model = Model;
-			FollowOptions.Bone.Selected = Model.Physics.Parts.Select( x => x.BoneName ).FirstOrDefault();
+			FollowOptions.Bone ??= new BoneList();
+			FollowOptions.Bone.Setup( Model );
+		}
+
+		// Setup all ModeOverride bone lists
+		if ( BodyModeOverrides != null )
+		{
+			foreach ( var modeOverride in BodyModeOverrides )
+			{
+				if ( modeOverride == null )
+					continue;
+				modeOverride.Bone ??= new BoneList();
+				modeOverride.Bone.Setup( Model );
+			}
 		}
 	}
 }
