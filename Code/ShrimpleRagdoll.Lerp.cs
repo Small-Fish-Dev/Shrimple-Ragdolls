@@ -54,14 +54,14 @@ public partial class ShrimpleRagdoll
 			Mode = LerpToAnimationTarget;
 		}
 	}
-
+	// TODO: EASING CANT BE NETWORKED, USE STRING
 	/// <summary>
 	/// Start lerping the ragdoll to the current animation pose
 	/// </summary>
 	/// <param name="duration">How long the transition will last</param>
 	/// <param name="function">Which easing function to use for the interpolation</param>
 	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
-	//[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
 	public void StartLerpToAnimation( float duration, Easing.Function function, string targetMode = "Disabled" )
 	{
 		if ( IsProxy && !(Network?.Active ?? true) )
