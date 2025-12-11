@@ -20,7 +20,7 @@
 			ragdoll.SetupPhysics(); // We created a new rigidbody, so we gotta give it all the settings we have
 		}
 
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute );
+		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 		ragdoll.MoveObjectFromMesh( body.GetBone() );
 		ragdoll.MoveMeshFromObject( body );
 	}
@@ -40,6 +40,7 @@
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
+		ragdoll.MoveMeshFromObject( body );
 	}
 
 	static StatueMode()
