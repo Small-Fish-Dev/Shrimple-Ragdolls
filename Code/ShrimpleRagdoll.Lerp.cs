@@ -41,7 +41,7 @@ public partial class ShrimpleRagdoll
 				continue;
 			startTransform = Renderer.WorldTransform.ToWorld( startTransform );
 
-			var currentTransform = startTransform.LerpTo( animTransform, LerpToAnimationFunction.Invoke( LerpToAnimation.Value.Fraction ) );
+			var currentTransform = startTransform.LerpTo( animTransform, LerpToAnimationFunction.Invoke( LerpToAnimation.Value.Fraction ), false );
 			currentTransform = Renderer.WorldTransform.ToLocal( currentTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in currentTransform );
 		}
@@ -61,7 +61,7 @@ public partial class ShrimpleRagdoll
 	/// <param name="duration">How long the transition will last</param>
 	/// <param name="function">Which easing function to use for the interpolation</param>
 	/// <param name="targetMode">Which mode to set the ragdoll after lerping is complete</param>
-	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	//[Rpc.Broadcast( NetFlags.OwnerOnly )]
 	public void StartLerpToAnimation( float duration, Easing.Function function, string targetMode = "Disabled" )
 	{
 		if ( IsProxy && !(Network?.Active ?? true) )
@@ -91,6 +91,6 @@ public partial class ShrimpleRagdoll
 	[Button( "TESTLERP" )]
 	public void TestLerpToAnimation()
 	{
-		StartLerpToAnimation( 1f, Easing.Linear, ShrimpleRagdollMode.Disabled );
+		StartLerpToAnimation( 2f, Easing.AnticipateOvershoot, ShrimpleRagdollMode.Disabled );
 	}
 }
