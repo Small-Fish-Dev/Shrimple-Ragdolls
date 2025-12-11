@@ -31,7 +31,6 @@
 		}
 	}
 
-	// TODO: CAN'T THIS BE JUST THE INTERFACE?
 	public ShrimpleRagdollModeHandlers RagdollHandler { get; protected set; }
 
 	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
