@@ -123,7 +123,13 @@
 
 	public Body? GetBodyByBoneName( string boneName )
 	{
+		if ( !Renderer.IsValid() || !Renderer.Model.IsValid() )
+			return null;
+
 		var bone = Renderer.Model.Bones.GetBone( boneName );
+		if ( bone == null )
+			return null;
+
 		if ( Bodies.TryGetValue( bone.Index, out var body ) )
 			return body;
 		return null;
