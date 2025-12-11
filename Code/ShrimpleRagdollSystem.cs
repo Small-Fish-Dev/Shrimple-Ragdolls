@@ -1,6 +1,6 @@
-﻿public class ShrimpleActiveRagdollSystem : GameObjectSystem
+﻿public class ShrimpleRagdollSystem : GameObjectSystem
 {
-	public ShrimpleActiveRagdollSystem( Scene scene ) : base( scene )
+	public ShrimpleRagdollSystem( Scene scene ) : base( scene )
 	{
 		Listen( Stage.UpdateBones, 65, UpdateVisuals, "Updating Ragdoll Visuals" );
 		Listen( Stage.PhysicsStep, 65, UpdatePhysics, "Updating Ragdoll Physics" );
