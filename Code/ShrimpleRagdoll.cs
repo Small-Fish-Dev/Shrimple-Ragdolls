@@ -145,13 +145,16 @@
 		{
 			UpdateLerpAnimations();
 		}
-		else
+
+		// Always run visual updates for bodies not being lerped
+		foreach ( var body in Bodies )
 		{
-			foreach ( var body in Bodies )
-			{
-				var handler = GetBodyModeHandler( body.Value );
-				handler.VisualUpdate?.Invoke( this, body.Value );
-			}
+			// Skip bodies that are currently lerping
+			if ( IsLerpingToAnimation && LerpTargetBodies != null && LerpTargetBodies.Contains( body.Key ) )
+				continue;
+
+			var handler = GetBodyModeHandler( body.Value );
+			handler.VisualUpdate?.Invoke( this, body.Value );
 		}
 	}
 
@@ -166,16 +169,19 @@
 			{
 				MoveObjectsFromMesh();
 			}
-			else
-			{
-				foreach ( var body in Bodies )
-				{
-					var handler = GetBodyModeHandler( body.Value );
-					handler.PhysicsUpdate?.Invoke( this, body.Value );
-				}
 
-				MoveGameObject();
+			// Always run physics updates for bodies not being lerped
+			foreach ( var body in Bodies )
+			{
+				// Skip bodies that are currently lerping
+				if ( IsLerpingToAnimation && LerpTargetBodies != null && LerpTargetBodies.Contains( body.Key ) )
+					continue;
+
+				var handler = GetBodyModeHandler( body.Value );
+				handler.PhysicsUpdate?.Invoke( this, body.Value );
 			}
+
+			MoveGameObject();
 
 			if ( Network?.Active ?? false )
 				SetBodyTransforms();
