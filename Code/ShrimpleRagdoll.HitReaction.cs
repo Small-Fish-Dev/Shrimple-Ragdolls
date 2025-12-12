@@ -3,165 +3,129 @@
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// Apply a hit reaction at a world position, affecting nearby bodies
+	/// Apply a hit reaction by displacing bones near a world position
 	/// </summary>
 	/// <param name="hitPosition">World position where the hit occurred</param>
-	/// <param name="force">Base force to apply</param>
+	/// <param name="displacement">Direction and strength of the displacement</param>
 	/// <param name="radius">Maximum distance from hit position to affect bodies</param>
-	/// <param name="lerpBackDuration">How long to lerp back to animation (0 = don't lerp back)</param>
-	/// <param name="lerpBackEasing">Easing function for the lerp back</param>
-	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float lerpBackDuration = 0.5f, Easing.Function lerpBackEasing = null )
+	/// <param name="recoveryDuration">How long to lerp back (0 = no lerp back)</param>
+	/// <param name="recoveryEasing">Easing function for recovery (defaults to AnticipateOvershoot)</param>
+	public void ApplyHitReaction( Vector3 hitPosition, Vector3 displacement, float radius = 30f, float recoveryDuration = 0.5f, Easing.Function recoveryEasing = null )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
 
-		lerpBackEasing ??= Easing.EaseOut;
-		var affectedBodies = new List<Body>();
+		recoveryEasing ??= Easing.AnticipateOvershoot;
+		var worldTransform = Renderer.WorldTransform;
+		var displacedTransforms = new Dictionary<int, Transform>();
 
-		// First pass: Find affected bodies and set them to ragdoll mode
+		// Calculate displaced transforms for affected bodies
 		foreach ( var body in Bodies.Values )
 		{
+			if ( !body.Component.IsValid() )
+				continue;
 
 			var bodyPosition = body.Component.WorldPosition;
 			var distance = Vector3.DistanceBetween( hitPosition, bodyPosition );
 
-			// Only affect bodies within radius
 			if ( distance > radius )
 				continue;
 
-			affectedBodies.Add( body );
-
-			// Set to ragdoll mode (Enabled)
-			SetBodyMode( body, ShrimpleRagdollMode.Enabled, includeChildren: false );
-		}
-
-		if ( affectedBodies.Count == 0 )
-			return;
-
-		// Second pass: Apply forces to the now-ragdolled bodies
-		foreach ( var body in affectedBodies )
-		{
-			var bodyPosition = body.Component.WorldPosition;
-			var distance = Vector3.DistanceBetween( hitPosition, bodyPosition );
-
-			// Calculate falloff based on distance (closer = stronger)
+			// Calculate falloff (closer = stronger displacement)
 			var falloff = 1f - (distance / radius);
-			falloff = MathF.Pow( falloff, 2f ); // Square for more dramatic falloff
+			falloff = MathF.Pow( falloff, 2f );
 
-			// Apply force to the body
-			var scaledForce = force * falloff;
-			body.Component.ApplyImpulse( scaledForce );
+			// Get current bone transform
+			if ( !Renderer.TryGetBoneTransform( body.GetBone(), out var currentWorldTransform ) )
+				continue;
+
+			// Calculate displaced transform (position + rotation)
+			var displacedWorld = currentWorldTransform.Add( displacement * falloff, true );
+			var displacedLocal = worldTransform.ToLocal( displacedWorld );
+
+			displacedTransforms[body.BoneIndex] = displacedLocal;
 		}
 
-		// Third pass: Start lerp back to animation
-		if ( lerpBackDuration > 0f )
+		// Let the lerp system handle the displacement and recovery
+		if ( displacedTransforms.Count > 0 && recoveryDuration > 0f )
 		{
-			StartLerpToAnimation( lerpBackDuration, lerpBackEasing, Mode.Name );
+			StartLerpFromDisplacedTransforms( displacedTransforms, recoveryDuration, recoveryEasing );
 		}
 	}
 
 	/// <summary>
-	/// Apply a hit reaction from a direction, useful for bullet hits
+	/// Apply a directional hit reaction (e.g., bullet impact)
 	/// </summary>
-	/// <param name="hitPosition">World position where the hit occurred</param>
-	/// <param name="direction">Direction of the force (will be normalized)</param>
-	/// <param name="forceMagnitude">How strong the force is</param>
-	/// <param name="radius">Maximum distance from hit position to affect bodies</param>
-	/// <param name="lerpBackDuration">How long to lerp back to animation (0 = don't lerp back)</param>
-	public void ApplyDirectionalHitReaction( Vector3 hitPosition, Vector3 direction, float forceMagnitude = 500f, float radius = 30f, float lerpBackDuration = 0.5f )
+	public void ApplyDirectionalHitReaction( Vector3 hitPosition, Vector3 direction, float strength = 5f, float radius = 30f, float recoveryDuration = 0.5f )
 	{
-		var force = direction.Normal * forceMagnitude;
-		ApplyHitReaction( hitPosition, force, radius, lerpBackDuration, Easing.EaseOut );
+		var displacement = direction.Normal * strength;
+		ApplyHitReaction( hitPosition, displacement, radius, recoveryDuration );
 	}
 
 	/// <summary>
-	/// Apply a hit reaction that affects a specific body part and nearby bodies
+	/// Apply an explosive hit reaction (pushes outward from center)
 	/// </summary>
-	/// <param name="boneName">Name of the bone to hit</param>
-	/// <param name="force">Force to apply</param>
-	/// <param name="radius">Radius to affect nearby bodies</param>
-	/// <param name="lerpBackDuration">How long to lerp back to animation</param>
-	public void ApplyBoneHitReaction( string boneName, Vector3 force, float radius = 30f, float lerpBackDuration = 0.5f )
-	{
-		var body = GetBodyByBoneName( boneName );
-		if ( !body.HasValue || !body.Value.Component.IsValid() )
-			return;
-
-		var hitPosition = body.Value.Component.WorldPosition;
-		ApplyHitReaction( hitPosition, force, radius, lerpBackDuration );
-	}
-
-	/// <summary>
-	/// Apply an explosive hit reaction from a point
-	/// </summary>
-	/// <param name="explosionPosition">Center of the explosion</param>
-	/// <param name="explosionForce">Force of the explosion</param>
-	/// <param name="explosionRadius">Radius of the explosion</param>
-	/// <param name="lerpBackDuration">How long to lerp back to animation</param>
-	public void ApplyExplosiveHitReaction( Vector3 explosionPosition, float explosionForce = 1000f, float explosionRadius = 100f, float lerpBackDuration = 0.8f )
+	public void ApplyExplosiveHitReaction( Vector3 explosionPosition, float strength = 10f, float radius = 100f, float recoveryDuration = 0.8f )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
 
-		var affectedBodies = new List<(Body body, Vector3 force)>();
+		var worldTransform = Renderer.WorldTransform;
+		var displacedTransforms = new Dictionary<int, Transform>();
 
-		// First pass: Find affected bodies and calculate forces
 		foreach ( var body in Bodies.Values )
 		{
-			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
+			if ( !body.Component.IsValid() )
 				continue;
 
 			var bodyPosition = body.Component.WorldPosition;
 			var distance = Vector3.DistanceBetween( explosionPosition, bodyPosition );
 
-			if ( distance > explosionRadius )
+			if ( distance > radius )
 				continue;
 
-			// Calculate direction and falloff
-			var direction = (bodyPosition - explosionPosition).Normal;
-			var falloff = 1f - (distance / explosionRadius);
+			var falloff = 1f - (distance / radius);
 			falloff = MathF.Pow( falloff, 2f );
 
-			// Calculate force
-			var force = direction * explosionForce * falloff;
-			affectedBodies.Add( (body, force) );
+			if ( !Renderer.TryGetBoneTransform( body.GetBone(), out var currentWorldTransform ) )
+				continue;
 
-			// Set to ragdoll mode
-			SetBodyMode( body, ShrimpleRagdollMode.Enabled, includeChildren: false );
+			// Radial displacement
+			var direction = (bodyPosition - explosionPosition).Normal;
+			var displacedWorld = currentWorldTransform.Add( direction * strength * falloff, true );
+			var displacedLocal = worldTransform.ToLocal( displacedWorld );
+
+			displacedTransforms[body.BoneIndex] = displacedLocal;
 		}
 
-		if ( affectedBodies.Count == 0 )
-			return;
-
-		// Second pass: Apply forces
-		foreach ( var (body, force) in affectedBodies )
+		// Let the lerp system handle the displacement and recovery
+		if ( displacedTransforms.Count > 0 && recoveryDuration > 0f )
 		{
-			body.Component.ApplyImpulse( force );
-		}
-
-		// Start lerp back
-		if ( lerpBackDuration > 0f )
-		{
-			StartLerpToAnimation( lerpBackDuration, Easing.EaseOut, Mode.Name );
+			StartLerpFromDisplacedTransforms( displacedTransforms, recoveryDuration, Easing.AnticipateOvershoot );
 		}
 	}
 
-	[Button( "Test Hit Reaction - Chest" )]
-	public void TestHitReactionChest()
+	[Button( "Test Hit - Forward" )]
+	public void TestHitReactionForward()
 	{
 		var chestBody = GetBodyByBoneName( "spine_02" );
 		if ( chestBody.HasValue )
 		{
-			ApplyHitReaction(
+			ApplyDirectionalHitReaction(
 				chestBody.Value.Component.WorldPosition,
-				WorldRotation.Forward * 300f,
+				WorldRotation.Forward,
+				strength: 8f,
 				radius: 40f,
-				lerpBackDuration: 0.5f
+				recoveryDuration: 0.5f
 			);
 		}
 	}
 
-	[Button( "Test Hit Reaction - Head" )]
+	[Button( "Test Hit - Head" )]
 	public void TestHitReactionHead()
 	{
 		var headBody = GetBodyByBoneName( "head" );
@@ -169,10 +133,10 @@ public partial class ShrimpleRagdoll
 		{
 			ApplyDirectionalHitReaction(
 				headBody.Value.Component.WorldPosition,
-				WorldRotation.Forward,
-				forceMagnitude: 200f,
-				radius: 20f,
-				lerpBackDuration: 0.3f
+				WorldRotation.Backward,
+				strength: 50f,
+				radius: 15f,
+				recoveryDuration: 1f
 			);
 		}
 	}
@@ -183,9 +147,9 @@ public partial class ShrimpleRagdoll
 		var centerMass = GetMassCenter();
 		ApplyExplosiveHitReaction(
 			centerMass + WorldRotation.Forward * 50f,
-			explosionForce: 800f,
-			explosionRadius: 80f,
-			lerpBackDuration: 1f
+			strength: 15f,
+			radius: 80f,
+			recoveryDuration: 1f
 		);
 	}
 }
