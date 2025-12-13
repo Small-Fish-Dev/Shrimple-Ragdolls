@@ -64,10 +64,7 @@
 
 		if ( joint is HingeJoint hingeJoint )
 		{
-			var currentJointRot = joint.Point1.LocalRotation.Inverse * currentRotation * joint.Point2.LocalRotation;
 			var targetJointRot = joint.Point1.LocalRotation.Inverse * animRotation * joint.Point2.LocalRotation;
-
-			var currentAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( currentJointRot, hingeJoint.Axis );
 			var targetAngle = ShrimpleRagdoll.GetSignedAngleAroundAxis( targetJointRot, hingeJoint.Axis );
 
 			hingeJoint.TargetAngle = targetAngle;

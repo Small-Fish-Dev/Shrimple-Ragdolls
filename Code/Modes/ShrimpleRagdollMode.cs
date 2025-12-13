@@ -89,15 +89,6 @@ public class ShrimpleRagdollMode
 	public static string Statue => "Statue";
 }
 
-public static class ShrimpleRagdollModeExtensions
-{
-	// This is an example if you want to add your own
-	extension( ShrimpleRagdollMode target )
-	{
-		public static string GmodStatue => "GmodStatue";
-	}
-}
-
 public readonly struct ShrimpleRagdollModeInfo
 {
 	public readonly string Name;
