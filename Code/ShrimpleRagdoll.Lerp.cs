@@ -57,6 +57,22 @@ public partial class ShrimpleRagdoll
 
 		if ( LerpToAnimation.Value )
 		{
+			// Remove NoVisualUpdate flag from all lerped bodies
+			if ( LerpTargetBodies != null )
+			{
+				foreach ( var boneIndex in LerpTargetBodies )
+				{
+					if ( Bodies.TryGetValue( boneIndex, out var body ) )
+						RemoveBodyFlags( body, BodyFlags.NoVisualUpdate );
+				}
+			}
+			else
+			{
+				// All bodies were lerping
+				foreach ( var body in Bodies.Values )
+					RemoveBodyFlags( body, BodyFlags.NoVisualUpdate );
+			}
+
 			Renderer.ClearPhysicsBones();
 			LerpToAnimation = null;
 			LerpStartTransforms.Clear();
@@ -66,6 +82,33 @@ public partial class ShrimpleRagdoll
 				Mode = LerpToAnimationTarget;
 
 			LerpTargetBodies = null;
+		}
+	}
+
+	/// <summary>
+	/// Internal method to start lerping with full control
+	/// </summary>
+	protected void InternalStartLerp( Dictionary<int, Transform> startTransforms, float duration, Easing.Function function, string targetMode = null, bool lerpingAllBodies = false )
+	{
+		if ( startTransforms == null || startTransforms.Count == 0 )
+			return;
+
+		LerpStartTransforms = startTransforms;
+		LerpTargetBodies = lerpingAllBodies ? null : new HashSet<int>( startTransforms.Keys );
+		LerpToAnimationFunction = function;
+		LerpToAnimationTarget = targetMode;
+		LerpToAnimation = MathF.Max( duration, Time.Delta );
+
+		// Add NoVisualUpdate flag to all lerping bodies
+		foreach ( var boneIndex in startTransforms.Keys )
+		{
+			if ( Bodies.TryGetValue( boneIndex, out var body ) )
+			{
+				AddBodyFlags( body, BodyFlags.NoVisualUpdate );
+
+				// Immediately apply the start transform
+				Renderer.SceneModel.SetBoneOverride( boneIndex, startTransforms[boneIndex] );
+			}
 		}
 	}
 
@@ -82,18 +125,14 @@ public partial class ShrimpleRagdoll
 		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
 
-		LerpStartTransforms.Clear();
-		LerpTargetBodies = null; // Clear target bodies - lerp all
-
+		var startTransforms = new Dictionary<int, Transform>();
 		foreach ( var body in Bodies )
 		{
 			var renderBonePosition = Renderer.SceneModel.GetBoneWorldTransform( body.Key );
-			LerpStartTransforms[body.Key] = Renderer.WorldTransform.ToLocal( renderBonePosition );
+			startTransforms[body.Key] = Renderer.WorldTransform.ToLocal( renderBonePosition );
 		}
 
-		LerpToAnimationTarget = targetMode;
-		LerpToAnimationFunction = function;
-		LerpToAnimation = MathF.Max( duration, Time.Delta );
+		InternalStartLerp( startTransforms, duration, function, targetMode, lerpingAllBodies: true );
 	}
 
 	/// <summary>
@@ -108,22 +147,11 @@ public partial class ShrimpleRagdoll
 		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
 
-		// Initialize or add to existing lerp
-		if ( LerpToAnimation == null )
-		{
-			LerpStartTransforms.Clear();
-			LerpTargetBodies = new HashSet<int>();
-			LerpToAnimationFunction = function;
-			LerpToAnimation = MathF.Max( duration, Time.Delta );
-		}
-
-		// Add this body to the lerp targets
-		LerpTargetBodies ??= new HashSet<int>();
-		LerpTargetBodies.Add( body.BoneIndex );
-
-		// Store start transform
+		var startTransforms = new Dictionary<int, Transform>();
 		var renderBonePosition = Renderer.SceneModel.GetBoneWorldTransform( body.BoneIndex );
-		LerpStartTransforms[body.BoneIndex] = Renderer.WorldTransform.ToLocal( renderBonePosition );
+		startTransforms[body.BoneIndex] = Renderer.WorldTransform.ToLocal( renderBonePosition );
+
+		InternalStartLerp( startTransforms, duration, function );
 	}
 
 	/// <summary>
@@ -138,18 +166,14 @@ public partial class ShrimpleRagdoll
 		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
 
-		LerpStartTransforms.Clear();
-		LerpTargetBodies = new HashSet<int>();
-		LerpToAnimationFunction = function;
-		LerpToAnimation = MathF.Max( duration, Time.Delta );
-
+		var startTransforms = new Dictionary<int, Transform>();
 		foreach ( var body in bodies )
 		{
-			LerpTargetBodies.Add( body.BoneIndex );
-
 			var renderBonePosition = Renderer.SceneModel.GetBoneWorldTransform( body.BoneIndex );
-			LerpStartTransforms[body.BoneIndex] = Renderer.WorldTransform.ToLocal( renderBonePosition );
+			startTransforms[body.BoneIndex] = Renderer.WorldTransform.ToLocal( renderBonePosition );
 		}
+
+		InternalStartLerp( startTransforms, duration, function );
 	}
 
 	/// <summary>
@@ -168,7 +192,6 @@ public partial class ShrimpleRagdoll
 			return;
 
 		var affectedBodies = new List<Body>();
-
 		foreach ( var body in Bodies.Values )
 		{
 			if ( !body.Component.IsValid() )
@@ -198,21 +221,7 @@ public partial class ShrimpleRagdoll
 		if ( displacedTransforms == null || displacedTransforms.Count == 0 )
 			return;
 
-		LerpStartTransforms.Clear();
-		LerpTargetBodies = new HashSet<int>();
-		LerpToAnimationFunction = function;
-		LerpToAnimation = MathF.Max( duration, Time.Delta );
-
-		// Use the provided displaced transforms as start positions
-		// and immediately apply them
-		foreach ( var kvp in displacedTransforms )
-		{
-			LerpTargetBodies.Add( kvp.Key );
-			LerpStartTransforms[kvp.Key] = kvp.Value;
-
-			// Immediately apply the displaced transform
-			Renderer.SceneModel.SetBoneOverride( kvp.Key, kvp.Value );
-		}
+		InternalStartLerp( displacedTransforms, duration, function );
 	}
 
 	/// <summary>

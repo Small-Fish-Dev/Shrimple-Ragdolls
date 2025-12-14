@@ -3,14 +3,15 @@
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// Apply a hit reaction by displacing bones near a world position
+	/// Apply a hit reaction by ragdolling and applying force to bones near a world position
 	/// </summary>
 	/// <param name="hitPosition">World position where the hit occurred</param>
-	/// <param name="displacement">Direction and strength of the displacement</param>
+	/// <param name="force">Force vector to apply</param>
 	/// <param name="radius">Maximum distance from hit position to affect bodies</param>
 	/// <param name="recoveryDuration">How long to lerp back (0 = no lerp back)</param>
+	/// <param name="recoveryDelay">How long to wait before starting lerp back</param>
 	/// <param name="recoveryEasing">Easing function for recovery (defaults to AnticipateOvershoot)</param>
-	public void ApplyHitReaction( Vector3 hitPosition, Vector3 displacement, float radius = 30f, float recoveryDuration = 0.5f, Easing.Function recoveryEasing = null )
+	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float recoveryDuration = 0.5f, float recoveryDelay = 0.1f, Easing.Function recoveryEasing = null )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
@@ -18,10 +19,9 @@ public partial class ShrimpleRagdoll
 			return;
 
 		recoveryEasing ??= Easing.AnticipateOvershoot;
-		var worldTransform = Renderer.WorldTransform;
-		var displacedTransforms = new Dictionary<int, Transform>();
+		var affectedBodies = new List<(Body body, string originalMode)>();
 
-		// Calculate displaced transforms for affected bodies
+		// Find affected bodies, set to ragdoll, and apply force
 		foreach ( var body in Bodies.Values )
 		{
 			if ( !body.Component.IsValid() )
@@ -33,49 +33,66 @@ public partial class ShrimpleRagdoll
 			if ( distance > radius )
 				continue;
 
-			// Calculate falloff (closer = stronger displacement)
+			// Calculate falloff (closer = stronger force)
 			var falloff = 1f - (distance / radius);
 			falloff = MathF.Pow( falloff, 2f );
 
-			// Get current bone transform
-			if ( !Renderer.TryGetBoneTransform( body.GetBone(), out var currentWorldTransform ) )
-				continue;
+			// Store original mode
+			var originalMode = BodyModes.TryGetValue( body.BoneIndex, out var mode ) ? mode : ShrimpleRagdollMode.Disabled;
+			affectedBodies.Add( (body, originalMode) );
 
-			// Calculate displaced transform (position + rotation)
-			var displacedWorld = currentWorldTransform.Add( displacement * falloff, true );
-			var displacedLocal = worldTransform.ToLocal( displacedWorld );
+			// Set to ragdoll mode
+			SetBodyMode( body, ShrimpleRagdollMode.Enabled, includeChildren: false );
 
-			displacedTransforms[body.BoneIndex] = displacedLocal;
+			// Apply force
+			var scaledForce = force * falloff;
+			body.Component.ApplyImpulse( scaledForce );
 		}
 
-		// Let the lerp system handle the displacement and recovery
-		if ( displacedTransforms.Count > 0 && recoveryDuration > 0f )
+		// Schedule lerp back after delay
+		if ( affectedBodies.Count > 0 && recoveryDuration > 0f )
 		{
-			StartLerpFromDisplacedTransforms( displacedTransforms, recoveryDuration, recoveryEasing );
+			Task.RunInThreadAsync( async () =>
+			{
+				await Task.DelaySeconds( recoveryDelay );
+				await Task.MainThread();
+
+				// Start lerp back for each affected body
+				var bodies = affectedBodies.Select( x => x.body ).ToList();
+				StartLerpBodiesToAnimation( bodies, recoveryDuration, recoveryEasing );
+
+				// After lerp completes, restore original modes
+				await Task.DelaySeconds( recoveryDuration );
+				await Task.MainThread();
+
+				foreach ( var (body, originalMode) in affectedBodies )
+				{
+					SetBodyMode( body, originalMode, includeChildren: false );
+				}
+			} );
 		}
 	}
 
 	/// <summary>
 	/// Apply a directional hit reaction (e.g., bullet impact)
 	/// </summary>
-	public void ApplyDirectionalHitReaction( Vector3 hitPosition, Vector3 direction, float strength = 5f, float radius = 30f, float recoveryDuration = 0.5f )
+	public void ApplyDirectionalHitReaction( Vector3 hitPosition, Vector3 direction, float forceMagnitude = 500f, float radius = 30f, float recoveryDuration = 0.5f, float recoveryDelay = 0.1f )
 	{
-		var displacement = direction.Normal * strength;
-		ApplyHitReaction( hitPosition, displacement, radius, recoveryDuration );
+		var force = direction.Normal * forceMagnitude;
+		ApplyHitReaction( hitPosition, force, radius, recoveryDuration, recoveryDelay );
 	}
 
 	/// <summary>
 	/// Apply an explosive hit reaction (pushes outward from center)
 	/// </summary>
-	public void ApplyExplosiveHitReaction( Vector3 explosionPosition, float strength = 10f, float radius = 100f, float recoveryDuration = 0.8f )
+	public void ApplyExplosiveHitReaction( Vector3 explosionPosition, float forceMagnitude = 1000f, float radius = 100f, float recoveryDuration = 0.8f, float recoveryDelay = 0.15f )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		var worldTransform = Renderer.WorldTransform;
-		var displacedTransforms = new Dictionary<int, Transform>();
+		var affectedBodies = new List<(Body body, string originalMode, Vector3 force)>();
 
 		foreach ( var body in Bodies.Values )
 		{
@@ -91,21 +108,43 @@ public partial class ShrimpleRagdoll
 			var falloff = 1f - (distance / radius);
 			falloff = MathF.Pow( falloff, 2f );
 
-			if ( !Renderer.TryGetBoneTransform( body.GetBone(), out var currentWorldTransform ) )
-				continue;
+			// Store original mode
+			var originalMode = BodyModes.TryGetValue( body.BoneIndex, out var mode ) ? mode : ShrimpleRagdollMode.Disabled;
 
-			// Radial displacement
+			// Calculate radial force
 			var direction = (bodyPosition - explosionPosition).Normal;
-			var displacedWorld = currentWorldTransform.Add( direction * strength * falloff, true );
-			var displacedLocal = worldTransform.ToLocal( displacedWorld );
+			var force = direction * forceMagnitude * falloff;
 
-			displacedTransforms[body.BoneIndex] = displacedLocal;
+			affectedBodies.Add( (body, originalMode, force) );
+
+			// Set to ragdoll mode
+			SetBodyMode( body, ShrimpleRagdollMode.Enabled, includeChildren: false );
+
+			// Apply force
+			body.Component.ApplyImpulse( force );
 		}
 
-		// Let the lerp system handle the displacement and recovery
-		if ( displacedTransforms.Count > 0 && recoveryDuration > 0f )
+		// Schedule lerp back after delay
+		if ( affectedBodies.Count > 0 && recoveryDuration > 0f )
 		{
-			StartLerpFromDisplacedTransforms( displacedTransforms, recoveryDuration, Easing.AnticipateOvershoot );
+			Task.RunInThreadAsync( async () =>
+			{
+				await Task.DelaySeconds( recoveryDelay );
+				await Task.MainThread();
+
+				// Start lerp back
+				var bodies = affectedBodies.Select( x => x.body ).ToList();
+				StartLerpBodiesToAnimation( bodies, recoveryDuration, Easing.AnticipateOvershoot );
+
+				// After lerp completes, restore original modes
+				await Task.DelaySeconds( recoveryDuration );
+				await Task.MainThread();
+
+				foreach ( var (body, originalMode, _) in affectedBodies )
+				{
+					SetBodyMode( body, originalMode, includeChildren: false );
+				}
+			} );
 		}
 	}
 
@@ -118,9 +157,10 @@ public partial class ShrimpleRagdoll
 			ApplyDirectionalHitReaction(
 				chestBody.Value.Component.WorldPosition,
 				WorldRotation.Forward,
-				strength: 8f,
+				forceMagnitude: 300f,
 				radius: 40f,
-				recoveryDuration: 0.5f
+				recoveryDuration: 0.5f,
+				recoveryDelay: 0.1f
 			);
 		}
 	}
@@ -134,9 +174,10 @@ public partial class ShrimpleRagdoll
 			ApplyDirectionalHitReaction(
 				headBody.Value.Component.WorldPosition,
 				WorldRotation.Backward,
-				strength: 50f,
-				radius: 15f,
-				recoveryDuration: 1f
+				forceMagnitude: 50000f,
+				radius: 26f,
+				recoveryDuration: 1f,
+				recoveryDelay: 1f
 			);
 		}
 	}
@@ -147,9 +188,10 @@ public partial class ShrimpleRagdoll
 		var centerMass = GetMassCenter();
 		ApplyExplosiveHitReaction(
 			centerMass + WorldRotation.Forward * 50f,
-			strength: 15f,
+			forceMagnitude: 800f,
 			radius: 80f,
-			recoveryDuration: 1f
+			recoveryDuration: 1f,
+			recoveryDelay: 0.2f
 		);
 	}
 }
