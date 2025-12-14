@@ -101,7 +101,7 @@
 		Assert.NotNull( Renderer, "Ragdoll's renderer can't be null" );
 		Assert.NotNull( Model, "Ragdoll's model can't be null" );
 
-		Renderer.CreateBoneObjects = false; // Sorry this breaks MoveMeshFromObject. But don't worry if you had it on we still keep the objects
+		Renderer.CreateBoneObjects = true;
 
 		Task.RunInThreadAsync( async () =>
 		{
@@ -495,6 +495,6 @@
 		if ( !Game.IsEditor || Game.IsPlaying )
 			return;
 
-		SetupBoneLists();
+		SetupBoneLists(); // TODO: This has to be inside of OnValidate(), but OnValidate() still hasn't been fixed sooo....
 	}
 }
