@@ -315,7 +315,7 @@
       "__version": 1,
       "Flags": 0,
       "Name": "Ragdoll Terry",
-      "Position": "-52,20,0.00001049042",
+      "Position": "-108,31.99999,0.00001049042",
       "Rotation": "0,0,1,-0.00000004371139",
       "Scale": "1,1,1",
       "Tags": "",
@@ -355,7 +355,7 @@
           },
           "MassOverride": 0,
           "Mode": {
-            "Name": "Enabled"
+            "Name": "Disabled"
           },
           "NetworkRefreshOnChange": true,
           "OnComponentDestroy": null,
@@ -955,8 +955,8 @@
       "__guid": "2c02b997-3564-4c57-ab97-c7e0f83f53a3",
       "__version": 1,
       "Flags": 0,
-      "Name": "Metal Terry",
-      "Position": "-8,7.999999,140",
+      "Name": "Golden Terry",
+      "Position": "-12,3.999999,136",
       "Rotation": "0,0,1,-0.00000004371139",
       "Scale": "1,1,1",
       "Tags": "",
@@ -984,7 +984,7 @@
             "MergeBoneTransforms": true
           },
           "Gravity": true,
-          "GravityScale": 2,
+          "GravityScale": 1.5,
           "LinearDamping": 0,
           "Locking": {
             "X": false,
@@ -1084,11 +1084,156 @@
               },
               "RenderType": "On",
               "Sequence": {
-                "Name": "Dab",
+                "Name": "SitGroundPose_Default",
                 "Looping": false,
                 "Blending": false
               },
-              "Tint": "1,1,1,1",
+              "Tint": "1,0.6,0,1",
+              "UseAnimGraph": false
+            }
+          ],
+          "Children": []
+        }
+      ]
+    },
+    {
+      "__guid": "bfecd4bf-eba6-4ad5-8008-4e49a2267ed3",
+      "__version": 1,
+      "Flags": 0,
+      "Name": "Golden Terry (1)",
+      "Position": "-60,-0.000005245209,12",
+      "Rotation": "0,0,1,-0.00000004371139",
+      "Scale": "0.2,0.2,0.2",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 1,
+      "NetworkInterpolation": true,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "ShrimpleRagdoll",
+          "__guid": "18030249-1606-444d-b61c-4bfba1e4f072",
+          "__enabled": true,
+          "AngularDamping": 0,
+          "BodyModeOverrides": [],
+          "ColliderFlags": 0,
+          "DelayOnStart": true,
+          "FollowOptions": {
+            "RootObjectFollow": true,
+            "FollowMode": "All",
+            "Bone": {
+              "Selected": "pelvis"
+            },
+            "MergeBoneTransforms": true
+          },
+          "Gravity": true,
+          "GravityScale": 1,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassOverride": 5,
+          "Mode": {
+            "Name": "Statue"
+          },
+          "NetworkRefreshOnChange": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RebuildPhysicsOnChange": false,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "669c2cd6-f5e5-4fd8-91b1-45d1b19d10d0",
+            "go": "90d220d2-de56-491b-ab81-3cfd26d2c6e4",
+            "component_type": "SkinnedModelRenderer"
+          },
+          "RigidbodyFlags": 0,
+          "StartAsleep": false,
+          "Surface": "surfaces/metal.surface"
+        },
+        {
+          "__type": "ShrimpleMotorModeSettings",
+          "__guid": "b4cfd366-3559-4678-b4f7-96826ffbd766",
+          "__enabled": true,
+          "DampingRatio": 1,
+          "Frequency": 30,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "90d220d2-de56-491b-ab81-3cfd26d2c6e4",
+          "__version": 1,
+          "Flags": 0,
+          "Name": "Model",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkInterpolation": true,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "669c2cd6-f5e5-4fd8-91b1-45d1b19d10d0",
+              "__enabled": true,
+              "AnimationGraph": null,
+              "BodyGroups": 341,
+              "BoneMergeTarget": null,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "LodOverride": null,
+              "MaterialGroup": null,
+              "MaterialOverride": "materials/dev/dev_metal_rough10.vmat",
+              "Materials": null,
+              "Model": "models/citizen/citizen.vmdl",
+              "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "PlaybackRate": 1,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": "SitGroundPose_Default",
+                "Looping": false,
+                "Blending": false
+              },
+              "Tint": "1,0.6,0,1",
               "UseAnimGraph": false
             }
           ],
