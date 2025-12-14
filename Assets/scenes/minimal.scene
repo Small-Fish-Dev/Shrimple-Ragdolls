@@ -355,7 +355,7 @@
           },
           "MassOverride": 0,
           "Mode": {
-            "Name": "Disabled"
+            "Name": "Enabled"
           },
           "NetworkRefreshOnChange": true,
           "OnComponentDestroy": null,
@@ -409,6 +409,138 @@
             {
               "__type": "Sandbox.SkinnedModelRenderer",
               "__guid": "87b5d825-ad68-4ee6-876c-d3d71174ebdd",
+              "__enabled": true,
+              "AnimationGraph": null,
+              "BodyGroups": 341,
+              "BoneMergeTarget": null,
+              "CreateAttachments": false,
+              "CreateBoneObjects": false,
+              "LodOverride": null,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Materials": null,
+              "Model": "models/citizen/citizen.vmdl",
+              "Morphs": {},
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Parameters": {
+                "bools": {},
+                "ints": {},
+                "floats": {},
+                "vectors": {},
+                "rotations": {}
+              },
+              "PlaybackRate": 1,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Sequence": {
+                "Name": null,
+                "Looping": true,
+                "Blending": false
+              },
+              "Tint": "1,1,1,1",
+              "UseAnimGraph": true
+            }
+          ],
+          "Children": []
+        }
+      ]
+    },
+    {
+      "__guid": "d67be478-9058-4405-b890-1db40494601d",
+      "__version": 1,
+      "Flags": 0,
+      "Name": "Terry",
+      "Position": "-132,-56.00002,0.00001049042",
+      "Rotation": "0,0,1,-0.00000004371139",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 1,
+      "NetworkInterpolation": true,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [
+        {
+          "__type": "ShrimpleRagdoll",
+          "__guid": "92586c68-a346-4b4c-a865-5c46b9c8fd54",
+          "__enabled": true,
+          "AngularDamping": 0,
+          "BodyModeOverrides": [],
+          "ColliderFlags": 0,
+          "DelayOnStart": true,
+          "FollowOptions": {
+            "RootObjectFollow": true,
+            "FollowMode": "All",
+            "Bone": {
+              "Selected": "pelvis"
+            },
+            "MergeBoneTransforms": true
+          },
+          "Gravity": true,
+          "GravityScale": 1,
+          "LinearDamping": 0,
+          "Locking": {
+            "X": false,
+            "Y": false,
+            "Z": false,
+            "Pitch": false,
+            "Yaw": false,
+            "Roll": false
+          },
+          "MassOverride": 0,
+          "Mode": {
+            "Name": "Disabled"
+          },
+          "NetworkRefreshOnChange": true,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "RebuildPhysicsOnChange": false,
+          "Renderer": {
+            "_type": "component",
+            "component_id": "08c4e0b4-606e-4c2d-99d0-6539be3e6799",
+            "go": "61d52c86-b1a1-45c9-9a90-b501a718047b",
+            "component_type": "SkinnedModelRenderer"
+          },
+          "RigidbodyFlags": 0,
+          "StartAsleep": false,
+          "Surface": null
+        }
+      ],
+      "Children": [
+        {
+          "__guid": "61d52c86-b1a1-45c9-9a90-b501a718047b",
+          "__version": 1,
+          "Flags": 0,
+          "Name": "Model",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkInterpolation": true,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.SkinnedModelRenderer",
+              "__guid": "08c4e0b4-606e-4c2d-99d0-6539be3e6799",
               "__enabled": true,
               "AnimationGraph": null,
               "BodyGroups": 341,
