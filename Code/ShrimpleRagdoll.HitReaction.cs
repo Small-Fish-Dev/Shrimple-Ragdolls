@@ -11,7 +11,7 @@ public partial class ShrimpleRagdoll
 	/// <param name="recoveryDuration">How long to lerp back (0 = no lerp back)</param>
 	/// <param name="recoveryDelay">How long to wait before starting lerp back</param>
 	/// <param name="recoveryEasing">Easing function for recovery (defaults to AnticipateOvershoot)</param>
-	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float recoveryDuration = 0.5f, float recoveryDelay = 0.1f, Easing.Function recoveryEasing = null )
+	public async void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float recoveryDuration = 0.5f, float recoveryDelay = 0.1f, Easing.Function recoveryEasing = null )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
@@ -46,30 +46,29 @@ public partial class ShrimpleRagdoll
 
 			// Apply force
 			var scaledForce = force * falloff;
+			await Task.DelaySeconds( Time.Delta );
+			await Task.MainThread();
+
 			body.Component.ApplyImpulse( scaledForce );
 		}
 
 		// Schedule lerp back after delay
 		if ( affectedBodies.Count > 0 && recoveryDuration > 0f )
 		{
-			Task.RunInThreadAsync( async () =>
+			await Task.DelaySeconds( recoveryDelay );
+
+			// Start lerp back for each affected body
+			var bodies = affectedBodies.Select( x => x.body ).ToList();
+			StartLerpBodiesToAnimation( bodies, recoveryDuration, recoveryEasing );
+
+			// After lerp completes, restore original modes
+			await Task.DelaySeconds( recoveryDuration );
+			await Task.MainThread();
+
+			foreach ( var (body, originalMode) in affectedBodies )
 			{
-				await Task.DelaySeconds( recoveryDelay );
-				await Task.MainThread();
-
-				// Start lerp back for each affected body
-				var bodies = affectedBodies.Select( x => x.body ).ToList();
-				StartLerpBodiesToAnimation( bodies, recoveryDuration, recoveryEasing );
-
-				// After lerp completes, restore original modes
-				await Task.DelaySeconds( recoveryDuration );
-				await Task.MainThread();
-
-				foreach ( var (body, originalMode) in affectedBodies )
-				{
-					SetBodyMode( body, originalMode, includeChildren: false );
-				}
-			} );
+				SetBodyMode( body, originalMode, includeChildren: false );
+			}
 		}
 	}
 
@@ -174,10 +173,10 @@ public partial class ShrimpleRagdoll
 			ApplyDirectionalHitReaction(
 				headBody.Value.Component.WorldPosition,
 				WorldRotation.Backward,
-				forceMagnitude: 50000f,
-				radius: 26f,
+				forceMagnitude: 5000f,
+				radius: 15f,
 				recoveryDuration: 1f,
-				recoveryDelay: 1f
+				recoveryDelay: 0.5f
 			);
 		}
 	}
