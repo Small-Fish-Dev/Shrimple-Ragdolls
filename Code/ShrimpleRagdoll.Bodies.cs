@@ -4,7 +4,10 @@
 	public NetDictionary<int, Body> Bodies { get; protected set; } = new();
 
 	[Sync]
-	public NetDictionary<int, string> BodyModes { get; set; } = new();
+	public NetDictionary<int, string> BodyModes { get; protected set; } = new();
+
+	[Sync]
+	public NetDictionary<int, BodyFlags> AllBodyFlags { get; protected set; } = new();
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
 	{
@@ -122,10 +125,14 @@
 			return;
 
 		BodyModes.Clear();
+		AllBodyFlags.Clear();
 
 		var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
 		foreach ( var body in Bodies )
+		{
 			BodyModes.Add( body.Key, modeName );
+			AllBodyFlags.Add( body.Key, global::BodyFlags.None );
+		}
 	}
 
 	protected void DestroyBodies()
@@ -370,4 +377,71 @@
 			return HashCode.Combine( BoneIndex, ParentIndex );
 		}
 	}
+
+	/// <summary>
+	/// Get the flags for a specific body
+	/// </summary>
+	public BodyFlags GetBodyFlags( Body body )
+	{
+		if ( AllBodyFlags.TryGetValue( body.BoneIndex, out var flags ) )
+			return flags;
+		return global::BodyFlags.None;
+	}
+
+	/// <summary>
+	/// Set flags for a specific body
+	/// </summary>
+	public void SetBodyFlags( Body body, BodyFlags flags )
+	{
+		if ( !IsProxy && (Network?.Active ?? false) )
+		{
+			AllBodyFlags.Remove( body.BoneIndex );
+			AllBodyFlags.Add( body.BoneIndex, flags );
+		}
+		else
+		{
+			AllBodyFlags[body.BoneIndex] = flags;
+		}
+	}
+
+	/// <summary>
+	/// Add flags to a specific body (combines with existing flags)
+	/// </summary>
+	public void AddBodyFlags( Body body, BodyFlags flags )
+	{
+		var currentFlags = GetBodyFlags( body );
+		SetBodyFlags( body, currentFlags | flags );
+	}
+
+	/// <summary>
+	/// Remove flags from a specific body
+	/// </summary>
+	public void RemoveBodyFlags( Body body, BodyFlags flags )
+	{
+		var currentFlags = GetBodyFlags( body );
+		SetBodyFlags( body, currentFlags & ~flags );
+	}
+
+	/// <summary>
+	/// Check if a body has specific flags
+	/// </summary>
+	public bool HasBodyFlags( Body body, BodyFlags flags )
+	{
+		var currentFlags = GetBodyFlags( body );
+		return (currentFlags & flags) == flags;
+	}
+}
+
+[Flags]
+public enum BodyFlags
+{
+	None = 0,
+	/// <summary>
+	/// Don't run the physics update on this body
+	/// </summary>
+	NoPhysicsUpdate = 1,
+	/// <summary>
+	/// Don't run the visual update on this body
+	/// </summary>
+	NoVisualUpdate = 2,
 }
