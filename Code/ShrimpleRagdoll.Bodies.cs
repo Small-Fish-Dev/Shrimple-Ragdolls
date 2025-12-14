@@ -26,7 +26,7 @@
 
 		AddFlags( boneObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
-		var colliders = AddColliders( boneObject, part, boneObject.WorldTransform ).ToList();
+		var colliders = AddColliders( boneObject, part ).ToList();
 
 		Bodies.Add( bone.Index, new Body( this, rigidbody, boneObject, bone.Index, colliders ) );
 	}
@@ -87,14 +87,12 @@
 		}
 	}
 
-	protected IEnumerable<Collider> AddColliders( GameObject parent, PhysicsGroupDescription.BodyPart part, Transform worldTransform )
+	protected IEnumerable<Collider> AddColliders( GameObject parent, PhysicsGroupDescription.BodyPart part )
 	{
-		var localTransform = parent.WorldTransform.ToLocal( worldTransform );
-
 		foreach ( var sphere in part.Spheres )
 		{
 			var sphereCollider = parent.AddComponent<SphereCollider>();
-			sphereCollider.Center = localTransform.PointToWorld( sphere.Sphere.Center );
+			sphereCollider.Center = sphere.Sphere.Center;
 			sphereCollider.Radius = sphere.Sphere.Radius;
 			sphereCollider.Surface = sphere.Surface;
 			yield return sphereCollider;
@@ -102,8 +100,8 @@
 		foreach ( var capsule in part.Capsules )
 		{
 			var capsuleCollider = parent.AddComponent<CapsuleCollider>();
-			capsuleCollider.Start = localTransform.PointToWorld( capsule.Capsule.CenterA );
-			capsuleCollider.End = localTransform.PointToWorld( capsule.Capsule.CenterB );
+			capsuleCollider.Start = capsule.Capsule.CenterA;
+			capsuleCollider.End = capsule.Capsule.CenterB;
 			capsuleCollider.Radius = capsule.Capsule.Radius;
 			capsuleCollider.Surface = capsule.Surface;
 			yield return capsuleCollider;
@@ -112,11 +110,8 @@
 		{
 			var hullCollider = parent.AddComponent<HullCollider>();
 			hullCollider.Type = HullCollider.PrimitiveType.Points;
-			hullCollider.Points = hull.GetPoints()
-				.Select( x => localTransform.PointToWorld( x ) )
-				.ToList();
+			hullCollider.Points = hull.GetPoints().ToList();
 			hullCollider.Surface = hull.Surface;
-			hullCollider.Center = localTransform.Position;
 			yield return hullCollider;
 		}
 	}
