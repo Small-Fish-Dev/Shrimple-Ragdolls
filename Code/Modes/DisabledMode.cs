@@ -7,8 +7,8 @@
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.DisableColliders();
-		body.GetParentJoint()?.Component.Enabled = false;
-		body.Component?.Enabled = false;
+		body.DisableParentJoint();
+		body.DisableRigidbody();
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false ); // Remove absolute from model if we're root

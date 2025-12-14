@@ -7,9 +7,9 @@
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.EnableColliders();
-		body.Component?.Enabled = true;
+		body.EnableRigidbody();
 		body.Component?.Gravity = false; // Gravity's hard to combat when we want it to be as close to the animations as possible while not using crazy amounts of force!
-		body.GetParentJoint()?.Component.Enabled = true;
+		body.EnableParentJoint();
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root

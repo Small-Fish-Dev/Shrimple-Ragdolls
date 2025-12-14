@@ -7,8 +7,8 @@
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.EnableColliders();
-		body.GetParentJoint()?.Component.Enabled = false;
-		body.Component?.Enabled = false;
+		body.DisableParentJoint();
+		body.DisableRigidbody();
 
 		if ( body.IsRootBone )
 		{

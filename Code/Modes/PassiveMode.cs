@@ -7,9 +7,9 @@
 	public static void OnEnter( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.EnableColliders();
-		body.Component?.Enabled = true;
+		body.EnableRigidbody();
 		body.Component?.MotionEnabled = false;
-		body.GetParentJoint()?.Component.Enabled = false;
+		body.EnableParentJoint();
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( true );
@@ -23,7 +23,6 @@
 	{
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false );
-		body.Component?.Enabled = false;
 		body.Component?.MotionEnabled = true;
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
