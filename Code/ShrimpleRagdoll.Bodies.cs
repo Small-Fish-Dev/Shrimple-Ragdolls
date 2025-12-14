@@ -333,6 +333,28 @@
 				Component.Enabled = false;
 		}
 
+		public void EnableParentJoint()
+		{
+			var parent = GetParentBody();
+			if ( parent == null )
+				return;
+
+			if ( !parent.Value.Component?.Enabled ?? false )
+				parent.Value.Component.Enabled = true; // Can't have a null physicsbody and a joint
+			GetParentJoint()?.Component?.Enabled = true;
+		}
+
+		public void DisableParentJoint()
+		{
+			var parent = GetParentBody();
+			if ( parent == null )
+				return;
+
+			if ( !parent.Value.Component?.Enabled ?? false && parent.Value.Component.Mass == 0f ) // Mass 0 means we didn't enable the colliders, so it was just for this joint
+				parent.Value.Component.Enabled = false; // Disable if it was used just for this
+			GetParentJoint()?.Component?.Enabled = false;
+		}
+
 		public static bool operator ==( Body left, Body right )
 		{
 			return left.BoneIndex == right.BoneIndex && left.ParentIndex == right.ParentIndex;
