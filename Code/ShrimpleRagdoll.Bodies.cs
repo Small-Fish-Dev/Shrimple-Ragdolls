@@ -321,6 +321,18 @@
 					collider.Enabled = false;
 		}
 
+		public void EnableRigidbody()
+		{
+			if ( Component.IsValid() )
+				Component.Enabled = true;
+		}
+
+		public void DisableRigidbody()
+		{
+			if ( Component.IsValid() )
+				Component.Enabled = false;
+		}
+
 		public static bool operator ==( Body left, Body right )
 		{
 			return left.BoneIndex == right.BoneIndex && left.ParentIndex == right.ParentIndex;
