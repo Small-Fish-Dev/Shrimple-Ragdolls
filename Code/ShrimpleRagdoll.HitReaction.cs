@@ -1,18 +1,12 @@
-﻿using Sandbox.Utility;
-
-public partial class ShrimpleRagdoll
+﻿public partial class ShrimpleRagdoll
 {
-	/// <summary>
-	/// Apply a hit reaction by displacing bones and lerping back to animation
-	/// </summary>
-	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float duration = 0.5f, Easing.Function easing = null )
+	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float duration = 0.5f, LerpEasing easing = LerpEasing.AnticipateOvershoot )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		easing ??= Easing.AnticipateOvershoot;
 		var displacedTransforms = new Dictionary<int, Transform>();
 
 		foreach ( var body in Bodies.Values )
@@ -23,7 +17,6 @@ public partial class ShrimpleRagdoll
 			if ( distance > radius )
 				continue;
 
-			// Quadratic falloff - closer = stronger
 			var falloff = 1f - (distance / radius);
 			falloff *= falloff;
 
