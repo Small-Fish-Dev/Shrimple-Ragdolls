@@ -185,25 +185,23 @@
 				if ( Mode.Name != ShrimpleRagdollMode.Disabled )
 					MoveGameObject();
 			}
-
-			if ( Network?.Active ?? false )
-				SetBodyTransforms();
-		}
-		else
-		{
-			if ( Network?.Active ?? false )
-				SetProxyTransforms();
 		}
 	}
 
 	void IScenePhysicsEvents.PostPhysicsStep()
 	{
+		if ( IsProxy ) return;
 
+		if ( Network?.Active ?? false )
+			SetBodyTransforms();
 	}
 
 	void IScenePhysicsEvents.PrePhysicsStep()
 	{
+		if ( !IsProxy ) return;
 
+		if ( Network?.Active ?? false )
+			SetProxyTransforms();
 	}
 
 	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
