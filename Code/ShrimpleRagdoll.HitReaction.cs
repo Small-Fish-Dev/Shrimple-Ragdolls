@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleRagdoll
+﻿namespace ShrimpleRagdolls;
+
+public partial class ShrimpleRagdoll
 {
 	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float duration = 0.5f, LerpEasing easing = LerpEasing.AnticipateOvershoot )
 	{

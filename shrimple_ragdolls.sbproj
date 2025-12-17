@@ -1,7 +1,7 @@
 {
   "Title": "Shrimple Ragdolls",
-  "Type": "game",
-  "Org": "local",
+  "Type": "library",
+  "Org": "fish",
   "Ident": "shrimple_ragdolls",
   "Schema": 1,
   "IncludeSourceFiles": false,

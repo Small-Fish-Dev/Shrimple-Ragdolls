@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleRagdoll
+﻿namespace ShrimpleRagdolls;
+
+public partial class ShrimpleRagdoll
 {
 	/// <summary>
 	/// Returns the local center of mass of every <see cref="Rigidbody"/>

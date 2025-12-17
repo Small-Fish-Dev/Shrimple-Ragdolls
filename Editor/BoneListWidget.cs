@@ -1,4 +1,6 @@
-﻿[CustomEditor( typeof( ShrimpleRagdoll.BoneList ) )]
+﻿namespace ShrimpleRagdolls.Editor;
+
+[CustomEditor( typeof( ShrimpleRagdoll.BoneList ) )]
 internal class BoneListWidget : ControlWidget
 {
 	public override bool IsControlButton => true;

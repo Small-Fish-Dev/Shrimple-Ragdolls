@@ -1,3 +1,5 @@
+namespace ShrimpleRagdolls;
+
 /// <summary>
 /// Settings component for Motor mode.
 /// Controls joint motor frequency and damping for physics-driven animation following.

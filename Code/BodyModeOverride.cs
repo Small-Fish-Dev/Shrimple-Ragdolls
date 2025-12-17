@@ -1,3 +1,5 @@
+namespace ShrimpleRagdolls;
+
 /// <summary>
 /// Defines a mode override for a specific bone and optionally its children
 /// </summary>

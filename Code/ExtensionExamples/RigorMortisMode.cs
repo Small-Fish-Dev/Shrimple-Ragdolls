@@ -1,4 +1,6 @@
-﻿public class RigorMortisMode : IShrimpleRagdollMode<RigorMortisMode>
+﻿namespace ShrimpleRagdolls;
+
+public class RigorMortisMode : IShrimpleRagdollMode<RigorMortisMode>
 {
 	public static string Name => "Rigor Mortis";
 	public static string Description => "The ragdoll's joints will lock up and make it hard to move from the initial position.";

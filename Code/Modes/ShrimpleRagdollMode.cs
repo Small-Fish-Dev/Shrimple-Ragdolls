@@ -1,4 +1,6 @@
-﻿public interface IShrimpleRagdollMode<TSelf>
+﻿namespace ShrimpleRagdolls;
+
+public interface IShrimpleRagdollMode<TSelf>
 	where TSelf : IShrimpleRagdollMode<TSelf>
 {
 	/// <summary>

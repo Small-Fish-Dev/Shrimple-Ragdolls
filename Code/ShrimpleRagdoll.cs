@@ -1,4 +1,6 @@
-﻿[Icon( "sports_gymnastics" )]
+﻿namespace ShrimpleRagdolls;
+
+[Icon( "sports_gymnastics" )]
 [Description( "Ragdoll with many presets and functionalities" )]
 public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 {

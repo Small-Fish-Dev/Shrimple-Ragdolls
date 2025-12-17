@@ -1,4 +1,6 @@
-﻿public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
+﻿namespace ShrimpleRagdolls;
+
+public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 {
 	public static string Name => "Passive";
 	public static string Description => "Bodies will strictly match the animation.";

@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleRagdoll
+﻿namespace ShrimpleRagdolls;
+
+public partial class ShrimpleRagdoll
 {
 	public readonly record struct Joint( Sandbox.Joint Component, Body Body1, Body Body2 );
 	public List<Joint> Joints { get; protected set; } = new();

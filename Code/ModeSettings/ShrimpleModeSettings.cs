@@ -1,3 +1,5 @@
+namespace ShrimpleRagdolls;
+
 /// <summary>
 /// Base class for mode-specific settings components.
 /// Attach these to the same GameObject as ShrimpleRagdoll to configure mode behavior.

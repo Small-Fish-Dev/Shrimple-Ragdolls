@@ -1,4 +1,6 @@
-﻿public class ShrimpleRagdollSystem : GameObjectSystem
+﻿namespace ShrimpleRagdolls;
+
+public class ShrimpleRagdollSystem : GameObjectSystem
 {
 	public ShrimpleRagdollSystem( Scene scene ) : base( scene )
 	{

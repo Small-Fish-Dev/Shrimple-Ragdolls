@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleRagdoll
+﻿namespace ShrimpleRagdolls;
+
+public partial class ShrimpleRagdoll
 {
 	/// <summary>
 	/// Enable/Disable gravity to all bodies.

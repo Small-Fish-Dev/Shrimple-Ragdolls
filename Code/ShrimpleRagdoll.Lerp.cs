@@ -1,4 +1,6 @@
-﻿using Sandbox.Utility;
+﻿namespace ShrimpleRagdolls;
+
+using Sandbox.Utility;
 
 public enum LerpEasing
 {

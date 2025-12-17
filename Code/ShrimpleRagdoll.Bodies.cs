@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleRagdoll
+﻿namespace ShrimpleRagdolls;
+
+public partial class ShrimpleRagdoll
 {
 	[Sync]
 	public NetDictionary<int, Body> Bodies { get; protected set; } = new();
@@ -131,7 +133,7 @@
 		foreach ( var body in Bodies )
 		{
 			BodyModes.Add( body.Key, modeName );
-			AllBodyFlags.Add( body.Key, global::BodyFlags.None );
+			AllBodyFlags.Add( body.Key, BodyFlags.None );
 		}
 	}
 
@@ -385,7 +387,7 @@
 	{
 		if ( AllBodyFlags.TryGetValue( body.BoneIndex, out var flags ) )
 			return flags;
-		return global::BodyFlags.None;
+		return BodyFlags.None;
 	}
 
 	/// <summary>

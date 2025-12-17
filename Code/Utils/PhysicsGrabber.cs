@@ -1,3 +1,5 @@
+namespace ShrimpleRagdolls;
+
 [Hide]
 public class PhysicsGrabber : Component
 {

@@ -1,4 +1,6 @@
-﻿public partial class ShrimpleRagdoll
+﻿namespace ShrimpleRagdolls;
+
+public partial class ShrimpleRagdoll
 {
 	[Sync]
 	public NetDictionary<int, Transform> BodyTransforms { get; set; } = new();

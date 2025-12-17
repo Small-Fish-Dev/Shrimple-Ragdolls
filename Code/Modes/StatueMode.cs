@@ -1,4 +1,6 @@
-﻿public class StatueMode : IShrimpleRagdollMode<StatueMode>
+﻿namespace ShrimpleRagdolls;
+
+public class StatueMode : IShrimpleRagdollMode<StatueMode>
 {
 	public static string Name => "Statue";
 	public static string Description => "Ragdoll is frozen in place, joints are disabled.";

@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿namespace ShrimpleRagdolls;
+
+using System.Text.Json.Serialization;
 
 public partial class ShrimpleRagdoll
 {

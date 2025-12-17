@@ -1,4 +1,6 @@
-﻿public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
+﻿namespace ShrimpleRagdolls;
+
+public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 {
 	public static string Name => "Active";
 	public static string Description => "Bodies will physically move where they're meant to be, unless blocked.";

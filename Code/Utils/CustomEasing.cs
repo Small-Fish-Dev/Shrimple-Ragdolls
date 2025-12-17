@@ -1,4 +1,6 @@
-﻿public static class CustomEasing
+﻿namespace ShrimpleRagdolls;
+
+public static class CustomEasing
 {
 	extension( Sandbox.Utility.Easing )
 	{

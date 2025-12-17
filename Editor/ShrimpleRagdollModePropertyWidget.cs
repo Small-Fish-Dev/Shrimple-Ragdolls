@@ -1,4 +1,6 @@
-﻿[CustomEditor( typeof( ShrimpleRagdollModeProperty ) )]
+﻿namespace ShrimpleRagdolls.Editor;
+
+[CustomEditor( typeof( ShrimpleRagdollModeProperty ) )]
 public class ShrimpleRagdollModeControlWidget : ControlWidget
 {
 	public override bool IsControlActive => base.IsControlActive || _menu.IsValid();
