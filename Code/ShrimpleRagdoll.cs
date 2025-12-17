@@ -64,17 +64,17 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	/// Destroy and build the physics when changing <see cref="Mode"/> instead of just enabling/disabling the components
 	/// </summary>
 	[Property]
-	public bool RebuildPhysicsOnChange { get; set; } = false;
+	public bool RebuildPhysicsOnChange { get; set; } = false; // TODO: Reimplement
 
 	/// <summary>
 	/// Call a network refresh on the Renderer's GameObject internally when creating/destroying physics
 	/// </summary>
 	[Property]
-	public bool NetworkRefreshOnChange { get; set; } = true;
+	public bool NetworkRefreshOnChange { get; set; } = true; // TODO: Reimplement
 
 	/// <summary>
 	/// Delay the physics creation by 1 tick so that animations/overrides get picked up<br />
-	/// Useful for statues etc..
+	/// Useful for keeping poses on scene start
 	/// </summary>
 	[Property]
 	public bool DelayOnStart { get; set; } = true;
@@ -91,10 +91,13 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	/// </summary>
 	[Property, Group( "Body Mode Overrides" )]
 	public List<BodyModeOverride> BodyModeOverrides { get; set; } = new();
-
 	public Model Model => Renderer?.Model;
-
 	public Dictionary<BoneCollection.Bone, GameObject> BoneObjects { get; protected set; } = new();
+	/// <summary>
+	/// Called when <see cref="Mode"/> has changed<br />
+	/// string oldMode, string newMode
+	/// </summary>
+	public Action<string, string> OnModeChange { get; set; }
 
 	protected override void OnStart()
 	{
@@ -407,6 +410,8 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 		// Re-apply body mode overrides after setting global mode
 		ApplyBodyModeOverrides();
+
+		OnModeChange?.Invoke( oldMode, newMode );
 	}
 
 	/// <summary>
