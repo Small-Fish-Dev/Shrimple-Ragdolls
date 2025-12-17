@@ -182,7 +182,8 @@
 					handler.PhysicsUpdate?.Invoke( this, body.Value );
 				}
 
-				MoveGameObject();
+				if ( Mode.Name != ShrimpleRagdollMode.Disabled )
+					MoveGameObject();
 			}
 
 			if ( Network?.Active ?? false )
