@@ -327,7 +327,7 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "ShrimpleRagdoll",
+          "__type": "ShrimpleRagdolls.ShrimpleRagdoll",
           "__guid": "c19c6c81-25fb-4917-abc5-2e55e8d5858e",
           "__enabled": true,
           "AngularDamping": 0,
@@ -376,7 +376,7 @@
           "Surface": null
         },
         {
-          "__type": "ShrimpleMotorModeSettings",
+          "__type": "ShrimpleRagdolls.ShrimpleMotorModeSettings",
           "__guid": "05113a50-c390-48d0-b236-a04e3a4b25e0",
           "__enabled": true,
           "DampingRatio": 1,
@@ -472,7 +472,7 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "ShrimpleRagdoll",
+          "__type": "ShrimpleRagdolls.ShrimpleRagdoll",
           "__guid": "92586c68-a346-4b4c-a865-5c46b9c8fd54",
           "__enabled": true,
           "AngularDamping": 0,
@@ -604,7 +604,7 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "ShrimpleRagdoll",
+          "__type": "ShrimpleRagdolls.ShrimpleRagdoll",
           "__guid": "727eadd0-796c-463d-90b4-1aa6ccb180f0",
           "__enabled": true,
           "AngularDamping": 5,
@@ -653,7 +653,7 @@
           "Surface": null
         },
         {
-          "__type": "ShrimpleMotorModeSettings",
+          "__type": "ShrimpleRagdolls.ShrimpleMotorModeSettings",
           "__guid": "d982c55f-ac26-4bc7-b518-5c4fe435cafb",
           "__enabled": true,
           "DampingRatio": 4,
@@ -2588,7 +2588,7 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "ShrimpleRagdoll",
+          "__type": "ShrimpleRagdolls.ShrimpleRagdoll",
           "__guid": "adb6dd1e-df09-47eb-9350-9c28a744d379",
           "__enabled": true,
           "AngularDamping": 5,
@@ -2683,7 +2683,7 @@
           "Surface": null
         },
         {
-          "__type": "ShrimpleMotorModeSettings",
+          "__type": "ShrimpleRagdolls.ShrimpleMotorModeSettings",
           "__guid": "00c450cf-f299-458a-8870-09cfdbef8d78",
           "__enabled": true,
           "DampingRatio": 4,
@@ -2859,7 +2859,7 @@
       "OwnerTransfer": 1,
       "Components": [
         {
-          "__type": "ShrimpleRagdoll",
+          "__type": "ShrimpleRagdolls.ShrimpleRagdoll",
           "__guid": "f0a45e8c-15dd-45b7-9d12-fb1e5af49776",
           "__enabled": true,
           "AngularDamping": 0,
@@ -2908,7 +2908,7 @@
           "Surface": "surfaces/metal.surface"
         },
         {
-          "__type": "ShrimpleMotorModeSettings",
+          "__type": "ShrimpleRagdolls.ShrimpleMotorModeSettings",
           "__guid": "410c1dfe-3b33-47eb-9fc0-6e1d7bc4bd09",
           "__enabled": true,
           "DampingRatio": 1,
