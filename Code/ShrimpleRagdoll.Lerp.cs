@@ -174,10 +174,4 @@ public partial class ShrimpleRagdoll
 	{
 		StartLerpToAnimation( duration, LerpEasing.EaseIn, targetMode );
 	}
-
-	[Button( "Test Lerp All" )]
-	public void TestLerpToAnimation()
-	{
-		StartLerpToAnimation( 2f, LerpEasing.EaseInOut, ShrimpleRagdollMode.Disabled );
-	}
 }

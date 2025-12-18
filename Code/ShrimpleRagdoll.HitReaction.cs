@@ -37,20 +37,4 @@ public partial class ShrimpleRagdoll
 	{
 		ApplyHitReaction( hitPosition, direction.Normal * forceMagnitude, radius, duration );
 	}
-
-	[Button( "Test Hit - Head" )]
-	public void TestHitReactionHead()
-	{
-		var headBody = GetBodyByBoneName( "head" );
-		if ( headBody.HasValue )
-		{
-			ApplyDirectionalHitReaction(
-				headBody.Value.Component.WorldPosition,
-				WorldRotation.Backward,
-				forceMagnitude: 2f,
-				radius: 15f,
-				duration: 0.1f
-			);
-		}
-	}
 }
