@@ -14,7 +14,7 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 		body.EnableParentJoint();
 
 		if ( body.IsRootBone )
-			ragdoll.MakeRendererAbsolute( true );
+			ragdoll.MakeRendererAbsolute( false );
 
 		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 		ragdoll.MoveObjectFromMesh( body.GetBone() );
@@ -23,8 +23,6 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		if ( body.IsRootBone )
-			ragdoll.MakeRendererAbsolute( false );
 		body.Component?.MotionEnabled = true;
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
