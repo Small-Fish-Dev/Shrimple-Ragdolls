@@ -8,8 +8,7 @@ public partial class ShrimpleRagdoll
 	[Sync]
 	public NetDictionary<int, string> BodyModes { get; protected set; } = new();
 
-	[Sync]
-	public NetDictionary<int, BodyFlags> AllBodyFlags { get; protected set; } = new();
+	public Dictionary<int, BodyFlags> AllBodyFlags { get; protected set; } = new();
 
 	protected void CreateBodies( PhysicsGroupDescription physics )
 	{
@@ -398,50 +397,45 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Set flags for a specific body
 	/// </summary>
-	public void SetBodyFlags( Body body, BodyFlags flags ) => SetBodyFlags( body.BoneIndex, flags );
+	public void SetBodyFlags( Body body, BodyFlags flags, bool broadcast = true ) => SetBodyFlags( body.BoneIndex, flags, broadcast );
 
 	/// <summary>
 	/// Set flags for a specific bone index
 	/// </summary>
-	public void SetBodyFlags( int boneIndex, BodyFlags flags )
+	public void SetBodyFlags( int boneIndex, BodyFlags flags, bool broadcast = true )
 	{
-		if ( !IsProxy && (Network?.Active ?? false) )
-		{
-			AllBodyFlags.Remove( boneIndex );
-			AllBodyFlags.Add( boneIndex, flags );
-		}
-		else
-		{
-			AllBodyFlags[boneIndex] = flags;
-		}
+		AllBodyFlags[boneIndex] = flags;
+
+		if ( broadcast )
+			BroadcastBodyFlags( boneIndex, flags );
 	}
 
 	/// <summary>
 	/// Add flags to a specific body (combines with existing flags)
 	/// </summary>
-	public void AddBodyFlags( Body body, BodyFlags flags ) => AddBodyFlags( body.BoneIndex, flags );
+	public void AddBodyFlags( Body body, BodyFlags flags, bool broadcast = true ) => AddBodyFlags( body.BoneIndex, flags, broadcast );
 
 	/// <summary>
 	/// Add flags to a specific bone index (combines with existing flags)
 	/// </summary>
-	public void AddBodyFlags( int boneIndex, BodyFlags flags )
+	public void AddBodyFlags( int boneIndex, BodyFlags flags, bool broadcast = true )
 	{
 		var currentFlags = GetBodyFlags( boneIndex );
-		SetBodyFlags( boneIndex, currentFlags | flags );
+		SetBodyFlags( boneIndex, currentFlags | flags, broadcast );
 	}
 
 	/// <summary>
 	/// Remove flags from a specific body
 	/// </summary>
-	public void RemoveBodyFlags( Body body, BodyFlags flags ) => RemoveBodyFlags( body.BoneIndex, flags );
+	public void RemoveBodyFlags( Body body, BodyFlags flags, bool broadcast = true ) => RemoveBodyFlags( body.BoneIndex, flags, broadcast );
 
 	/// <summary>
 	/// Remove flags from a specific bone index
 	/// </summary>
-	public void RemoveBodyFlags( int boneIndex, BodyFlags flags )
+	public void RemoveBodyFlags( int boneIndex, BodyFlags flags, bool broadcast = true )
 	{
 		var currentFlags = GetBodyFlags( boneIndex );
-		SetBodyFlags( boneIndex, currentFlags & ~flags );
+		SetBodyFlags( boneIndex, currentFlags & ~flags, broadcast );
 	}
 
 	/// <summary>
@@ -456,6 +450,15 @@ public partial class ShrimpleRagdoll
 	{
 		var currentFlags = GetBodyFlags( boneIndex );
 		return (currentFlags & flags) == flags;
+	}
+
+	/// <summary>
+	/// Broadcast body flags to all clients
+	/// </summary>
+	[Rpc.Broadcast]
+	protected void BroadcastBodyFlags( int boneIndex, BodyFlags flags )
+	{
+		AllBodyFlags[boneIndex] = flags;
 	}
 }
 
