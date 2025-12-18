@@ -114,7 +114,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		{
 			await Task.MainThread();
 
-			if ( DelayOnStart )
+			if ( DelayOnStart && Mode != ShrimpleRagdollMode.Disabled )
 				await Task.DelaySeconds( Time.Delta ); // I'd use Task.FixedUpdate() but it doesn't seem to be long enough for the bones to create?
 
 			if ( !IsProxy && (Network?.Active ?? false) )
@@ -189,7 +189,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 					handler.PhysicsUpdate?.Invoke( this, body.Value );
 				}
 
-				if ( Mode.Name != ShrimpleRagdollMode.Disabled )
+				if ( Mode != ShrimpleRagdollMode.Disabled )
 					MoveGameObject();
 			}
 		}
