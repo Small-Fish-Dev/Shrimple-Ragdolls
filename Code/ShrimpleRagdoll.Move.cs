@@ -145,13 +145,13 @@ public partial class ShrimpleRagdoll
 				Renderer.WorldRotation = targetTransform.Rotation;
 		}
 
-		if ( GameObject.Root != Renderer.GameObject && FollowOptions.RootObjectFollow )
+		if ( GameObject != Renderer.GameObject && FollowOptions.RootObjectFollow )
 		{
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
-				GameObject.Root.WorldPosition = Renderer.WorldPosition;
+				GameObject.WorldPosition = Renderer.WorldPosition;
 
 			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
-				GameObject.Root.WorldRotation = Renderer.WorldRotation;
+				GameObject.WorldRotation = Renderer.WorldRotation;
 		}
 	}
 

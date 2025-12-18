@@ -121,7 +121,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 			{
 				SetupBodyTransforms();
 				SetupBodyModes();
-				GameObject.Root.NetworkSpawn();
+				GameObject.NetworkSpawn();
 			}
 
 			SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
