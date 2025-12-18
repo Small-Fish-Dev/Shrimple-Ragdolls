@@ -383,9 +383,14 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Get the flags for a specific body
 	/// </summary>
-	public BodyFlags GetBodyFlags( Body body )
+	public BodyFlags GetBodyFlags( Body body ) => GetBodyFlags( body.BoneIndex );
+
+	/// <summary>
+	/// Get the flags for a specific bone index
+	/// </summary>
+	public BodyFlags GetBodyFlags( int boneIndex )
 	{
-		if ( AllBodyFlags.TryGetValue( body.BoneIndex, out var flags ) )
+		if ( AllBodyFlags.TryGetValue( boneIndex, out var flags ) )
 			return flags;
 		return BodyFlags.None;
 	}
@@ -393,43 +398,63 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Set flags for a specific body
 	/// </summary>
-	public void SetBodyFlags( Body body, BodyFlags flags )
+	public void SetBodyFlags( Body body, BodyFlags flags ) => SetBodyFlags( body.BoneIndex, flags );
+
+	/// <summary>
+	/// Set flags for a specific bone index
+	/// </summary>
+	public void SetBodyFlags( int boneIndex, BodyFlags flags )
 	{
 		if ( !IsProxy && (Network?.Active ?? false) )
 		{
-			AllBodyFlags.Remove( body.BoneIndex );
-			AllBodyFlags.Add( body.BoneIndex, flags );
+			AllBodyFlags.Remove( boneIndex );
+			AllBodyFlags.Add( boneIndex, flags );
 		}
 		else
 		{
-			AllBodyFlags[body.BoneIndex] = flags;
+			AllBodyFlags[boneIndex] = flags;
 		}
 	}
 
 	/// <summary>
 	/// Add flags to a specific body (combines with existing flags)
 	/// </summary>
-	public void AddBodyFlags( Body body, BodyFlags flags )
+	public void AddBodyFlags( Body body, BodyFlags flags ) => AddBodyFlags( body.BoneIndex, flags );
+
+	/// <summary>
+	/// Add flags to a specific bone index (combines with existing flags)
+	/// </summary>
+	public void AddBodyFlags( int boneIndex, BodyFlags flags )
 	{
-		var currentFlags = GetBodyFlags( body );
-		SetBodyFlags( body, currentFlags | flags );
+		var currentFlags = GetBodyFlags( boneIndex );
+		SetBodyFlags( boneIndex, currentFlags | flags );
 	}
 
 	/// <summary>
 	/// Remove flags from a specific body
 	/// </summary>
-	public void RemoveBodyFlags( Body body, BodyFlags flags )
+	public void RemoveBodyFlags( Body body, BodyFlags flags ) => RemoveBodyFlags( body.BoneIndex, flags );
+
+	/// <summary>
+	/// Remove flags from a specific bone index
+	/// </summary>
+	public void RemoveBodyFlags( int boneIndex, BodyFlags flags )
 	{
-		var currentFlags = GetBodyFlags( body );
-		SetBodyFlags( body, currentFlags & ~flags );
+		var currentFlags = GetBodyFlags( boneIndex );
+		SetBodyFlags( boneIndex, currentFlags & ~flags );
 	}
 
 	/// <summary>
 	/// Check if a body has specific flags
 	/// </summary>
-	public bool HasBodyFlags( Body body, BodyFlags flags )
+	public bool HasBodyFlags( Body body, BodyFlags flags ) => HasBodyFlags( body.BoneIndex, flags );
+
+	/// <summary>
+	/// Check if a bone index has specific flags
+	/// </summary>
+	public bool HasBodyFlags( int boneIndex, BodyFlags flags )
 	{
-		var currentFlags = GetBodyFlags( body );
+		var currentFlags = GetBodyFlags( boneIndex );
 		return (currentFlags & flags) == flags;
 	}
 }
