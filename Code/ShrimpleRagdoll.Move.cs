@@ -108,7 +108,7 @@ public partial class ShrimpleRagdoll
 		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.GetBone(), out var transform ) )
 			return;
 
-		body.Component.SmoothMove( in transform, 0.1f, Time.Delta );
+		body.Component.SmoothMove( in transform, Time.Delta, Time.Delta );
 	}
 
 	/// <summary>
