@@ -78,8 +78,19 @@ public partial class ShrimpleRagdoll
 			{
 				joint.Body = body2.Component.GameObject;
 				joint.Attachment = Sandbox.Joint.AttachmentMode.LocalFrames;
-				joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * body1.Component.WorldScale );
-				joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * body2.Component.WorldScale );
+				if ( DynamicJointScale )
+				{
+					var bodyDistance = body1.Component.GameObject.WorldPosition.Distance( body2.Component.GameObject.WorldPosition );
+					var frameDistance = jointDefinition.Frame1.Position.Distance( jointDefinition.Frame2.Position );
+					var ratio = bodyDistance / frameDistance;
+					joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * ratio );
+					joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * ratio );
+				}
+				else
+				{
+					joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * body1.Component.WorldScale );
+					joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * body2.Component.WorldScale );
+				}
 				joint.EnableCollision = jointDefinition.EnableCollision;
 				joint.BreakForce = jointDefinition.LinearStrength;
 				joint.BreakTorque = jointDefinition.AngularStrength;

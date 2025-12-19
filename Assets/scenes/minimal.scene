@@ -334,6 +334,7 @@
           "BodyModeOverrides": [],
           "ColliderFlags": 0,
           "DelayOnStart": true,
+          "DynamicJointScale": false,
           "FollowOptions": {
             "RootObjectFollow": true,
             "FollowMode": "All",
@@ -459,10 +460,10 @@
       "__guid": "d67be478-9058-4405-b890-1db40494601d",
       "__version": 1,
       "Flags": 0,
-      "Name": "Terry",
+      "Name": "Tall Terry",
       "Position": "-132,-56.00002,0.00001049042",
       "Rotation": "0,0,1,-0.00000004371139",
-      "Scale": "1,1,1",
+      "Scale": "1.2,1.2,1.2",
       "Tags": "",
       "Enabled": true,
       "NetworkMode": 1,
@@ -479,6 +480,7 @@
           "BodyModeOverrides": [],
           "ColliderFlags": 0,
           "DelayOnStart": true,
+          "DynamicJointScale": true,
           "FollowOptions": {
             "RootObjectFollow": true,
             "FollowMode": "All",
@@ -562,7 +564,9 @@
               "Parameters": {
                 "bools": {},
                 "ints": {},
-                "floats": {},
+                "floats": {
+                  "scale_height": 3
+                },
                 "vectors": {},
                 "rotations": {}
               },
@@ -611,6 +615,7 @@
           "BodyModeOverrides": [],
           "ColliderFlags": 0,
           "DelayOnStart": true,
+          "DynamicJointScale": false,
           "FollowOptions": {
             "RootObjectFollow": true,
             "FollowMode": "Position",
@@ -2641,6 +2646,7 @@
           ],
           "ColliderFlags": 0,
           "DelayOnStart": true,
+          "DynamicJointScale": false,
           "FollowOptions": {
             "RootObjectFollow": true,
             "FollowMode": "Position",
@@ -2866,6 +2872,7 @@
           "BodyModeOverrides": [],
           "ColliderFlags": 0,
           "DelayOnStart": true,
+          "DynamicJointScale": false,
           "FollowOptions": {
             "RootObjectFollow": true,
             "FollowMode": "All",

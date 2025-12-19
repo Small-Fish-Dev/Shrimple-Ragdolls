@@ -76,10 +76,17 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 	/// <summary>
 	/// Delay the physics creation by 1 tick so that animations/overrides get picked up<br />
-	/// Useful for keeping poses on scene start
+	/// Useful for keeping poses on scene start and waiting for animation parameters to apply
 	/// </summary>
 	[Property]
 	public bool DelayOnStart { get; set; } = true;
+
+	/// <summary>
+	/// Calculate the distance between bodies on create for the joints instead of using the predefined frames<br />
+	/// Useful for animgraph based height slider so that the ragdolls match the proportions
+	/// </summary>
+	[Property]
+	public bool DynamicJointScale { get; set; } = true;
 
 	/// <summary>
 	/// All the bodies and joints for ragdoll mode were created
@@ -114,7 +121,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		{
 			await Task.MainThread();
 
-			if ( DelayOnStart && Mode != ShrimpleRagdollMode.Disabled )
+			if ( DelayOnStart )
 				await Task.DelaySeconds( Time.Delta ); // I'd use Task.FixedUpdate() but it doesn't seem to be long enough for the bones to create?
 
 			if ( !IsProxy && (Network?.Active ?? false) )
