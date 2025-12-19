@@ -315,51 +315,43 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	}
 
 	/// <summary>
-	/// Set the mode for a specific body
+	/// Set the mode for a specific body by bone index
 	/// </summary>
-	/// <param name="body">The body to set the mode for</param>
+	/// <param name="boneIndex">The index of the bone</param>
 	/// <param name="modeName">The name of the mode</param>
 	/// <param name="includeChildren">If true, also sets the mode for all children and descendants</param>
-	public void SetBodyMode( Body body, string modeName, bool includeChildren = false )
+	public void SetBodyMode( int boneIndex, string modeName, bool includeChildren = false )
 	{
 		if ( !ShrimpleRagdollModeRegistry.TryGet( modeName, out var newHandler ) )
 			return;
 
-		if ( includeChildren )
-		{
-			foreach ( var hierarchyBody in body.GetHierarchy() )
-			{
-				SetBodyModeInternal( hierarchyBody, modeName, newHandler );
-			}
-		}
-		else
-		{
-			SetBodyModeInternal( body, modeName, newHandler );
-		}
-	}
-
-	/// <summary>
-	/// Internal method to set a single body's mode without recursion
-	/// </summary>
-	private void SetBodyModeInternal( Body body, string modeName, ShrimpleRagdollModeHandlers newHandler )
-	{
-		var oldHandler = GetBodyModeHandler( body );
-
-		oldHandler.OnExit?.Invoke( this, body );
-
+		// Update the mode in the dictionary first
 		if ( !IsProxy && (Network?.Active ?? false) )
 		{
-			BodyModes.Remove( body.BoneIndex );
-			BodyModes.Add( body.BoneIndex, modeName );
+			BodyModes.Remove( boneIndex );
+			BodyModes.Add( boneIndex, modeName );
 		}
 		else
 		{
-			BodyModes[body.BoneIndex] = modeName;
+			BodyModes[boneIndex] = modeName;
 		}
 
-		newHandler.OnEnter?.Invoke( this, body );
+		// If physics is created, apply the mode immediately
+		if ( PhysicsWereCreated && Bodies.TryGetValue( boneIndex, out var body ) )
+		{
+			var oldHandler = GetBodyModeHandler( body );
+			oldHandler.OnExit?.Invoke( this, body );
+			newHandler.OnEnter?.Invoke( this, body );
+			ApplyModeSettings( body, modeName );
 
-		ApplyModeSettings( body, modeName );
+			if ( includeChildren )
+			{
+				foreach ( var hierarchyBody in body.GetHierarchy().Skip( 1 ) ) // Skip the first (parent) body
+				{
+					SetBodyMode( hierarchyBody.BoneIndex, modeName, false ); // Recursive call with includeChildren = false
+				}
+			}
+		}
 	}
 
 	/// <summary>
@@ -370,9 +362,23 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	/// <param name="includeChildren">If true, also sets the mode for all children and descendants</param>
 	public void SetBodyModeByName( string boneName, string modeName, bool includeChildren = false )
 	{
-		var body = GetBodyByBoneName( boneName );
-		if ( body.HasValue )
-			SetBodyMode( body.Value, modeName, includeChildren );
+		// Try to find the bone index
+		var bone = Model?.Bones?.GetBone( boneName );
+		if ( bone == null )
+			return;
+
+		SetBodyMode( bone.Index, modeName, includeChildren );
+	}
+
+	/// <summary>
+	/// Set the mode for a specific body
+	/// </summary>
+	/// <param name="body">The body to set the mode for</param>
+	/// <param name="modeName">The name of the mode</param>
+	/// <param name="includeChildren">If true, also sets the mode for all children and descendants</param>
+	public void SetBodyMode( Body body, string modeName, bool includeChildren = false )
+	{
+		SetBodyMode( body.BoneIndex, modeName, includeChildren );
 	}
 
 	protected void InternalSetRagdollMode( string oldMode, string newMode )
