@@ -502,7 +502,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	{
 		base.DrawGizmos();
 
-		if ( !Game.IsEditor || Game.IsPlaying )
+		if ( !Game.IsEditor || Game.IsPlaying && !Gizmo.IsSelected )
 			return;
 
 		SetupBoneLists(); // TODO: This has to be inside of OnValidate(), but OnValidate() still hasn't been fixed sooo....
