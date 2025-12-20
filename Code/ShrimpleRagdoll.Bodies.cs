@@ -182,6 +182,7 @@ public partial class ShrimpleRagdoll
 					collider.Enabled = true;
 
 			AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+			body.Component.Enabled = true;
 		}
 	}
 
