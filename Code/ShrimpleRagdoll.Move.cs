@@ -3,6 +3,11 @@
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
+	/// How fast lerping will be for physically simulated Moves
+	/// </summary>
+	public float LerpTime { get; set; } = 0f;
+
+	/// <summary>
 	/// Move the bone's mesh based on their Rigidbody transform
 	/// </summary>
 	public void MoveMeshFromBodies()
@@ -108,7 +113,7 @@ public partial class ShrimpleRagdoll
 		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.GetBone(), out var transform ) )
 			return;
 
-		body.Component.SmoothMove( in transform, Time.Delta, Time.Delta );
+		body.Component.SmoothMove( in transform, MathF.Max( LerpTime, Time.Delta ), Time.Delta );
 	}
 
 	/// <summary>
