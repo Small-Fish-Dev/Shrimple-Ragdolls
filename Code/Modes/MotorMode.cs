@@ -33,9 +33,16 @@ public class MotorMode : IShrimpleRagdollMode<MotorMode>
 		if ( !joint.IsValid() ) return;
 
 		if ( joint is BallJoint ballJoint )
+		{
 			ballJoint.Motor = BallJoint.MotorMode.Disabled;
+			ballJoint.Frequency = 0f;
+		}
 		else if ( joint is HingeJoint hingeJoint )
+		{
 			hingeJoint.Motor = HingeJoint.MotorMode.Disabled;
+			hingeJoint.Frequency = 0f;
+		}
+
 
 		EnabledMode.OnExit( ragdoll, body );
 	}

@@ -111,7 +111,6 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	protected override void OnStart()
 	{
 		base.OnStart();
-
 		Assert.NotNull( Renderer, "Ragdoll's renderer can't be null" );
 		Assert.NotNull( Model, "Ragdoll's model can't be null" );
 
