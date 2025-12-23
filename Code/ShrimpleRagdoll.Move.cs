@@ -110,16 +110,7 @@ public partial class ShrimpleRagdoll
 		if ( !Renderer.TryGetBoneTransformAnimation( bone, out var transform ) )
 			return;
 
-		var renderBoneVelocity = Renderer.GetBoneVelocity( bone.Index );
-		var boneObject = BoneObjects[bone];
-
-		var component = boneObject.GetComponent<Rigidbody>();
-		if ( component.IsValid() )
-		{
-			component.WorldTransform = transform;
-			component.Velocity = renderBoneVelocity.Linear;
-			component.AngularVelocity = renderBoneVelocity.Angular;
-		}
+		BoneObjects[bone].WorldTransform = transform;
 	}
 
 	/// <summary>
