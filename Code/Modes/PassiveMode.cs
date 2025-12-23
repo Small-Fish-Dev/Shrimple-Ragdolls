@@ -11,7 +11,7 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 		body.EnableColliders();
 		body.EnableRigidbody();
 		body.Component?.MotionEnabled = false;
-		body.EnableParentJoint();
+		body.DisableParentJoint();
 
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false );
