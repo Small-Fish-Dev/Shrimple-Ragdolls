@@ -484,6 +484,12 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		EnableBodies();
 		EnableJoints();
 
+		foreach ( var body in Bodies )
+		{
+			var handler = GetBodyModeHandler( body.Value );
+			handler.OnEnter?.Invoke( this, body.Value );
+		}
+
 		bool hasStatueMode = false; // TODO: Don't do this! Can probably check IsPhysical? But it's false for Statue! So what..?
 		foreach ( var body in Bodies )
 		{
