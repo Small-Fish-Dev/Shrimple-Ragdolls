@@ -29,7 +29,7 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		ragdoll.MoveObjectFromMesh( body.GetBone() );
+		ragdoll.MoveObjectFromAnimation( body.GetBone() );
 	}
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
