@@ -2,7 +2,7 @@
 
 public partial class ShrimpleRagdoll
 {
-	public readonly record struct Joint( Sandbox.Joint Component, Body Body1, Body Body2 );
+	public readonly record struct Joint( Sandbox.Joint Component, PhysicsGroupDescription.Joint description, Body Body1, Body Body2 );
 	public List<Joint> Joints { get; protected set; } = new();
 
 	protected void CreateJoints( PhysicsGroupDescription physics )
@@ -94,7 +94,7 @@ public partial class ShrimpleRagdoll
 				joint.EnableCollision = jointDefinition.EnableCollision;
 				joint.BreakForce = jointDefinition.LinearStrength;
 				joint.BreakTorque = jointDefinition.AngularStrength;
-				Joints.Add( new Joint( joint, body1, body2 ) );
+				Joints.Add( new Joint( joint, jointDefinition, body1, body2 ) );
 			}
 		}
 	}
