@@ -36,6 +36,22 @@ public class ShrimpleMotorModeSettings : ShrimpleModeSettings
 		}
 	} = 1f;
 
+	/// <summary>
+	/// Joint limits are useful to tie bodies together in natural ways when deviating from animations<br />
+	/// But sometimes animators cheat by making joints go beyond their natural limits, which makes our active ragdoll jittery<br />
+	/// Multiply the joint limits by a value to give them more freedom to move
+	/// </summary>
+	[Property, Range( 1f, 2f ), Step( 0.1f )]
+	public float JointLimitsMultiplier
+	{
+		get;
+		set
+		{
+			field = value;
+			ApplyToAllBodiesInMode();
+		}
+	} = 1.5f;
+
 	public override void ApplySettings( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		var joint = body.GetParentJoint()?.Component;
@@ -46,11 +62,15 @@ public class ShrimpleMotorModeSettings : ShrimpleModeSettings
 		{
 			ballJoint.Frequency = Frequency;
 			ballJoint.DampingRatio = DampingRatio;
+			ballJoint.SwingLimit *= JointLimitsMultiplier;
+			ballJoint.TwistLimit *= JointLimitsMultiplier;
 		}
 		else if ( joint is HingeJoint hingeJoint )
 		{
 			hingeJoint.Frequency = Frequency;
 			hingeJoint.DampingRatio = DampingRatio;
+			hingeJoint.MinAngle *= JointLimitsMultiplier;
+			hingeJoint.MaxAngle *= JointLimitsMultiplier;
 		}
 	}
 }
