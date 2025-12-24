@@ -99,6 +99,37 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
+	public void ResetJointSettings( Joint joint )
+	{
+		if ( joint.Component.IsValid() )
+			return;
+
+		var jointDefinition = joint.description;
+
+		if ( joint.Component is Sandbox.HingeJoint hingeJoint )
+		{
+			if ( jointDefinition.EnableTwistLimit )
+			{
+				hingeJoint.MinAngle = jointDefinition.TwistMin;
+				hingeJoint.MaxAngle = jointDefinition.TwistMax;
+			}
+		}
+		else if ( joint.Component is Sandbox.BallJoint ballJoint )
+		{
+			if ( jointDefinition.EnableSwingLimit )
+			{
+				ballJoint.SwingLimitEnabled = true;
+				ballJoint.SwingLimit = new Vector2( jointDefinition.SwingMin, jointDefinition.SwingMax );
+			}
+
+			if ( jointDefinition.EnableTwistLimit )
+			{
+				ballJoint.TwistLimitEnabled = true;
+				ballJoint.TwistLimit = new Vector2( jointDefinition.TwistMin, jointDefinition.TwistMax );
+			}
+		}
+	}
+
 	/// <summary>
 	/// Destroy all joint components and clear the joints list
 	/// </summary>
