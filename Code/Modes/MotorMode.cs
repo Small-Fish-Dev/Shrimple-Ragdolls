@@ -29,15 +29,16 @@ public class MotorMode : IShrimpleRagdollMode<MotorMode>
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		var joint = body.GetParentJoint()?.Component;
-		if ( !joint.IsValid() ) return;
+		var joint = body.GetParentJoint();
+		if ( !joint?.Component.IsValid() ?? false ) return;
 
-		if ( joint is BallJoint ballJoint )
+		ragdoll.ResetJointSettings( joint.Value );
+		if ( joint?.Component is BallJoint ballJoint )
 		{
 			ballJoint.Motor = BallJoint.MotorMode.Disabled;
 			ballJoint.Frequency = 0f;
 		}
-		else if ( joint is HingeJoint hingeJoint )
+		else if ( joint?.Component is HingeJoint hingeJoint )
 		{
 			hingeJoint.Motor = HingeJoint.MotorMode.Disabled;
 			hingeJoint.Frequency = 0f;
