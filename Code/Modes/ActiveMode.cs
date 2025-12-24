@@ -17,7 +17,7 @@ public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 			ragdoll.MakeRendererAbsolute( false ); // Make model not absolute if we're root
 
 		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-		ragdoll.MoveObjectFromMesh( body.GetBone() );
+		ragdoll.MoveBodyFromAnimations( body );
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
