@@ -23,7 +23,10 @@ public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.Component?.Gravity = true;
-		ragdoll.ResetJointSettings( body.GetParentJoint().Value );
+
+		var parentJoint = body.GetParentJoint();
+		if ( parentJoint != null )
+			ragdoll.ResetJointSettings( body.GetParentJoint().Value );
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
 
