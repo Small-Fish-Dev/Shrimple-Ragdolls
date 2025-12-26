@@ -58,20 +58,22 @@ public class ShrimpleActiveModeSettings : ShrimpleModeSettings
 		if ( ForceGravityDisabled )
 			body.Component?.Gravity = false;
 
-		var joint = body.GetParentJoint()?.Component;
-		if ( !joint.IsValid() ) return;
+		ragdoll.LerpTime = LerpTime;
 
-		if ( joint is BallJoint ballJoint )
+		var joint = body.GetParentJoint();
+		if ( joint == null || !joint.Value.Component.IsValid() ) return;
+
+		ragdoll.ResetJointSettings( joint.Value );
+
+		if ( joint.Value.Component is BallJoint ballJoint )
 		{
 			ballJoint.SwingLimit *= JointLimitsMultiplier;
 			ballJoint.TwistLimit *= JointLimitsMultiplier;
 		}
-		else if ( joint is HingeJoint hingeJoint )
+		else if ( joint.Value.Component is HingeJoint hingeJoint )
 		{
 			hingeJoint.MinAngle *= JointLimitsMultiplier;
 			hingeJoint.MaxAngle *= JointLimitsMultiplier;
 		}
-
-		ragdoll.LerpTime = LerpTime;
 	}
 }

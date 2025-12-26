@@ -26,7 +26,7 @@ public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 
 		var parentJoint = body.GetParentJoint();
 		if ( parentJoint != null )
-			ragdoll.ResetJointSettings( body.GetParentJoint().Value );
+			ragdoll.ResetJointSettings( parentJoint.Value );
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
 

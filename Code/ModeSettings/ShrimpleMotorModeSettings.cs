@@ -54,18 +54,19 @@ public class ShrimpleMotorModeSettings : ShrimpleModeSettings
 
 	public override void ApplySettings( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		var joint = body.GetParentJoint()?.Component;
-		if ( !joint.IsValid() )
-			return;
+		var joint = body.GetParentJoint();
+		if ( joint == null || !joint.Value.Component.IsValid() ) return;
 
-		if ( joint is BallJoint ballJoint )
+		ragdoll.ResetJointSettings( joint.Value );
+
+		if ( joint.Value.Component is BallJoint ballJoint )
 		{
 			ballJoint.Frequency = Frequency;
 			ballJoint.DampingRatio = DampingRatio;
 			ballJoint.SwingLimit *= JointLimitsMultiplier;
 			ballJoint.TwistLimit *= JointLimitsMultiplier;
 		}
-		else if ( joint is HingeJoint hingeJoint )
+		else if ( joint.Value.Component is HingeJoint hingeJoint )
 		{
 			hingeJoint.Frequency = Frequency;
 			hingeJoint.DampingRatio = DampingRatio;
