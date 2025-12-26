@@ -26,6 +26,19 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
+	/// Move a single bone's mesh based on its Rigidbody transform
+	/// </summary>
+	public void MoveMeshFromBody( Body body )
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		var worldTransform = Renderer.WorldTransform;
+		var transform = worldTransform.ToLocal( body.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
+		Renderer.SceneModel.SetBoneOverride( body.GetBone().Index, in transform );
+	}
+
+	/// <summary>
 	/// Move the bone's mesh based on their objects transform
 	/// </summary>
 	public void MoveMeshFromObjects()
@@ -125,6 +138,18 @@ public partial class ShrimpleRagdoll
 			return;
 
 		body.Component.SmoothMove( in transform, MathF.Max( LerpTime, Time.Delta ), Time.Delta );
+	}
+
+	/// <summary>
+	/// Physically move all rigidbodies based on their animation transforms
+	/// </summary>
+	public void MoveBodiesFromAnimations()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var body in Bodies.Values )
+			MoveBodyFromAnimations( body );
 	}
 
 	/// <summary>
