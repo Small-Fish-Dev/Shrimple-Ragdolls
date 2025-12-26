@@ -101,7 +101,7 @@ public partial class ShrimpleRagdoll
 
 	public void ResetJointSettings( Joint joint )
 	{
-		if ( joint.Component.IsValid() )
+		if ( !joint.Component.IsValid() )
 			return;
 
 		var jointDefinition = joint.description;
