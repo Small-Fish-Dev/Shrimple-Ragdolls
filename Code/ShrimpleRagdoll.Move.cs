@@ -126,12 +126,6 @@ public partial class ShrimpleRagdoll
 		BoneObjects[bone].WorldTransform = transform;
 	}
 
-	public void MoveObjectsFromAnimations()
-	{
-		foreach ( var boneObject in BoneObjects )
-			MoveObjectFromAnimation( boneObject.Key );
-	}
-
 	/// <summary>
 	/// Physically move the bone's rigidbody based on their animation transforms
 	/// </summary>
@@ -161,14 +155,13 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Move the bone's objects based on their animation transforms
 	/// </summary>
-	protected void MoveObjectsFromAnimations()
+	public void MoveObjectsFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
 		foreach ( var boneObject in BoneObjects )
-			if ( Renderer.TryGetBoneTransformAnimation( boneObject.Key, out var transform ) )
-				boneObject.Value.WorldTransform = transform;
+			MoveObjectFromAnimation( boneObject.Key );
 	}
 
 	/// <summary>
