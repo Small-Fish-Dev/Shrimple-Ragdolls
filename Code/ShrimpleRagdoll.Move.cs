@@ -126,6 +126,12 @@ public partial class ShrimpleRagdoll
 		BoneObjects[bone].WorldTransform = transform;
 	}
 
+	public void MoveObjectsFromAnimations()
+	{
+		foreach ( var boneObject in BoneObjects )
+			MoveObjectFromAnimation( boneObject.Key );
+	}
+
 	/// <summary>
 	/// Physically move the bone's rigidbody based on their animation transforms
 	/// </summary>
