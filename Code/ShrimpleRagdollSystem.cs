@@ -4,7 +4,7 @@ public class ShrimpleRagdollSystem : GameObjectSystem
 {
 	public ShrimpleRagdollSystem( Scene scene ) : base( scene )
 	{
-		Listen( Stage.UpdateBones, 65, UpdateVisuals, "Updating Ragdoll Visuals" );
+		Listen( Stage.UpdateBones, -10, UpdateVisuals, "Updating Ragdoll Visuals" ); // Run before the animation system (0), otherwise it will look jittery when moving a ragdoll's renderer
 		Listen( Stage.PhysicsStep, 65, UpdatePhysics, "Updating Ragdoll Physics" );
 	}
 
