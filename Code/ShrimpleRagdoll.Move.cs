@@ -115,6 +115,32 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
+	/// <summary>
+	/// Physically move the bone's rigidbody based on the mesh transform
+	/// </summary>
+	public void MoveBodyFromMesh( Body body )
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransform( body.GetBone(), out var transform ) )
+			return;
+
+		body.Component.SmoothMove( in transform, MathF.Max( LerpTime, Time.Delta ), Time.Delta );
+	}
+
+	/// <summary>
+	/// Physically move all rigidbodies based on their mesh transforms
+	/// </summary>
+	public void MoveBodiesFromMesh()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var body in Bodies.Values )
+			MoveBodyFromMesh( body );
+	}
+
 	public void MoveObjectFromAnimation( BoneCollection.Bone bone )
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
