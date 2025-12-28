@@ -146,10 +146,12 @@ public partial class ShrimpleRagdoll
 	protected void FinishLerp()
 	{
 		var bodiesToUpdate = LerpTargetBodies ?? Bodies.Keys;
+		var flagToRemove = LerpToAnimationMode == LerpMode.Mesh ? BodyFlags.NoVisualUpdate : BodyFlags.NoPhysicsUpdate;
+
 		foreach ( var boneIndex in bodiesToUpdate )
 		{
 			if ( Bodies.TryGetValue( boneIndex, out var body ) )
-				RemoveBodyFlags( body, BodyFlags.NoVisualUpdate );
+				RemoveBodyFlags( body, flagToRemove );
 		}
 
 		Renderer.ClearPhysicsBones();
@@ -174,11 +176,13 @@ public partial class ShrimpleRagdoll
 		LerpToAnimationTarget = targetMode;
 		LerpToAnimation = MathF.Max( duration, Time.Delta );
 
+		var flagToAdd = mode == LerpMode.Mesh ? BodyFlags.NoVisualUpdate : BodyFlags.NoPhysicsUpdate;
+
 		foreach ( var (boneIndex, transform) in startTransforms )
 		{
 			if ( Bodies.TryGetValue( boneIndex, out var body ) )
 			{
-				AddBodyFlags( body, BodyFlags.NoVisualUpdate );
+				AddBodyFlags( body, flagToAdd );
 				Renderer.SceneModel.SetBoneOverride( boneIndex, transform );
 			}
 		}
