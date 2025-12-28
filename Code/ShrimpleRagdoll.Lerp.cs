@@ -39,12 +39,29 @@ public static class LerpEasingExtensions
 		};
 }
 
+public enum LerpMode
+{
+	/// <summary>
+	/// Lerp the mesh bone overrides to animation transforms
+	/// </summary>
+	Mesh,
+	/// <summary>
+	/// Lerp the GameObjects to animation transforms
+	/// </summary>
+	Objects,
+	/// <summary>
+	/// Lerp the rigidbodies to animation transforms using physics
+	/// </summary>
+	Bodies
+}
+
 public partial class ShrimpleRagdoll
 {
 	public TimeUntil? LerpToAnimation { get; protected set; } = null;
 	public Dictionary<int, Transform> LerpStartTransforms { get; protected set; } = new();
 	public string LerpToAnimationTarget { get; protected set; }
 	public LerpEasing LerpToAnimationEasing { get; protected set; } = LerpEasing.EaseIn;
+	public LerpMode LerpToAnimationMode { get; protected set; } = LerpMode.Mesh;
 	protected HashSet<int> LerpTargetBodies { get; set; } = null;
 	public bool IsLerpingToAnimation => LerpToAnimation != null;
 
@@ -53,6 +70,25 @@ public partial class ShrimpleRagdoll
 		if ( !IsLerpingToAnimation )
 			return;
 
+		switch ( LerpToAnimationMode )
+		{
+			case LerpMode.Mesh:
+				UpdateLerpMeshToAnimation();
+				break;
+			case LerpMode.Objects:
+				UpdateLerpObjectsToAnimation();
+				break;
+			case LerpMode.Bodies:
+				UpdateLerpBodiesToAnimation();
+				break;
+		}
+
+		if ( LerpToAnimation.Value )
+			FinishLerp();
+	}
+
+	protected void UpdateLerpMeshToAnimation()
+	{
 		foreach ( var body in Bodies )
 		{
 			if ( LerpTargetBodies != null && !LerpTargetBodies.Contains( body.Key ) )
@@ -68,9 +104,43 @@ public partial class ShrimpleRagdoll
 			currentTransform = Renderer.WorldTransform.ToLocal( currentTransform );
 			Renderer.SceneModel.SetBoneOverride( body.Key, in currentTransform );
 		}
+	}
 
-		if ( LerpToAnimation.Value )
-			FinishLerp();
+	protected void UpdateLerpObjectsToAnimation()
+	{
+		foreach ( var body in Bodies )
+		{
+			if ( LerpTargetBodies != null && !LerpTargetBodies.Contains( body.Key ) )
+				continue;
+
+			if ( !LerpStartTransforms.TryGetValue( body.Key, out var startTransform ) )
+				continue;
+			if ( !Renderer.TryGetBoneTransformAnimation( body.Value.GetBone(), out var animTransform ) )
+				continue;
+
+			var boneObject = BoneObjects[body.Value.GetBone()];
+			startTransform = Renderer.WorldTransform.ToWorld( startTransform );
+			var currentTransform = startTransform.LerpTo( animTransform, LerpToAnimationEasing.Apply( LerpToAnimation.Value.Fraction ), false );
+			boneObject.WorldTransform = currentTransform;
+		}
+	}
+
+	protected void UpdateLerpBodiesToAnimation()
+	{
+		foreach ( var body in Bodies )
+		{
+			if ( LerpTargetBodies != null && !LerpTargetBodies.Contains( body.Key ) )
+				continue;
+
+			if ( !LerpStartTransforms.TryGetValue( body.Key, out var startTransform ) )
+				continue;
+			if ( !body.Value.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.Value.GetBone(), out var animTransform ) )
+				continue;
+
+			startTransform = Renderer.WorldTransform.ToWorld( startTransform );
+			var currentTransform = startTransform.LerpTo( animTransform, LerpToAnimationEasing.Apply( LerpToAnimation.Value.Fraction ), false );
+			body.Value.Component.SmoothMove( in currentTransform, MathF.Max( LerpTime, Time.Delta ), Time.Delta );
+		}
 	}
 
 	protected void FinishLerp()
@@ -92,7 +162,7 @@ public partial class ShrimpleRagdoll
 		LerpTargetBodies = null;
 	}
 
-	protected void InternalStartLerp( Dictionary<int, Transform> startTransforms, float duration, LerpEasing easing, string targetMode = null, bool lerpingAllBodies = false )
+	protected void InternalStartLerp( Dictionary<int, Transform> startTransforms, float duration, LerpEasing easing, LerpMode mode = LerpMode.Mesh, string targetMode = null, bool lerpingAllBodies = false )
 	{
 		if ( startTransforms == null || startTransforms.Count == 0 )
 			return;
@@ -100,6 +170,7 @@ public partial class ShrimpleRagdoll
 		LerpStartTransforms = startTransforms;
 		LerpTargetBodies = lerpingAllBodies ? null : new HashSet<int>( startTransforms.Keys );
 		LerpToAnimationEasing = easing;
+		LerpToAnimationMode = mode;
 		LerpToAnimationTarget = targetMode;
 		LerpToAnimation = MathF.Max( duration, Time.Delta );
 
@@ -113,40 +184,111 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
-	[Rpc.Broadcast( NetFlags.OwnerOnly )]
-	public void StartLerpToAnimation( float duration, LerpEasing easing = LerpEasing.Ease, string targetMode = "Disabled" )
+	/// <summary>
+	/// Get start transforms for all bodies from their current mesh positions
+	/// </summary>
+	protected Dictionary<int, Transform> GetStartTransformsFromMesh()
 	{
-		if ( IsProxy && !(Network?.Active ?? true) )
-			return;
-
 		var startTransforms = new Dictionary<int, Transform>();
 		foreach ( var body in Bodies )
 		{
 			var renderBonePosition = Renderer.SceneModel.GetBoneWorldTransform( body.Key );
 			startTransforms[body.Key] = Renderer.WorldTransform.ToLocal( renderBonePosition );
 		}
-
-		InternalStartLerp( startTransforms, duration, easing, targetMode, lerpingAllBodies: true );
+		return startTransforms;
 	}
 
-	[Rpc.Broadcast( NetFlags.OwnerOnly )]
-	public void StartLerpBodiesToAnimation( IEnumerable<Body> bodies, float duration, LerpEasing easing = LerpEasing.Ease )
+	/// <summary>
+	/// Get start transforms for specific bodies from their current mesh positions
+	/// </summary>
+	protected Dictionary<int, Transform> GetStartTransformsFromMesh( IEnumerable<Body> bodies )
 	{
-		if ( IsProxy && !(Network?.Active ?? true) )
-			return;
-
 		var startTransforms = new Dictionary<int, Transform>();
 		foreach ( var body in bodies )
 		{
 			var renderBonePosition = Renderer.SceneModel.GetBoneWorldTransform( body.BoneIndex );
 			startTransforms[body.BoneIndex] = Renderer.WorldTransform.ToLocal( renderBonePosition );
 		}
-
-		InternalStartLerp( startTransforms, duration, easing );
+		return startTransforms;
 	}
 
+	/// <summary>
+	/// Lerp the mesh bone overrides to animation transforms
+	/// </summary>
 	[Rpc.Broadcast( NetFlags.OwnerOnly )]
-	public void StartLerpBodiesInRadiusToAnimation( Vector3 worldPosition, float radius, float duration, LerpEasing easing = LerpEasing.Ease )
+	public void StartLerpMeshToAnimation( float duration, LerpEasing easing = LerpEasing.Ease, string targetMode = "Disabled" )
+	{
+		if ( IsProxy && !(Network?.Active ?? true) )
+			return;
+
+		InternalStartLerp( GetStartTransformsFromMesh(), duration, easing, LerpMode.Mesh, targetMode, lerpingAllBodies: true );
+	}
+
+	/// <summary>
+	/// Lerp specific mesh bones to animation transforms
+	/// </summary>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	public void StartLerpMeshToAnimation( IEnumerable<Body> bodies, float duration, LerpEasing easing = LerpEasing.Ease )
+	{
+		if ( IsProxy && !(Network?.Active ?? true) )
+			return;
+
+		InternalStartLerp( GetStartTransformsFromMesh( bodies ), duration, easing, LerpMode.Mesh );
+	}
+
+	/// <summary>
+	/// Lerp the GameObjects to animation transforms
+	/// </summary>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	public void StartLerpObjectsToAnimation( float duration, LerpEasing easing = LerpEasing.Ease, string targetMode = "Disabled" )
+	{
+		if ( IsProxy && !(Network?.Active ?? true) )
+			return;
+
+		InternalStartLerp( GetStartTransformsFromMesh(), duration, easing, LerpMode.Objects, targetMode, lerpingAllBodies: true );
+	}
+
+	/// <summary>
+	/// Lerp specific GameObjects to animation transforms
+	/// </summary>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	public void StartLerpObjectsToAnimation( IEnumerable<Body> bodies, float duration, LerpEasing easing = LerpEasing.Ease )
+	{
+		if ( IsProxy && !(Network?.Active ?? true) )
+			return;
+
+		InternalStartLerp( GetStartTransformsFromMesh( bodies ), duration, easing, LerpMode.Objects );
+	}
+
+	/// <summary>
+	/// Lerp the rigidbodies to animation transforms using physics
+	/// </summary>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	public void StartLerpBodiesToAnimation( float duration, LerpEasing easing = LerpEasing.Ease, string targetMode = "Disabled" )
+	{
+		if ( IsProxy && !(Network?.Active ?? true) )
+			return;
+
+		InternalStartLerp( GetStartTransformsFromMesh(), duration, easing, LerpMode.Bodies, targetMode, lerpingAllBodies: true );
+	}
+
+	/// <summary>
+	/// Lerp specific rigidbodies to animation transforms using physics
+	/// </summary>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	public void StartLerpBodiesToAnimation( IEnumerable<Body> bodies, float duration, LerpEasing easing = LerpEasing.Ease )
+	{
+		if ( IsProxy && !(Network?.Active ?? true) )
+			return;
+
+		InternalStartLerp( GetStartTransformsFromMesh( bodies ), duration, easing, LerpMode.Bodies );
+	}
+
+	/// <summary>
+	/// Lerp bodies in a radius to animation transforms
+	/// </summary>
+	[Rpc.Broadcast( NetFlags.OwnerOnly )]
+	public void StartLerpInRadiusToAnimation( Vector3 worldPosition, float radius, float duration, LerpMode mode = LerpMode.Mesh, LerpEasing easing = LerpEasing.Ease )
 	{
 		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
@@ -158,20 +300,18 @@ public partial class ShrimpleRagdoll
 			.ToList();
 
 		if ( affectedBodies.Count > 0 )
-			StartLerpBodiesToAnimation( affectedBodies, duration, easing );
+			InternalStartLerp( GetStartTransformsFromMesh( affectedBodies ), duration, easing, mode );
 	}
 
+	/// <summary>
+	/// Start lerp from displaced transforms
+	/// </summary>
 	[Rpc.Broadcast( NetFlags.OwnerOnly )]
-	public void StartLerpFromDisplacedTransforms( Dictionary<int, Transform> displacedTransforms, float duration, LerpEasing easing = LerpEasing.Ease )
+	public void StartLerpFromDisplacedTransforms( Dictionary<int, Transform> displacedTransforms, float duration, LerpMode mode = LerpMode.Mesh, LerpEasing easing = LerpEasing.Ease )
 	{
 		if ( IsProxy && !(Network?.Active ?? true) )
 			return;
 
-		InternalStartLerp( displacedTransforms, duration, easing );
-	}
-
-	public void StartSlerpToAnimation( float duration, string targetMode = "Disabled" )
-	{
-		StartLerpToAnimation( duration, LerpEasing.EaseIn, targetMode );
+		InternalStartLerp( displacedTransforms, duration, easing, mode );
 	}
 }

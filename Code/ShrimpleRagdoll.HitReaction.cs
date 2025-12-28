@@ -27,7 +27,7 @@ public partial class ShrimpleRagdoll
 		}
 
 		if ( displacedTransforms.Count > 0 )
-			StartLerpFromDisplacedTransforms( displacedTransforms, duration, easing );
+			StartLerpFromDisplacedTransforms( displacedTransforms, duration, LerpMode.Mesh, easing );
 	}
 
 	/// <summary>
