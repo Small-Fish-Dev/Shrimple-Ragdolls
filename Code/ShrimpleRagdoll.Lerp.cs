@@ -145,19 +145,23 @@ public partial class ShrimpleRagdoll
 
 	protected void FinishLerp()
 	{
-		var bodiesToUpdate = LerpTargetBodies ?? Bodies.Keys;
 		var flagToRemove = LerpToAnimationMode == LerpMode.Mesh ? BodyFlags.NoVisualUpdate : BodyFlags.NoPhysicsUpdate;
 
-		foreach ( var boneIndex in bodiesToUpdate )
+		if ( LerpTargetBodies == null )
 		{
-			if ( Bodies.TryGetValue( boneIndex, out var body ) )
-				RemoveBodyFlags( body, flagToRemove );
+			RemoveAllBodyFlags( flagToRemove );
+			Mode = LerpToAnimationTarget;
+		}
+		else
+		{
+			foreach ( var boneIndex in LerpTargetBodies )
+			{
+				if ( Bodies.TryGetValue( boneIndex, out var body ) )
+					RemoveBodyFlags( body, flagToRemove );
+			}
 		}
 
 		Renderer.ClearPhysicsBones();
-
-		if ( LerpTargetBodies == null )
-			Mode = LerpToAnimationTarget;
 
 		LerpToAnimation = null;
 		LerpStartTransforms.Clear();
@@ -178,12 +182,21 @@ public partial class ShrimpleRagdoll
 
 		var flagToAdd = mode == LerpMode.Mesh ? BodyFlags.NoVisualUpdate : BodyFlags.NoPhysicsUpdate;
 
-		foreach ( var (boneIndex, transform) in startTransforms )
+		if ( lerpingAllBodies )
 		{
-			if ( Bodies.TryGetValue( boneIndex, out var body ) )
-			{
-				AddBodyFlags( body, flagToAdd );
+			AddAllBodyFlags( flagToAdd );
+			foreach ( var (boneIndex, transform) in startTransforms )
 				Renderer.SceneModel.SetBoneOverride( boneIndex, transform );
+		}
+		else
+		{
+			foreach ( var (boneIndex, transform) in startTransforms )
+			{
+				if ( Bodies.TryGetValue( boneIndex, out var body ) )
+				{
+					AddBodyFlags( body, flagToAdd );
+					Renderer.SceneModel.SetBoneOverride( boneIndex, transform );
+				}
 			}
 		}
 	}

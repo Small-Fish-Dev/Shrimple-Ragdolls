@@ -440,6 +440,24 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
+	/// Add flags to all bodies
+	/// </summary>
+	public void AddAllBodyFlags( BodyFlags flags, bool broadcast = true )
+	{
+		foreach ( var body in Bodies.Values )
+			AddBodyFlags( body.BoneIndex, flags, broadcast );
+	}
+
+	/// <summary>
+	/// Remove flags from all bodies
+	/// </summary>
+	public void RemoveAllBodyFlags( BodyFlags flags, bool broadcast = true )
+	{
+		foreach ( var body in Bodies.Values )
+			RemoveBodyFlags( body.BoneIndex, flags, broadcast );
+	}
+
+	/// <summary>
 	/// Check if a body has specific flags
 	/// </summary>
 	public bool HasBodyFlags( Body body, BodyFlags flags ) => HasBodyFlags( body.BoneIndex, flags );
