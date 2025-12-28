@@ -5,8 +5,10 @@ public partial class ShrimpleRagdoll
 	public readonly record struct Joint( Sandbox.Joint Component, PhysicsGroupDescription.Joint description, Body Body1, Body Body2 );
 	public List<Joint> Joints { get; protected set; } = new();
 
-	protected void CreateJoints( PhysicsGroupDescription physics )
+	public void CreateJoints( PhysicsGroupDescription physics )
 	{
+		DestroyJoints();
+
 		foreach ( var jointDefinition in physics.Joints )
 		{
 			var body1 = Bodies.ElementAt( jointDefinition.Body1 ).Value;
@@ -133,7 +135,7 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Destroy all joint components and clear the joints list
 	/// </summary>
-	protected void DestroyJoints()
+	public void DestroyJoints()
 	{
 		if ( Joints == null )
 			return;
@@ -148,7 +150,7 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Disables all joints
 	/// </summary>
-	protected void DisableJoints()
+	public void DisableJoints()
 	{
 		if ( Joints == null )
 			return;
@@ -163,7 +165,7 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Enables all joints
 	/// </summary>
-	protected void EnableJoints()
+	public void EnableJoints()
 	{
 		if ( Joints == null )
 			return;
