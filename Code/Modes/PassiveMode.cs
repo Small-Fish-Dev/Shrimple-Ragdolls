@@ -34,6 +34,7 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
+		ragdoll.MoveMeshFromObject( body );
 	}
 
 	static PassiveMode()
