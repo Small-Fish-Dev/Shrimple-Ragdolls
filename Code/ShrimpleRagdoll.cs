@@ -154,21 +154,17 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( !Active )
 			return;
 
-		if ( IsLerpingToAnimation )
-		{
+		if ( IsLerpingToAnimation && LerpToAnimationMode == LerpMode.Mesh )
 			UpdateLerpAnimations();
-		}
-		else
-		{
-			foreach ( var body in Bodies )
-			{
-				// Skip bodies with NoVisualUpdate flag
-				if ( HasBodyFlags( body.Value, BodyFlags.NoVisualUpdate ) )
-					continue;
 
-				var handler = GetBodyModeHandler( body.Value );
-				handler.VisualUpdate?.Invoke( this, body.Value );
-			}
+		foreach ( var body in Bodies )
+		{
+			// Skip bodies with NoVisualUpdate flag
+			if ( HasBodyFlags( body.Value, BodyFlags.NoVisualUpdate ) )
+				continue;
+
+			var handler = GetBodyModeHandler( body.Value );
+			handler.VisualUpdate?.Invoke( this, body.Value );
 		}
 	}
 
@@ -179,25 +175,21 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 		if ( !IsProxy )
 		{
-			if ( IsLerpingToAnimation )
-			{
-				MoveObjectsFromMesh();
-			}
-			else
-			{
-				foreach ( var body in Bodies )
-				{
-					// Skip bodies with NoPhysicsUpdate flag
-					if ( HasBodyFlags( body.Value, BodyFlags.NoPhysicsUpdate ) )
-						continue;
+			if ( IsLerpingToAnimation && LerpToAnimationMode != LerpMode.Mesh )
+				UpdateLerpAnimations();
 
-					var handler = GetBodyModeHandler( body.Value );
-					handler.PhysicsUpdate?.Invoke( this, body.Value );
-				}
+			foreach ( var body in Bodies )
+			{
+				// Skip bodies with NoPhysicsUpdate flag
+				if ( HasBodyFlags( body.Value, BodyFlags.NoPhysicsUpdate ) )
+					continue;
 
-				if ( Mode != ShrimpleRagdollMode.Disabled )
-					MoveGameObject();
+				var handler = GetBodyModeHandler( body.Value );
+				handler.PhysicsUpdate?.Invoke( this, body.Value );
 			}
+
+			if ( Mode != ShrimpleRagdollMode.Disabled )
+				MoveGameObject();
 		}
 	}
 
