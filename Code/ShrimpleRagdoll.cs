@@ -392,6 +392,14 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( !ShrimpleRagdollModeRegistry.TryGet( newMode ?? "Disabled", out var newHandler ) )
 			return;
 
+		// Save velocities before mode transition to prevent velocity spikes
+		var savedVelocities = new Dictionary<int, (Vector3 Linear, Vector3 Angular)>();
+		foreach ( var body in Bodies )
+		{
+			if ( body.Value.Component.IsValid() )
+				savedVelocities[body.Key] = (body.Value.Component.Velocity, body.Value.Component.AngularVelocity);
+		}
+
 		// Exit all bodies from their current modes
 		foreach ( var body in Bodies )
 		{
@@ -420,6 +428,16 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 			// Apply mode settings if available
 			ApplyModeSettings( kvp.Value, newMode );
+		}
+
+		// Restore velocities after mode transition
+		foreach ( var (boneIndex, velocity) in savedVelocities )
+		{
+			if ( Bodies.TryGetValue( boneIndex, out var body ) && body.Component.IsValid() )
+			{
+				body.Component.Velocity = velocity.Linear;
+				body.Component.AngularVelocity = velocity.Angular;
+			}
 		}
 
 		// Re-apply body mode overrides after setting global mode
