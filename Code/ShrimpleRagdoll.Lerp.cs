@@ -168,6 +168,34 @@ public partial class ShrimpleRagdoll
 		LerpTargetBodies = null;
 	}
 
+	/// <summary>
+	/// Stop the current lerp without applying the target mode
+	/// </summary>
+	public void StopLerp()
+	{
+		if ( !IsLerpingToAnimation )
+			return;
+
+		var flagToRemove = LerpToAnimationMode == LerpMode.Mesh ? BodyFlags.NoVisualUpdate : BodyFlags.NoPhysicsUpdate;
+
+		if ( LerpTargetBodies == null )
+			RemoveAllBodyFlags( flagToRemove );
+		else
+		{
+			foreach ( var boneIndex in LerpTargetBodies )
+			{
+				if ( Bodies.TryGetValue( boneIndex, out var body ) )
+					RemoveBodyFlags( body, flagToRemove );
+			}
+		}
+
+		Renderer.ClearPhysicsBones();
+
+		LerpToAnimation = null;
+		LerpStartTransforms.Clear();
+		LerpTargetBodies = null;
+	}
+
 	protected void InternalStartLerp( Dictionary<int, Transform> startTransforms, float duration, LerpEasing easing, LerpMode mode = LerpMode.Mesh, string targetMode = null, bool lerpingAllBodies = false )
 	{
 		if ( startTransforms == null || startTransforms.Count == 0 )

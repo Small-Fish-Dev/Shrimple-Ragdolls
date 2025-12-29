@@ -384,6 +384,9 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( !ShrimpleRagdollModeRegistry.TryGet( newMode ?? "Disabled", out var newHandler ) )
 			return;
 
+		// Stop any active lerp to prevent it from interfering with the new mode
+		StopLerp();
+
 		// Save velocities before mode transition to prevent velocity spikes
 		var savedVelocities = new Dictionary<int, (Vector3 Linear, Vector3 Angular)>();
 		foreach ( var body in Bodies )
