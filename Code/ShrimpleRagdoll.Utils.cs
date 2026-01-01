@@ -3,39 +3,21 @@
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// Returns the local center of mass of every <see cref="Rigidbody"/>
+	/// Calculate the center of mass of the ragdoll in world space based on its bodies' masses and masscenters
 	/// </summary>
-	public Vector3 MassCenter
-	{
-		get
-		{
-			var mass = 0.0f;
-			var center = Vector3.Zero;
-
-			foreach ( var body in Bodies.Values )
-			{
-				var rb = body.Component;
-				if ( !rb.IsValid() ) continue;
-
-				mass += rb.Mass;
-				center += rb.Mass * rb.MassCenter;
-			}
-
-			return mass > 0.0f ? center / mass : Vector3.Zero;
-		}
-	}
+	public Vector3 MassCenter => GetMassCenter();
 
 	/// <summary>
-	/// Calculate the center of mass of the ragdoll based on its bodies' masses and masscenters
+	/// Calculate the center of mass of the ragdoll in world space based on its bodies' masses and masscenters
 	/// </summary>
-	/// <returns></returns>
+	/// <returns>World position of the combined center of mass</returns>
 	public Vector3 GetMassCenter()
 	{
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			return rigidbody.MassCenter;
+			return rigidbody.WorldTransform.PointToWorld( rigidbody.MassCenter );
 
-		var masses = 0f;
-		var centers = Vector3.Zero;
+		var totalMass = 0f;
+		var weightedCenter = Vector3.Zero;
 
 		foreach ( var body in Bodies.Values )
 		{
@@ -43,14 +25,15 @@ public partial class ShrimpleRagdoll
 				continue;
 
 			var mass = body.Component.PhysicsBody.Mass;
-			centers += body.Component.MassCenter * mass;
-			masses += mass;
+			var worldMassCenter = body.Component.WorldTransform.PointToWorld( body.Component.MassCenter );
+			weightedCenter += worldMassCenter * mass;
+			totalMass += mass;
 		}
 
-		if ( masses <= 0f )
-			return Vector3.Zero;
+		if ( totalMass <= 0f )
+			return Renderer.IsValid() ? Renderer.WorldPosition : Vector3.Zero;
 
-		return centers / masses;
+		return weightedCenter / totalMass;
 	}
 
 	/// <summary>
@@ -103,14 +86,14 @@ public partial class ShrimpleRagdoll
 		var angularVelocity = spinAxis * spinSpeed;
 		var massCenter = GetMassCenter();
 
-		var rotationCenter = Renderer.TryGetBoneTransform( "pelvis", out var trasform ) ? trasform.Position : massCenter;
-		var centerLinearVelocity = Vector3.Cross( angularVelocity, (massCenter - rotationCenter) );
-
 		foreach ( var body in Bodies?.Values )
 		{
-			var bodyVelocity = centerLinearVelocity + Vector3.Cross( angularVelocity, body.Component.WorldPosition - massCenter );
-			body.Component?.Velocity += bodyVelocity;
-			body.Component?.AngularVelocity += angularVelocity;
+			if ( !body.Component.IsValid() )
+				continue;
+
+			var bodyVelocity = Vector3.Cross( angularVelocity, body.Component.WorldPosition - massCenter );
+			body.Component.Velocity += bodyVelocity;
+			body.Component.AngularVelocity += angularVelocity;
 		}
 
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
