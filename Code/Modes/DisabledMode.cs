@@ -15,7 +15,7 @@ public class DisabledMode : IShrimpleRagdollMode<DisabledMode>
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false ); // Remove absolute from model if we're root
 
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Bone );
 		ragdoll.Renderer.SceneModel.ClearBoneOverrides(); // TODO: Make this only ClearBoneOverride( boneIndex ) once feature request gets accepted
 	}
 

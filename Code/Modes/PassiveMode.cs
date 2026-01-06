@@ -16,7 +16,7 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false );
 
-		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.Bone | GameObjectFlags.PhysicsBone );
 		ragdoll.MoveObjectFromMesh( body.GetBone() );
 		ragdoll.Renderer.ClearPhysicsBones(); // TODO: Clear only this bone when we have ClearPhysicsBone()
 	}
@@ -24,7 +24,6 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		body.Component?.MotionEnabled = true;
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

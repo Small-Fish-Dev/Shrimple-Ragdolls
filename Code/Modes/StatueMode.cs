@@ -24,16 +24,14 @@ public class StatueMode : IShrimpleRagdollMode<StatueMode>
 
 		ragdoll.MoveObjectFromMesh( body.GetBone() );
 		ragdoll.MoveMeshFromObject( body );
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Bone | GameObjectFlags.ProceduralBone );
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		if ( body.IsRootBone )
-		{
-			ragdoll.MakeRendererAbsolute( false );
 			ragdoll.Renderer.GetComponent<Rigidbody>( true )?.Enabled = false;
-		}
+
 		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.ProceduralBone );
 	}
 

@@ -15,15 +15,12 @@ public class EnabledMode : IShrimpleRagdollMode<EnabledMode>
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( true ); // Make model absolute if we're root
 
-		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.Bone | GameObjectFlags.PhysicsBone );
 		ragdoll.MoveObjectFromMesh( body.GetBone() );
 	}
 
 	public static void OnExit( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		if ( body.IsRootBone )
-			ragdoll.MakeRendererAbsolute( false ); // Remove absolute from model if we're root
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

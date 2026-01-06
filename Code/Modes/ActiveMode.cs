@@ -16,7 +16,7 @@ public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false ); // Make model not absolute if we're root
 
-		ragdoll.AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
+		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.Bone | GameObjectFlags.PhysicsBone );
 		ragdoll.MoveBodyFromAnimations( body );
 	}
 
@@ -27,7 +27,6 @@ public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 		var parentJoint = body.GetParentJoint();
 		if ( parentJoint != null )
 			ragdoll.ResetJointSettings( parentJoint.Value );
-		ragdoll.RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
 	}
 
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )

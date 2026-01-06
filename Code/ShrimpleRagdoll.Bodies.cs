@@ -65,6 +65,25 @@ public partial class ShrimpleRagdoll
 		gameObject.Flags &= ~flags;
 	}
 
+	/// <summary>
+	/// Set flags on a GameObject to match the target flags, adding missing ones and removing extra ones
+	/// </summary>
+	public void SetFlags( GameObject gameObject, GameObjectFlags targetFlags )
+	{
+		if ( !gameObject.IsValid() )
+			return;
+
+		// Flags to add: in target but not in current
+		var flagsToAdd = targetFlags & ~gameObject.Flags;
+		if ( flagsToAdd != 0 )
+			AddFlags( gameObject, flagsToAdd );
+
+		// Flags to remove: in current but not in target
+		var flagsToRemove = gameObject.Flags & ~targetFlags;
+		if ( flagsToRemove != 0 )
+			RemoveFlags( gameObject, flagsToRemove );
+	}
+
 	protected void SetBodyHierarchyReferences()
 	{
 		foreach ( var kvp in Bodies.ToList() )
