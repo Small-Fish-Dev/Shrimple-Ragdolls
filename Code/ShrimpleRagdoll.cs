@@ -75,13 +75,6 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	public bool NetworkRefreshOnChange { get; set; } = true; // TODO: Reimplement
 
 	/// <summary>
-	/// Delay the physics creation by 1 tick so that animations/overrides get picked up<br />
-	/// Useful for keeping poses on scene start and waiting for animation parameters to apply
-	/// </summary>
-	[Property]
-	public bool DelayOnStart { get; set; } = true;
-
-	/// <summary>
 	/// Calculate the distance between bodies on create for the joints instead of using the predefined frames<br />
 	/// Useful for animgraph based height slider so that the ragdolls match the proportions
 	/// </summary>
@@ -115,28 +108,21 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		Assert.NotNull( Model, "Ragdoll's model can't be null" );
 
 		Renderer.CreateBoneObjects = true;
+		Renderer.SceneModel.Update( RealTime.Delta ); // Update animation by 1 frame so the physics aren't added to the bind pose
 
-		Task.RunInThreadAsync( async () =>
+		if ( !IsProxy && (Network?.Active ?? false) )
 		{
-			await Task.MainThread();
+			SetupBodyTransforms();
+			SetupBodyModes();
+			GameObject.NetworkSpawn();
+		}
 
-			if ( DelayOnStart )
-				await Task.DelaySeconds( Time.Delta ); // I'd use Task.FixedUpdate() but it doesn't seem to be long enough for the bones to create?
+		SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
+		CreatePhysics();
+		MoveObjectsFromMesh();
 
-			if ( !IsProxy && (Network?.Active ?? false) )
-			{
-				SetupBodyTransforms();
-				SetupBodyModes();
-				GameObject.NetworkSpawn();
-			}
-
-			SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
-			CreatePhysics();
-			MoveObjectsFromMesh();
-
-			if ( !IsProxy )
-				InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
-		} );
+		if ( !IsProxy )
+			InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
 	}
 
 	protected override void OnUpdate()
