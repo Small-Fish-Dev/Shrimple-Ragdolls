@@ -1,4 +1,4 @@
-﻿namespace ShrimpleRagdolls;
+namespace ShrimpleRagdolls;
 
 [Icon( "sports_gymnastics" )]
 [Description( "Ragdoll with many presets and functionalities" )]
@@ -21,7 +21,6 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	SkinnedModelRenderer _renderer;
 
 	[Property]
-	[Sync]
 	public SkinnedModelRenderer Renderer
 	{
 		get => _renderer;
@@ -35,10 +34,14 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		}
 	}
 
+	/// <summary>
+	/// Internal ModelPhysics component that handles physics creation and networking
+	/// </summary>
+	public ModelPhysics ModelPhysics { get; protected set; }
+
 	public ShrimpleRagdollModeHandlers RagdollHandler { get; protected set; }
 
-	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled; // TODO: WHEN SYNC IS FIXED TURN THIS INTO A FIELD SETTER
-	[Sync]
+	ShrimpleRagdollModeProperty _mode = ShrimpleRagdollMode.Disabled;
 	[Property]
 	public ShrimpleRagdollModeProperty Mode
 	{
@@ -63,29 +66,9 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	public BoneFollowOption FollowOptions { get; set; } = new();
 
 	/// <summary>
-	/// Destroy and build the physics when changing <see cref="Mode"/> instead of just enabling/disabling the components
-	/// </summary>
-	[Property]
-	public bool RebuildPhysicsOnChange { get; set; } = false; // TODO: Reimplement
-
-	/// <summary>
-	/// Call a network refresh on the Renderer's GameObject internally when creating/destroying physics
-	/// </summary>
-	[Property]
-	public bool NetworkRefreshOnChange { get; set; } = true; // TODO: Reimplement
-
-	/// <summary>
-	/// Calculate the distance between bodies on create for the joints instead of using the predefined frames<br />
-	/// Useful for animgraph based height slider so that the ragdolls match the proportions
-	/// </summary>
-	[Property]
-	public bool DynamicJointScale { get; set; } = true;
-
-	/// <summary>
 	/// All the bodies and joints for ragdoll mode were created
 	/// </summary>
-	[Sync]
-	public bool PhysicsWereCreated { get; protected set; } = false;
+	public bool PhysicsWereCreated => ModelPhysics?.PhysicsWereCreated ?? false;
 
 	/// <summary>
 	/// Per-body mode overrides that are applied on start or when physics is created.
@@ -110,16 +93,8 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		Renderer.CreateBoneObjects = true;
 		Renderer.SceneModel.Update( RealTime.Delta ); // Update animation by 1 frame so the physics aren't added to the bind pose
 
-		if ( !IsProxy && (Network?.Active ?? false) )
-		{
-			SetupBodyTransforms();
-			SetupBodyModes();
-			GameObject.NetworkSpawn();
-		}
-
 		SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
-		CreatePhysics();
-		MoveObjectsFromMesh();
+		CreateModelPhysics();
 
 		if ( !IsProxy )
 			InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
@@ -143,14 +118,14 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( IsLerpingToAnimation && LerpToAnimationMode == LerpMode.Mesh )
 			UpdateLerpAnimations();
 
-		foreach ( var body in Bodies )
+		foreach ( var kvp in Bodies )
 		{
 			// Skip bodies with NoVisualUpdate flag
-			if ( HasBodyFlags( body.Value, BodyFlags.NoVisualUpdate ) )
+			if ( HasBodyFlags( kvp.Value, BodyFlags.NoVisualUpdate ) )
 				continue;
 
-			var handler = GetBodyModeHandler( body.Value );
-			handler.VisualUpdate?.Invoke( this, body.Value );
+			var handler = GetBodyModeHandler( kvp.Value );
+			handler.VisualUpdate?.Invoke( this, kvp.Value );
 		}
 	}
 
@@ -164,14 +139,14 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 			if ( IsLerpingToAnimation && LerpToAnimationMode != LerpMode.Mesh )
 				UpdateLerpAnimations();
 
-			foreach ( var body in Bodies )
+			foreach ( var kvp in Bodies )
 			{
 				// Skip bodies with NoPhysicsUpdate flag
-				if ( HasBodyFlags( body.Value, BodyFlags.NoPhysicsUpdate ) )
+				if ( HasBodyFlags( kvp.Value, BodyFlags.NoPhysicsUpdate ) )
 					continue;
 
-				var handler = GetBodyModeHandler( body.Value );
-				handler.PhysicsUpdate?.Invoke( this, body.Value );
+				var handler = GetBodyModeHandler( kvp.Value );
+				handler.PhysicsUpdate?.Invoke( this, kvp.Value );
 			}
 
 			if ( Mode != ShrimpleRagdollMode.Disabled )
@@ -181,48 +156,21 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 	void IScenePhysicsEvents.PostPhysicsStep()
 	{
-		if ( IsProxy ) return;
-
-		if ( Network?.Active ?? false )
-			SetBodyTransforms();
+		// ModelPhysics handles networking
 	}
 
 	void IScenePhysicsEvents.PrePhysicsStep()
 	{
-		if ( !IsProxy ) return;
-
-		if ( Network?.Active ?? false )
-			SetProxyTransforms();
+		// ModelPhysics handles networking
 	}
 
-	protected void CreateBoneObjects( PhysicsGroupDescription physics, bool discardHelpers = true )
-	{
-		if ( !Renderer.IsValid() || !Model.IsValid() )
-			return;
-
-		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
-
-		if ( !discardHelpers )
-			return;
-
-		var partNames = physics.Parts.Select( x => x.BoneName );
-
-		foreach ( var bone in BoneObjects.ToList() )
-		{
-			if ( !bone.Value.Children.Any() && !partNames.Contains( bone.Key.Name ) )
-			{
-				bone.Value.Destroy(); // Remove helper bones we don't need
-				BoneObjects.Remove( bone.Key );
-			}
-		}
-	}
-
-	protected void CreatePhysics()
+	protected void CreateModelPhysics()
 	{
 		if ( !Active || IsProxy )
 			return;
 
-		DestroyPhysics();
+		if ( ModelPhysics.IsValid() )
+			return;
 
 		if ( !Model.IsValid() )
 			return;
@@ -231,23 +179,49 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( physics == null || physics.Parts.Count == 0 )
 			return;
 
-		CreateBoneObjects( physics ); // Maybe we can create these in editor
-		CreateBodies( physics );
-		CreateJoints( physics );
+		// Create ModelPhysics component on the Renderer's GameObject
+		ModelPhysics = Renderer.GameObject.AddComponent<ModelPhysics>();
+		ModelPhysics.Renderer = Renderer;
+		ModelPhysics.Model = Model;
+		ModelPhysics.StartAsleep = StartAsleep;
+		ModelPhysics.RigidbodyFlags = RigidbodyFlags;
+		ModelPhysics.Locking = Locking;
+		ModelPhysics.MotionEnabled = true;
 
-		foreach ( var body in Bodies.Values )
-			body.Component.Enabled = true;
-		foreach ( var joint in Joints )
-			joint.Component.Enabled = true;
+		// Build BoneObjects dictionary from ModelPhysics
+		BuildBoneObjects();
 
-		if ( NetworkRefreshOnChange )
-			Renderer?.Network?.Refresh(); // Only refresh the renderer as that's where we added the bone objects
-
+		// Setup body modes and hierarchy
+		SetupBodyModes();
 		SetupPhysics();
-		PhysicsWereCreated = true;
 
 		// Apply body mode overrides
 		ApplyBodyModeOverrides();
+	}
+
+	protected void BuildBoneObjects()
+	{
+		BoneObjects.Clear();
+
+		if ( !Model.IsValid() )
+			return;
+
+		BoneObjects = Model.CreateBoneObjects( Renderer.GameObject );
+	}
+
+	public void DestroyPhysics()
+	{
+		if ( Renderer.IsValid() )
+			Renderer.ClearPhysicsBones();
+
+		if ( ModelPhysics.IsValid() )
+		{
+			ModelPhysics.Destroy();
+			ModelPhysics = null;
+		}
+
+		BodyModes.Clear();
+		AllBodyFlags.Clear();
 	}
 
 	/// <summary>
@@ -269,21 +243,6 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 			SetBodyModeByName( modeOverride.Bone.Selected, modeOverride.Mode, modeOverride.IncludeChildren );
 		}
-	}
-
-	public void DestroyPhysics()
-	{
-		PhysicsWereCreated = false;
-
-		if ( Renderer.IsValid() )
-			Renderer.ClearPhysicsBones();
-		BodyTransforms.Clear();
-
-		DestroyJoints();
-		DestroyBodies();
-
-		if ( NetworkRefreshOnChange )
-			Renderer?.Network?.Refresh();
 	}
 
 	/// <summary>
@@ -309,16 +268,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( !ShrimpleRagdollModeRegistry.TryGet( modeName, out var newHandler ) )
 			return;
 
-		// Update the mode in the dictionary first
-		if ( !IsProxy && (Network?.Active ?? false) )
-		{
-			BodyModes.Remove( boneIndex );
-			BodyModes.Add( boneIndex, modeName );
-		}
-		else
-		{
-			BodyModes[boneIndex] = modeName;
-		}
+		BodyModes[boneIndex] = modeName;
 
 		// If physics is created, apply the mode immediately
 		if ( PhysicsWereCreated && Bodies.TryGetValue( boneIndex, out var body ) )
@@ -375,17 +325,17 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 		// Save velocities before mode transition to prevent velocity spikes
 		var savedVelocities = new Dictionary<int, (Vector3 Linear, Vector3 Angular)>();
-		foreach ( var body in Bodies )
+		foreach ( var kvp in Bodies )
 		{
-			if ( body.Value.Component.IsValid() )
-				savedVelocities[body.Key] = (body.Value.Component.Velocity, body.Value.Component.AngularVelocity);
+			if ( kvp.Value.Component.IsValid() )
+				savedVelocities[kvp.Key] = (kvp.Value.Component.Velocity, kvp.Value.Component.AngularVelocity);
 		}
 
 		// Exit all bodies from their current modes
-		foreach ( var body in Bodies )
+		foreach ( var kvp in Bodies )
 		{
-			var oldHandler = GetBodyModeHandler( body.Value );
-			oldHandler.OnExit?.Invoke( this, body.Value );
+			var oldHandler = GetBodyModeHandler( kvp.Value );
+			oldHandler.OnExit?.Invoke( this, kvp.Value );
 		}
 
 		RagdollHandler = newHandler;
@@ -393,16 +343,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		// Set all bodies to the new mode
 		foreach ( var kvp in Bodies.ToList() )
 		{
-			// Update network dict
-			if ( !IsProxy && (Network?.Active ?? false) )
-			{
-				BodyModes.Remove( kvp.Key );
-				BodyModes.Add( kvp.Key, newMode );
-			}
-			else
-			{
-				BodyModes[kvp.Key] = newMode;
-			}
+			BodyModes[kvp.Key] = newMode;
 
 			// Enter new mode
 			newHandler.OnEnter?.Invoke( this, kvp.Value );
@@ -468,8 +409,8 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 	public void DisablePhysics()
 	{
-		DisableBodies();
-		DisableJoints();
+		if ( ModelPhysics.IsValid() )
+			ModelPhysics.Enabled = false;
 
 		Renderer?.ClearPhysicsBones();
 	}
@@ -480,19 +421,20 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 			return;
 
 		MoveGameObject();
-		EnableBodies();
-		EnableJoints();
 
-		foreach ( var body in Bodies )
+		if ( ModelPhysics.IsValid() )
+			ModelPhysics.Enabled = true;
+
+		foreach ( var kvp in Bodies )
 		{
-			var handler = GetBodyModeHandler( body.Value );
-			handler.OnEnter?.Invoke( this, body.Value );
+			var handler = GetBodyModeHandler( kvp.Value );
+			handler.OnEnter?.Invoke( this, kvp.Value );
 		}
 
-		bool hasStatueMode = false; // TODO: Don't do this! Can probably check IsPhysical? But it's false for Statue! So what..?
-		foreach ( var body in Bodies )
+		bool hasStatueMode = false;
+		foreach ( var kvp in Bodies )
 		{
-			if ( BodyModes.TryGetValue( body.Key, out var modeName ) && modeName == ShrimpleRagdollMode.Statue )
+			if ( BodyModes.TryGetValue( kvp.Key, out var modeName ) && modeName == ShrimpleRagdollMode.Statue )
 			{
 				hasStatueMode = true;
 				break;
@@ -522,6 +464,6 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( !Game.IsEditor || Game.IsPlaying && !Gizmo.IsSelected )
 			return;
 
-		SetupBoneLists(); // TODO: This has to be inside of OnValidate(), but OnValidate() still hasn't been fixed sooo....
+		SetupBoneLists();
 	}
 }

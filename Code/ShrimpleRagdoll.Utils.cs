@@ -66,8 +66,9 @@ public partial class ShrimpleRagdoll
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies?.Values )
-			body.Component?.Velocity += velocity;
+		foreach ( var body in Bodies.Values )
+			if ( body.Component.IsValid() )
+				body.Component.Velocity += velocity;
 
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.Velocity += velocity;
@@ -86,7 +87,7 @@ public partial class ShrimpleRagdoll
 		var angularVelocity = spinAxis * spinSpeed;
 		var massCenter = GetMassCenter();
 
-		foreach ( var body in Bodies?.Values )
+		foreach ( var body in Bodies.Values )
 		{
 			if ( !body.Component.IsValid() )
 				continue;
@@ -100,6 +101,9 @@ public partial class ShrimpleRagdoll
 			rigidbody.AngularVelocity += angularVelocity;
 	}
 
+	/// <summary>
+	/// Get a body by bone name
+	/// </summary>
 	public Body? GetBodyByBoneName( string boneName )
 	{
 		if ( !Renderer.IsValid() || !Renderer.Model.IsValid() )
@@ -114,6 +118,9 @@ public partial class ShrimpleRagdoll
 		return null;
 	}
 
+	/// <summary>
+	/// Get a body by bone index
+	/// </summary>
 	public Body? GetBodyByBoneIndex( int boneIndex )
 	{
 		if ( Bodies.TryGetValue( boneIndex, out var body ) )
@@ -121,6 +128,9 @@ public partial class ShrimpleRagdoll
 		return null;
 	}
 
+	/// <summary>
+	/// Get a body by bone
+	/// </summary>
 	public Body? GetBodyByBone( BoneCollection.Bone bone )
 	{
 		if ( bone == null )
@@ -151,7 +161,7 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Finds the nearest descendant bone that is associated with a valid body
 	/// </summary>
-	/// <returns>The nearest valid childn body associated with the specified bone, or null if no such body is found.</returns>
+	/// <returns>The nearest valid child body associated with the specified bone, or null if no such body is found.</returns>
 	public Body? GetNearestValidChildBody( BoneCollection.Bone bone )
 	{
 		if ( bone == null )

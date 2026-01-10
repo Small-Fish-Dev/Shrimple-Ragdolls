@@ -16,7 +16,7 @@ public class ActiveMode : IShrimpleRagdollMode<ActiveMode>
 		if ( body.IsRootBone )
 			ragdoll.MakeRendererAbsolute( false ); // Make model not absolute if we're root
 
-		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.Bone | GameObjectFlags.PhysicsBone );
+		ragdoll.SetFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.Bone );
 		ragdoll.MoveBodyFromAnimations( body );
 	}
 

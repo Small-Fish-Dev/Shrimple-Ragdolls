@@ -1,38 +1,279 @@
-﻿namespace ShrimpleRagdolls;
+namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
-	[Sync]
-	public NetDictionary<int, Body> Bodies { get; protected set; } = new();
-
-	[Sync]
-	public NetDictionary<int, string> BodyModes { get; protected set; } = new();
-
-	public Dictionary<int, BodyFlags> AllBodyFlags { get; protected set; } = new();
-
-	protected void CreateBodies( PhysicsGroupDescription physics )
+	/// <summary>
+	/// Wrapper struct for ModelPhysics.Body that provides convenient access methods
+	/// </summary>
+	public readonly record struct Body
 	{
-		if ( !Renderer.IsValid() )
-			return;
+		private readonly ShrimpleRagdoll _ragdoll;
+		private readonly ModelPhysics.Body _body;
 
-		foreach ( var part in physics.Parts )
-			CreateBody( part );
+		public Body( ShrimpleRagdoll ragdoll, ModelPhysics.Body body )
+		{
+			_ragdoll = ragdoll;
+			_body = body;
+		}
 
-		SetBodyHierarchyReferences();
+		/// <summary>
+		/// The underlying Rigidbody component
+		/// </summary>
+		public Rigidbody Component => _body.Component;
+
+		/// <summary>
+		/// The bone index this body is associated with
+		/// </summary>
+		public int BoneIndex => _body.Bone;
+
+		/// <summary>
+		/// The local transform of the body relative to the bone
+		/// </summary>
+		public Transform LocalTransform => _body.LocalTransform;
+
+		/// <summary>
+		/// The GameObject containing this body's rigidbody
+		/// </summary>
+		public GameObject GameObject => _body.Component?.GameObject;
+
+		/// <summary>
+		/// Get the bone associated with this body
+		/// </summary>
+		public BoneCollection.Bone GetBone() => _ragdoll.GetBone( BoneIndex );
+
+		/// <summary>
+		/// Check if this body is the root bone (has no parent joint)
+		/// </summary>
+		public bool IsRootBone => GetParentJoint() == null;
+
+		/// <summary>
+		/// Get the parent body via joint (Body1 of the joint where this body is Body2)
+		/// </summary>
+		public Body? GetParent() => _ragdoll.GetParentBody( this );
+
+		/// <summary>
+		/// Get children bodies via joints (bodies that have this body as Body1 in their joint)
+		/// </summary>
+		public IEnumerable<Body> GetChildren() => _ragdoll.GetChildrenBodies( this );
+
+		/// <summary>
+		/// Get this body and all its descendants recursively
+		/// </summary>
+		public IEnumerable<Body> GetHierarchy()
+		{
+			yield return this;
+
+			foreach ( var child in GetChildren() )
+				foreach ( var descendant in child.GetHierarchy() )
+					yield return descendant;
+		}
+
+		/// <summary>
+		/// Get the parent joint for this body (joint where this body is Body2)
+		/// </summary>
+		public ModelPhysics.Joint? GetParentJoint() => _ragdoll.GetParentJoint( this );
+
+		/// <summary>
+		/// Enable colliders for this body
+		/// </summary>
+		public void EnableColliders()
+		{
+			var go = GameObject;
+			if ( !go.IsValid() )
+				return;
+
+			foreach ( var collider in go.GetComponents<Collider>() )
+				if ( collider.IsValid() )
+					collider.Enabled = true;
+		}
+
+		/// <summary>
+		/// Disable colliders for this body
+		/// </summary>
+		public void DisableColliders()
+		{
+			var go = GameObject;
+			if ( !go.IsValid() )
+				return;
+
+			foreach ( var collider in go.GetComponents<Collider>() )
+				if ( collider.IsValid() )
+					collider.Enabled = false;
+		}
+
+		/// <summary>
+		/// Enable the rigidbody component
+		/// </summary>
+		public void EnableRigidbody()
+		{
+			if ( Component.IsValid() )
+				Component.Enabled = true;
+		}
+
+		/// <summary>
+		/// Disable the rigidbody component
+		/// </summary>
+		public void DisableRigidbody()
+		{
+			if ( Component.IsValid() )
+				Component.Enabled = false;
+		}
+
+		/// <summary>
+		/// Enable the parent joint for this body
+		/// </summary>
+		public void EnableParentJoint()
+		{
+			var parent = GetParent();
+			if ( parent == null )
+				return;
+
+			if ( !(parent.Value.Component?.Enabled ?? true) )
+				parent.Value.Component.Enabled = true;
+
+			var parentJoint = GetParentJoint();
+			if ( parentJoint?.Component != null )
+				parentJoint.Value.Component.Enabled = true;
+		}
+
+		/// <summary>
+		/// Disable the parent joint for this body
+		/// </summary>
+		public void DisableParentJoint()
+		{
+			var parent = GetParent();
+			if ( parent == null )
+				return;
+
+			if ( !(parent.Value.Component?.Enabled ?? true) && parent.Value.Component.Mass == 0f )
+				parent.Value.Component.Enabled = false;
+
+			var parentJoint = GetParentJoint();
+			if ( parentJoint?.Component != null )
+				parentJoint.Value.Component.Enabled = false;
+		}
+
+		/// <summary>
+		/// Add the PhysicsBone tag to allow ModelPhysics to control the bone override
+		/// </summary>
+		public void AddPhysicsBoneTag()
+		{
+			var go = GameObject;
+			if ( go.IsValid() )
+				_ragdoll.AddFlags( go, GameObjectFlags.PhysicsBone );
+		}
+
+		/// <summary>
+		/// Remove the PhysicsBone tag to control the bone override ourselves
+		/// </summary>
+		public void RemovePhysicsBoneTag()
+		{
+			var go = GameObject;
+			if ( go.IsValid() )
+				_ragdoll.RemoveFlags( go, GameObjectFlags.PhysicsBone );
+		}
+
+		/// <summary>
+		/// Check if this body has the PhysicsBone tag
+		/// </summary>
+		public bool HasPhysicsBoneTag()
+		{
+			var go = GameObject;
+			return go.IsValid() && go.Flags.Contains( GameObjectFlags.PhysicsBone );
+		}
 	}
 
-	protected void CreateBody( PhysicsGroupDescription.BodyPart part )
+	/// <summary>
+	/// Dictionary mapping bone index to Body wrapper
+	/// </summary>
+	public Dictionary<int, Body> Bodies
 	{
-		var bone = Model.Bones.GetBone( part.BoneName );
+		get
+		{
+			var mpBodies = ModelPhysics?.Bodies;
+			if ( _bodiesCache == null || _bodiesCacheVersion != (mpBodies?.Count ?? 0) )
+				RebuildBodiesCache();
+			return _bodiesCache;
+		}
+	}
 
-		if ( !BoneObjects.TryGetValue( bone, out var boneObject ) )
+	private Dictionary<int, Body> _bodiesCache;
+	private int _bodiesCacheVersion = -1;
+
+	/// <summary>
+	/// Per-body mode names
+	/// </summary>
+	public Dictionary<int, string> BodyModes { get; protected set; } = new();
+
+	/// <summary>
+	/// Per-body flags for controlling updates
+	/// </summary>
+	public Dictionary<int, BodyFlags> AllBodyFlags { get; protected set; } = new();
+
+	protected void RebuildBodiesCache()
+	{
+		_bodiesCache = new Dictionary<int, Body>();
+
+		var mpBodies = ModelPhysics?.Bodies;
+		if ( mpBodies == null )
 			return;
 
-		AddFlags( boneObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-		var rigidbody = boneObject.AddComponent<Rigidbody>( startEnabled: false );
-		var colliders = AddColliders( boneObject, part ).ToList();
+		foreach ( var mpBody in mpBodies )
+			_bodiesCache[mpBody.Bone] = new Body( this, mpBody );
 
-		Bodies.Add( bone.Index, new Body( this, rigidbody, boneObject, bone.Index, colliders ) );
+		_bodiesCacheVersion = mpBodies.Count;
+	}
+
+	/// <summary>
+	/// Get the parent joint for a body (joint where this body is Body2)
+	/// </summary>
+	public ModelPhysics.Joint? GetParentJoint( Body body )
+	{
+		if ( Joints == null )
+			return null;
+
+		foreach ( var joint in Joints )
+		{
+			if ( joint.Body2.Bone == body.BoneIndex )
+				return joint;
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Get the parent body via joint (Body1 of the joint where this body is Body2)
+	/// </summary>
+	public Body? GetParentBody( Body body )
+	{
+		var parentJoint = GetParentJoint( body );
+		if ( parentJoint == null )
+			return null;
+
+		var parentBoneIndex = parentJoint.Value.Body1.Bone;
+		if ( Bodies.TryGetValue( parentBoneIndex, out var parentBody ) )
+			return parentBody;
+
+		return null;
+	}
+
+	/// <summary>
+	/// Get children bodies via joints (bodies that have this body as Body1 in their joint)
+	/// </summary>
+	public IEnumerable<Body> GetChildrenBodies( Body body )
+	{
+		if ( Joints == null )
+			yield break;
+
+		foreach ( var joint in Joints )
+		{
+			if ( joint.Body1.Bone == body.BoneIndex )
+			{
+				var childBoneIndex = joint.Body2.Bone;
+				if ( Bodies.TryGetValue( childBoneIndex, out var childBody ) )
+					yield return childBody;
+			}
+		}
 	}
 
 	public void AddFlags( GameObject gameObject, GameObjectFlags flags )
@@ -84,61 +325,6 @@ public partial class ShrimpleRagdoll
 			RemoveFlags( gameObject, flagsToRemove );
 	}
 
-	protected void SetBodyHierarchyReferences()
-	{
-		foreach ( var kvp in Bodies.ToList() )
-		{
-			var validParentBone = GetNearestValidParentBody( kvp.Value.GetBone()?.Parent );
-			if ( validParentBone == null )
-				continue;
-			var newBody = kvp.Value.WithParent( validParentBone.Value.GetBone() );
-			var children = kvp.Value.GetBone().Children;
-			if ( children != null && children.Count() > 0 )
-			{
-				var childrenBodies = new List<BoneCollection.Bone>();
-				foreach ( var childBone in children )
-				{
-					var childBody = GetNearestValidChildBody( childBone );
-					if ( childBody != null )
-						childrenBodies.Add( childBody.Value.GetBone() );
-				}
-				newBody = newBody.WithChildren( childrenBodies );
-			}
-
-			Bodies.Remove( kvp.Key );
-			Bodies.Add( kvp.Key, newBody );
-		}
-	}
-
-	protected IEnumerable<Collider> AddColliders( GameObject parent, PhysicsGroupDescription.BodyPart part )
-	{
-		foreach ( var sphere in part.Spheres )
-		{
-			var sphereCollider = parent.AddComponent<SphereCollider>();
-			sphereCollider.Center = sphere.Sphere.Center;
-			sphereCollider.Radius = sphere.Sphere.Radius;
-			sphereCollider.Surface = sphere.Surface;
-			yield return sphereCollider;
-		}
-		foreach ( var capsule in part.Capsules )
-		{
-			var capsuleCollider = parent.AddComponent<CapsuleCollider>();
-			capsuleCollider.Start = capsule.Capsule.CenterA;
-			capsuleCollider.End = capsule.Capsule.CenterB;
-			capsuleCollider.Radius = capsule.Capsule.Radius;
-			capsuleCollider.Surface = capsule.Surface;
-			yield return capsuleCollider;
-		}
-		foreach ( var hull in part.Hulls )
-		{
-			var hullCollider = parent.AddComponent<HullCollider>();
-			hullCollider.Type = HullCollider.PrimitiveType.Points;
-			hullCollider.Points = hull.GetPoints().ToList();
-			hullCollider.Surface = hull.Surface;
-			yield return hullCollider;
-		}
-	}
-
 	protected void SetupBodyModes()
 	{
 		if ( IsProxy )
@@ -148,98 +334,32 @@ public partial class ShrimpleRagdoll
 		AllBodyFlags.Clear();
 
 		var modeName = string.IsNullOrEmpty( Mode.Name ) ? ShrimpleRagdollMode.Disabled : Mode.Name;
-		foreach ( var body in Bodies )
-		{
-			BodyModes.Add( body.Key, modeName );
-			AllBodyFlags.Add( body.Key, BodyFlags.None );
-		}
-	}
 
-	protected void DestroyBodies()
-	{
 		if ( Bodies == null )
 			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var kvp in Bodies )
 		{
-			foreach ( var collider in body.Colliders )
-				if ( collider.IsValid() )
-					collider.Destroy();
-
-			RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-			body.Component.Destroy();
-		}
-
-		Bodies.Clear();
-	}
-
-	protected void DisableBodies()
-	{
-		if ( Bodies == null )
-			return;
-
-		foreach ( var body in Bodies.Values )
-		{
-			foreach ( var collider in body.Colliders )
-				if ( collider.IsValid() )
-					collider.Enabled = false;
-
-			RemoveFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-			body.Component.Enabled = false;
+			BodyModes[kvp.Key] = modeName;
+			AllBodyFlags[kvp.Key] = BodyFlags.None;
 		}
 	}
 
-	protected void EnableBodies()
+	// Body helper methods
+
+	/// <summary>
+	/// Get the bone by index
+	/// </summary>
+	public BoneCollection.Bone GetBone( int boneIndex )
 	{
-		if ( Bodies == null )
-			return;
-
-		foreach ( var body in Bodies.Values )
-		{
-			foreach ( var collider in body.Colliders )
-				if ( collider.IsValid() )
-					collider.Enabled = true;
-
-			AddFlags( body.GameObject, GameObjectFlags.Absolute | GameObjectFlags.PhysicsBone );
-			body.Component.Enabled = true;
-		}
-	}
-
-	public Body? GetParentBody( Body body )
-	{
-		var parentBone = body.GetParentBone();
-		if ( parentBone == null )
+		if ( boneIndex < 0 || Model?.Bones?.AllBones == null || boneIndex >= Model.Bones.AllBones.Count() )
 			return null;
-
-		return GetNearestValidParentBody( parentBone );
+		return Model.Bones.AllBones[boneIndex];
 	}
 
-	public IEnumerable<Body> GetChildrenBodies( Body body )
-	{
-		var childrenBones = body.GetChildrenBones();
-
-		if ( childrenBones != null )
-		{
-			foreach ( var childBone in childrenBones )
-			{
-				var childBody = GetNearestValidChildBody( childBone );
-				if ( childBody != null )
-					yield return childBody.Value;
-			}
-		}
-	}
-
-	public Joint? GetParentJoint( Body body )
-	{
-		foreach ( var joint in Joints )
-		{
-			if ( joint.Body2 == body )
-				return joint;
-		}
-
-		return null;
-	}
-
+	/// <summary>
+	/// Get the mode handler for a body
+	/// </summary>
 	public ShrimpleRagdollModeHandlers GetBodyModeHandler( Body body )
 	{
 		if ( BodyModes.TryGetValue( body.BoneIndex, out var modeName ) &&
@@ -252,161 +372,10 @@ public partial class ShrimpleRagdoll
 		return disabledHandler;
 	}
 
-	public struct Body
-	{
-		public ShrimpleRagdoll Ragdoll;
-		public Rigidbody Component;
-		public GameObject GameObject;
-		public int BoneIndex;
-		public List<Collider> Colliders = new();
-		public int ParentIndex;
-		public List<int> ChildIndexes = new();
-		public bool IsValid = false;
-		public bool IsRootBone => ParentIndex == -1;
+	// Body flags methods
 
-		public Body( ShrimpleRagdoll ragdoll, Rigidbody component, GameObject gameObject, int bone, List<Collider> colliders, int parent = -1, List<int> children = null, bool isValid = true )
-		{
-			Ragdoll = ragdoll;
-			Component = component;
-			GameObject = gameObject;
-			BoneIndex = bone;
-			Colliders = colliders;
-			ParentIndex = parent;
-			ChildIndexes = children;
-			IsValid = isValid;
-		}
-
-		public Body WithColliders( List<Collider> colliders )
-		{
-			return this with { Colliders = colliders };
-		}
-
-		public Body WithComponent( Rigidbody component )
-		{
-			return this with { Component = component };
-		}
-
-		public Body WithGameObject( GameObject gameObject )
-		{
-			return this with { GameObject = gameObject };
-		}
-
-		public Body WithParent( BoneCollection.Bone parent )
-		{
-			return this with { ParentIndex = parent.Index };
-		}
-
-		public Body WithChildren( List<BoneCollection.Bone> children )
-		{
-			return this with { ChildIndexes = children?.Select( x => x.Index ).ToList() };
-		}
-
-		// Convenience methods using the ragdoll reference
-		public BoneCollection.Bone GetBone() => BoneIndex >= 0 && BoneIndex < Ragdoll.Model.Bones.AllBones.Count() ? Ragdoll.Model.Bones.AllBones[BoneIndex] : null;
-		public BoneCollection.Bone GetParentBone() => ParentIndex >= 0 && ParentIndex < Ragdoll.Model.Bones.AllBones.Count() ? Ragdoll.Model.Bones.AllBones[ParentIndex] : null;
-		public List<BoneCollection.Bone> GetChildrenBones()
-		{
-			if ( ChildIndexes == null )
-				return null;
-
-			var ragdoll = Ragdoll; // Copy to local variable to avoid capturing 'this'
-			return ChildIndexes.Select( x => ragdoll.Model.Bones.AllBones[x] ).ToList();
-		}
-
-		public Body? GetParentBody() => Ragdoll.GetParentBody( this );
-		public IEnumerable<Body> GetChildrenBodies() => Ragdoll.GetChildrenBodies( this );
-		public Joint? GetParentJoint() => Ragdoll.GetParentJoint( this );
-		public ShrimpleRagdollModeHandlers GetModeHandler() => Ragdoll.GetBodyModeHandler( this );
-
-		/// <summary>
-		/// Get this body and all its descendants recursively
-		/// </summary>
-		public IEnumerable<Body> GetHierarchy()
-		{
-			yield return this;
-
-			foreach ( var child in GetChildrenBodies() )
-				foreach ( var descendant in child.GetHierarchy() )
-					yield return descendant;
-		}
-
-		public void EnableColliders()
-		{
-			foreach ( var collider in Colliders )
-				if ( collider.IsValid() )
-					collider.Enabled = true;
-		}
-
-		public void DisableColliders()
-		{
-			foreach ( var collider in Colliders )
-				if ( collider.IsValid() )
-					collider.Enabled = false;
-		}
-
-		public void EnableRigidbody()
-		{
-			if ( Component.IsValid() )
-				Component.Enabled = true;
-		}
-
-		public void DisableRigidbody()
-		{
-			if ( Component.IsValid() )
-				Component.Enabled = false;
-		}
-
-		public void EnableParentJoint()
-		{
-			var parent = GetParentBody();
-			if ( parent == null )
-				return;
-
-			if ( !parent.Value.Component?.Enabled ?? false )
-				parent.Value.Component.Enabled = true; // Can't have a null physicsbody and a joint
-			GetParentJoint()?.Component?.Enabled = true;
-		}
-
-		public void DisableParentJoint()
-		{
-			var parent = GetParentBody();
-			if ( parent == null )
-				return;
-
-			if ( !parent.Value.Component?.Enabled ?? false && parent.Value.Component.Mass == 0f ) // Mass 0 means we didn't enable the colliders, so it was just for this joint
-				parent.Value.Component.Enabled = false; // Disable if it was used just for this
-			GetParentJoint()?.Component?.Enabled = false;
-		}
-
-		public static bool operator ==( Body left, Body right )
-		{
-			return left.BoneIndex == right.BoneIndex && left.ParentIndex == right.ParentIndex;
-		}
-
-		public static bool operator !=( Body left, Body right )
-		{
-			return !(left == right);
-		}
-
-		public override bool Equals( object obj )
-		{
-			return obj is Body other && this == other;
-		}
-
-		public override int GetHashCode()
-		{
-			return HashCode.Combine( BoneIndex, ParentIndex );
-		}
-	}
-
-	/// <summary>
-	/// Get the flags for a specific body
-	/// </summary>
 	public BodyFlags GetBodyFlags( Body body ) => GetBodyFlags( body.BoneIndex );
 
-	/// <summary>
-	/// Get the flags for a specific bone index
-	/// </summary>
 	public BodyFlags GetBodyFlags( int boneIndex )
 	{
 		if ( AllBodyFlags.TryGetValue( boneIndex, out var flags ) )
@@ -414,89 +383,53 @@ public partial class ShrimpleRagdoll
 		return BodyFlags.None;
 	}
 
-	/// <summary>
-	/// Set flags for a specific body
-	/// </summary>
-	public void SetBodyFlags( Body body, BodyFlags flags, bool broadcast = true ) => SetBodyFlags( body.BoneIndex, flags, broadcast );
+	public void SetBodyFlags( Body body, BodyFlags flags ) => SetBodyFlags( body.BoneIndex, flags );
 
-	/// <summary>
-	/// Set flags for a specific bone index
-	/// </summary>
-	public void SetBodyFlags( int boneIndex, BodyFlags flags, bool broadcast = true )
+	public void SetBodyFlags( int boneIndex, BodyFlags flags )
 	{
 		AllBodyFlags[boneIndex] = flags;
-
-		if ( broadcast )
-			BroadcastBodyFlags( boneIndex, flags );
 	}
 
-	/// <summary>
-	/// Add flags to a specific body (combines with existing flags)
-	/// </summary>
-	public void AddBodyFlags( Body body, BodyFlags flags, bool broadcast = true ) => AddBodyFlags( body.BoneIndex, flags, broadcast );
+	public void AddBodyFlags( Body body, BodyFlags flags ) => AddBodyFlags( body.BoneIndex, flags );
 
-	/// <summary>
-	/// Add flags to a specific bone index (combines with existing flags)
-	/// </summary>
-	public void AddBodyFlags( int boneIndex, BodyFlags flags, bool broadcast = true )
+	public void AddBodyFlags( int boneIndex, BodyFlags flags )
 	{
 		var currentFlags = GetBodyFlags( boneIndex );
-		SetBodyFlags( boneIndex, currentFlags | flags, broadcast );
+		SetBodyFlags( boneIndex, currentFlags | flags );
 	}
 
-	/// <summary>
-	/// Remove flags from a specific body
-	/// </summary>
-	public void RemoveBodyFlags( Body body, BodyFlags flags, bool broadcast = true ) => RemoveBodyFlags( body.BoneIndex, flags, broadcast );
+	public void RemoveBodyFlags( Body body, BodyFlags flags ) => RemoveBodyFlags( body.BoneIndex, flags );
 
-	/// <summary>
-	/// Remove flags from a specific bone index
-	/// </summary>
-	public void RemoveBodyFlags( int boneIndex, BodyFlags flags, bool broadcast = true )
+	public void RemoveBodyFlags( int boneIndex, BodyFlags flags )
 	{
 		var currentFlags = GetBodyFlags( boneIndex );
-		SetBodyFlags( boneIndex, currentFlags & ~flags, broadcast );
+		SetBodyFlags( boneIndex, currentFlags & ~flags );
 	}
 
-	/// <summary>
-	/// Add flags to all bodies
-	/// </summary>
-	public void AddAllBodyFlags( BodyFlags flags, bool broadcast = true )
+	public void AddAllBodyFlags( BodyFlags flags )
 	{
-		foreach ( var body in Bodies.Values )
-			AddBodyFlags( body.BoneIndex, flags, broadcast );
+		if ( Bodies == null )
+			return;
+
+		foreach ( var kvp in Bodies )
+			AddBodyFlags( kvp.Key, flags );
 	}
 
-	/// <summary>
-	/// Remove flags from all bodies
-	/// </summary>
-	public void RemoveAllBodyFlags( BodyFlags flags, bool broadcast = true )
+	public void RemoveAllBodyFlags( BodyFlags flags )
 	{
-		foreach ( var body in Bodies.Values )
-			RemoveBodyFlags( body.BoneIndex, flags, broadcast );
+		if ( Bodies == null )
+			return;
+
+		foreach ( var kvp in Bodies )
+			RemoveBodyFlags( kvp.Key, flags );
 	}
 
-	/// <summary>
-	/// Check if a body has specific flags
-	/// </summary>
 	public bool HasBodyFlags( Body body, BodyFlags flags ) => HasBodyFlags( body.BoneIndex, flags );
 
-	/// <summary>
-	/// Check if a bone index has specific flags
-	/// </summary>
 	public bool HasBodyFlags( int boneIndex, BodyFlags flags )
 	{
 		var currentFlags = GetBodyFlags( boneIndex );
 		return (currentFlags & flags) == flags;
-	}
-
-	/// <summary>
-	/// Broadcast body flags to all clients
-	/// </summary>
-	[Rpc.Broadcast]
-	protected void BroadcastBodyFlags( int boneIndex, BodyFlags flags )
-	{
-		AllBodyFlags[boneIndex] = flags;
 	}
 }
 

@@ -17,11 +17,11 @@ public partial class ShrimpleRagdoll
 
 		var worldTransform = Renderer.WorldTransform;
 
-		foreach ( var body in Bodies )
+		foreach ( var kvp in Bodies )
 		{
 			// Can optimize by not running this if the body is sleeping, but there's times you want it to update anyways so maybe make it a property
-			var transform = worldTransform.ToLocal( body.Value.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
-			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
+			var transform = worldTransform.ToLocal( kvp.Value.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
+			Renderer.SceneModel.SetBoneOverride( kvp.Key, in transform );
 		}
 	}
 
@@ -47,11 +47,11 @@ public partial class ShrimpleRagdoll
 			return;
 
 		var worldTransform = Renderer.WorldTransform;
-		foreach ( var body in Bodies ) // We still use bodies just for the bone references
+		foreach ( var kvp in Bodies ) // We still use bodies just for the bone references
 		{
-			var boneObject = BoneObjects[body.Value.GetBone()];
+			var boneObject = BoneObjects[kvp.Value.GetBone()];
 			var transform = worldTransform.ToLocal( boneObject.WorldTransform );
-			Renderer.SceneModel.SetBoneOverride( body.Key, in transform );
+			Renderer.SceneModel.SetBoneOverride( kvp.Key, in transform );
 		}
 	}
 

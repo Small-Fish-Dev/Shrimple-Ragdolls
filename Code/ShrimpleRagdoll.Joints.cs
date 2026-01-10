@@ -1,151 +1,11 @@
-﻿namespace ShrimpleRagdolls;
+namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
-	public readonly record struct Joint( Sandbox.Joint Component, PhysicsGroupDescription.Joint description, Body Body1, Body Body2 );
-	public List<Joint> Joints { get; protected set; } = new();
-
-	public void CreateJoints( PhysicsGroupDescription physics )
-	{
-		DestroyJoints();
-
-		foreach ( var jointDefinition in physics.Joints )
-		{
-			var body1 = Bodies.ElementAt( jointDefinition.Body1 ).Value;
-			var body2 = Bodies.ElementAt( jointDefinition.Body2 ).Value;
-			var child = jointDefinition.Frame1;
-			var localFrame = jointDefinition.Frame2;
-			Sandbox.Joint joint = null;
-			if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Hinge )
-			{
-				var hingeJoint = body1.Component.AddComponent<Sandbox.HingeJoint>( startEnabled: false );
-				if ( jointDefinition.EnableTwistLimit )
-				{
-					hingeJoint.MinAngle = jointDefinition.TwistMin;
-					hingeJoint.MaxAngle = jointDefinition.TwistMax;
-				}
-
-				if ( jointDefinition.EnableAngularMotor )
-				{
-					float rad = body1.Component.WorldTransform.ToWorld( in child ).Rotation.Up.Dot( jointDefinition.AngularTargetVelocity );
-					hingeJoint.Motor = Sandbox.HingeJoint.MotorMode.TargetVelocity;
-					hingeJoint.TargetVelocity = rad.RadianToDegree();
-					hingeJoint.MaxTorque = jointDefinition.MaxTorque;
-				}
-
-				joint = hingeJoint;
-			}
-			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Ball )
-			{
-				var ballJoint = body1.Component.AddComponent<BallJoint>( startEnabled: false );
-				if ( jointDefinition.EnableSwingLimit )
-				{
-					ballJoint.SwingLimitEnabled = true;
-					ballJoint.SwingLimit = new Vector2( jointDefinition.SwingMin, jointDefinition.SwingMax );
-				}
-
-				if ( jointDefinition.EnableTwistLimit )
-				{
-					ballJoint.TwistLimitEnabled = true;
-					ballJoint.TwistLimit = new Vector2( jointDefinition.TwistMin, jointDefinition.TwistMax );
-				}
-
-				joint = ballJoint;
-			}
-			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Fixed )
-			{
-				var fixedJoint = body1.Component.AddComponent<FixedJoint>( startEnabled: false );
-				fixedJoint.LinearFrequency = jointDefinition.LinearFrequency;
-				fixedJoint.LinearDamping = jointDefinition.LinearDampingRatio;
-				fixedJoint.AngularFrequency = jointDefinition.AngularFrequency;
-				fixedJoint.AngularDamping = jointDefinition.AngularDampingRatio;
-				joint = fixedJoint;
-			}
-			else if ( jointDefinition.Type == PhysicsGroupDescription.JointType.Slider )
-			{
-				var sliderJoint = body1.Component.AddComponent<SliderJoint>( startEnabled: false );
-				if ( jointDefinition.EnableLinearLimit )
-				{
-					sliderJoint.MinLength = jointDefinition.LinearMin;
-					sliderJoint.MaxLength = jointDefinition.LinearMax;
-				}
-
-				var rotation = Rotation.FromPitch( -90f );
-				child = child.WithRotation( rotation * child.Rotation );
-				localFrame = localFrame.WithRotation( rotation * localFrame.Rotation );
-				joint = sliderJoint;
-			}
-
-			if ( joint.IsValid() )
-			{
-				joint.Body = body2.Component.GameObject;
-				joint.Attachment = Sandbox.Joint.AttachmentMode.LocalFrames;
-				if ( DynamicJointScale )
-				{
-					var bodyDistance = body1.Component.GameObject.WorldPosition.Distance( body2.Component.GameObject.WorldPosition );
-					var frameDistance = jointDefinition.Frame1.Position.Distance( jointDefinition.Frame2.Position );
-					var ratio = bodyDistance / frameDistance;
-					joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * ratio );
-					joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * ratio );
-				}
-				else
-				{
-					joint.LocalFrame1 = child.WithPosition( jointDefinition.Frame1.Position * body1.Component.WorldScale );
-					joint.LocalFrame2 = localFrame.WithPosition( jointDefinition.Frame2.Position * body2.Component.WorldScale );
-				}
-				joint.EnableCollision = jointDefinition.EnableCollision;
-				joint.BreakForce = jointDefinition.LinearStrength;
-				joint.BreakTorque = jointDefinition.AngularStrength;
-				Joints.Add( new Joint( joint, jointDefinition, body1, body2 ) );
-			}
-		}
-	}
-
-	public void ResetJointSettings( Joint joint )
-	{
-		if ( !joint.Component.IsValid() )
-			return;
-
-		var jointDefinition = joint.description;
-
-		if ( joint.Component is Sandbox.HingeJoint hingeJoint )
-		{
-			if ( jointDefinition.EnableTwistLimit )
-			{
-				hingeJoint.MinAngle = jointDefinition.TwistMin;
-				hingeJoint.MaxAngle = jointDefinition.TwistMax;
-			}
-		}
-		else if ( joint.Component is Sandbox.BallJoint ballJoint )
-		{
-			if ( jointDefinition.EnableSwingLimit )
-			{
-				ballJoint.SwingLimitEnabled = true;
-				ballJoint.SwingLimit = new Vector2( jointDefinition.SwingMin, jointDefinition.SwingMax );
-			}
-
-			if ( jointDefinition.EnableTwistLimit )
-			{
-				ballJoint.TwistLimitEnabled = true;
-				ballJoint.TwistLimit = new Vector2( jointDefinition.TwistMin, jointDefinition.TwistMax );
-			}
-		}
-	}
-
 	/// <summary>
-	/// Destroy all joint components and clear the joints list
+	/// List of joints from ModelPhysics
 	/// </summary>
-	public void DestroyJoints()
-	{
-		if ( Joints == null )
-			return;
-
-		foreach ( var joint in Joints )
-			if ( joint.Component.IsValid() )
-				joint.Component.Destroy();
-
-		Joints.Clear();
-	}
+	public List<ModelPhysics.Joint> Joints => ModelPhysics?.Joints;
 
 	/// <summary>
 	/// Disables all joints
@@ -175,5 +35,98 @@ public partial class ShrimpleRagdoll
 			if ( joint.Component.IsValid() )
 				joint.Component.Enabled = true;
 		}
+	}
+
+	/// <summary>
+	/// Get the index of a joint in the Joints list
+	/// </summary>
+	public int GetJointIndex( ModelPhysics.Joint joint )
+	{
+		if ( Joints == null )
+			return -1;
+
+		for ( int i = 0; i < Joints.Count; i++ )
+		{
+			if ( Joints[i].Component == joint.Component )
+				return i;
+		}
+		return -1;
+	}
+
+	/// <summary>
+	/// Reset a joint's settings to the original model physics values
+	/// </summary>
+	public void ResetJointSettings( ModelPhysics.Joint joint )
+	{
+		if ( !joint.Component.IsValid() )
+			return;
+
+		var jointIndex = GetJointIndex( joint );
+		var physics = Model?.Physics;
+		if ( physics == null || jointIndex < 0 || jointIndex >= physics.Joints.Count )
+			return;
+
+		var jointDesc = physics.Joints[jointIndex];
+
+		if ( joint.Component is HingeJoint hingeJoint )
+		{
+			if ( jointDesc.EnableTwistLimit )
+			{
+				hingeJoint.MinAngle = jointDesc.TwistMin;
+				hingeJoint.MaxAngle = jointDesc.TwistMax;
+			}
+		}
+		else if ( joint.Component is BallJoint ballJoint )
+		{
+			if ( jointDesc.EnableSwingLimit )
+			{
+				ballJoint.SwingLimitEnabled = true;
+				ballJoint.SwingLimit = new Vector2( jointDesc.SwingMin, jointDesc.SwingMax );
+			}
+
+			if ( jointDesc.EnableTwistLimit )
+			{
+				ballJoint.TwistLimitEnabled = true;
+				ballJoint.TwistLimit = new Vector2( jointDesc.TwistMin, jointDesc.TwistMax );
+			}
+		}
+		else if ( joint.Component is FixedJoint fixedJoint )
+		{
+			fixedJoint.LinearFrequency = jointDesc.LinearFrequency;
+			fixedJoint.LinearDamping = jointDesc.LinearDampingRatio;
+			fixedJoint.AngularFrequency = jointDesc.AngularFrequency;
+			fixedJoint.AngularDamping = jointDesc.AngularDampingRatio;
+		}
+		else if ( joint.Component is SliderJoint sliderJoint )
+		{
+			if ( jointDesc.EnableLinearLimit )
+			{
+				sliderJoint.MinLength = jointDesc.LinearMin;
+				sliderJoint.MaxLength = jointDesc.LinearMax;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Reset a joint's settings by index
+	/// </summary>
+	public void ResetJointSettings( int jointIndex )
+	{
+		if ( Joints == null || jointIndex < 0 || jointIndex >= Joints.Count )
+			return;
+
+		ResetJointSettings( Joints[jointIndex] );
+	}
+
+	/// <summary>
+	/// Reset all joints to their original model physics settings
+	/// </summary>
+	public void ResetAllJointSettings()
+	{
+		if ( Joints == null )
+			return;
+
+		for ( int i = 0; i < Joints.Count; i++ )
+			ResetJointSettings( i );
 	}
 }

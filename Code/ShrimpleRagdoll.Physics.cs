@@ -1,4 +1,4 @@
-﻿namespace ShrimpleRagdolls;
+namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
@@ -158,7 +158,8 @@ public partial class ShrimpleRagdoll
 			rigidbody.Sleeping = false;
 
 		foreach ( var body in Bodies.Values )
-			body.Component?.Sleeping = false;
+			if ( body.Component.IsValid() )
+				body.Component.Sleeping = false;
 	}
 
 	/// <summary>
@@ -170,7 +171,8 @@ public partial class ShrimpleRagdoll
 			rigidbody.Sleeping = true;
 
 		foreach ( var body in Bodies.Values )
-			body.Component?.Sleeping = true;
+			if ( body.Component.IsValid() )
+				body.Component.Sleeping = true;
 	}
 
 	/// <summary>
@@ -183,7 +185,8 @@ public partial class ShrimpleRagdoll
 			rigidbody.Gravity = gravity;
 
 		foreach ( var body in Bodies.Values )
-			body.Component?.Gravity = gravity;
+			if ( body.Component.IsValid() )
+				body.Component.Gravity = gravity;
 	}
 
 	/// <summary>
@@ -196,7 +199,8 @@ public partial class ShrimpleRagdoll
 			rigidbody.GravityScale = gravityScale;
 
 		foreach ( var body in Bodies.Values )
-			body.Component?.GravityScale = gravityScale;
+			if ( body.Component.IsValid() )
+				body.Component.GravityScale = gravityScale;
 	}
 
 	/// <summary>
@@ -209,11 +213,12 @@ public partial class ShrimpleRagdoll
 			rigidbody.LinearDamping = damping;
 
 		foreach ( var body in Bodies.Values )
-			body.Component?.LinearDamping = damping;
+			if ( body.Component.IsValid() )
+				body.Component.LinearDamping = damping;
 	}
 
 	/// <summary>
-	/// Sets the linear damping to all rigid bodies
+	/// Sets the angular damping to all rigid bodies
 	/// </summary>
 	/// <param name="damping"></param>
 	protected void SetAngularDamping( float damping )
@@ -222,7 +227,8 @@ public partial class ShrimpleRagdoll
 			rigidbody.AngularDamping = damping;
 
 		foreach ( var body in Bodies.Values )
-			body.Component?.AngularDamping = damping;
+			if ( body.Component.IsValid() )
+				body.Component.AngularDamping = damping;
 	}
 
 	/// <summary>
@@ -231,16 +237,8 @@ public partial class ShrimpleRagdoll
 	/// <param name="flags"></param>
 	protected void SetRigidbodyFlags( RigidbodyFlags flags )
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.RigidbodyFlags = flags;
-
-		foreach ( var body in Bodies.Values )
-		{
-			if ( !body.Component.IsValid() )
-				continue;
-
-			body.Component?.RigidbodyFlags = flags;
-		}
+		if ( ModelPhysics.IsValid() )
+			ModelPhysics.RigidbodyFlags = flags;
 	}
 
 	/// <summary>
@@ -249,16 +247,8 @@ public partial class ShrimpleRagdoll
 	/// <param name="locking"></param>
 	protected void SetLocking( PhysicsLock locking )
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.Locking = locking;
-
-		foreach ( var body in Bodies.Values )
-		{
-			if ( !body.Component.IsValid() )
-				continue;
-
-			body.Component?.Locking = locking;
-		}
+		if ( ModelPhysics.IsValid() )
+			ModelPhysics.Locking = locking;
 	}
 
 	/// <summary>
@@ -268,8 +258,16 @@ public partial class ShrimpleRagdoll
 	protected void SetSurface( Surface surface )
 	{
 		foreach ( var body in Bodies.Values )
-			foreach ( var collider in body.Colliders )
-				collider.Surface = surface;
+		{
+			if ( !body.GameObject.IsValid() )
+				continue;
+
+			foreach ( var collider in body.GameObject.GetComponents<Collider>() )
+			{
+				if ( collider.IsValid() )
+					collider.Surface = surface;
+			}
+		}
 	}
 
 	/// <summary>
@@ -279,8 +277,16 @@ public partial class ShrimpleRagdoll
 	protected void SetColliderFlags( ColliderFlags flags )
 	{
 		foreach ( var body in Bodies.Values )
-			foreach ( var collider in body.Colliders )
-				collider.ColliderFlags = flags;
+		{
+			if ( !body.GameObject.IsValid() )
+				continue;
+
+			foreach ( var collider in body.GameObject.GetComponents<Collider>() )
+			{
+				if ( collider.IsValid() )
+					collider.ColliderFlags = flags;
+			}
+		}
 	}
 
 	/// <summary>
@@ -324,7 +330,7 @@ public partial class ShrimpleRagdoll
 		SetGravity( Gravity );
 		SetGravityScale( GravityScale );
 		SetLinearDamping( LinearDamping );
-		SetAngularDamping( LinearDamping );
+		SetAngularDamping( AngularDamping );
 		SetRigidbodyFlags( RigidbodyFlags );
 		SetLocking( Locking );
 		SetSurface( Surface );

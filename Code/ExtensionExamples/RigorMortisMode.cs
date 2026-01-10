@@ -13,7 +13,7 @@ public class RigorMortisMode : IShrimpleRagdollMode<RigorMortisMode>
 		var joint = body.GetParentJoint()?.Component;
 		if ( !joint.IsValid() ) return;
 
-		var parent = body.GetParentBody();
+		var parent = body.GetParent();
 		if ( parent == null ) return;
 
 		if ( !ragdoll.Renderer.TryGetBoneTransformAnimation( body.GetBone(), out var animSelfTransform ) )

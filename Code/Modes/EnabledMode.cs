@@ -29,7 +29,7 @@ public class EnabledMode : IShrimpleRagdollMode<EnabledMode>
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
-		ragdoll.MoveMeshFromObject( body );
+		// PhysicsBone flag is set, so ModelPhysics handles bone override updates
 	}
 
 	static EnabledMode()
