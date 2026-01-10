@@ -84,6 +84,8 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 	/// </summary>
 	public Action<string, string> OnModeChange { get; set; }
 
+	private bool _proxyInitialized = false;
+
 	protected override void OnStart()
 	{
 		base.OnStart();
@@ -94,15 +96,49 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		Renderer.SceneModel.Update( RealTime.Delta ); // Update animation by 1 frame so the physics aren't added to the bind pose
 
 		SetupBoneLists(); // Make sure BoneLists are initialized before creating physics
-		CreateModelPhysics();
 
 		if ( !IsProxy )
+		{
+			CreateModelPhysics();
 			InternalSetRagdollMode( ShrimpleRagdollMode.Disabled, Mode );
+		}
+		else
+		{
+			// Proxies need to build BoneObjects for visual updates
+			BuildBoneObjects();
+			// Cache will be built from networked BodyBoneIndexes when accessed
+			InvalidateBodiesCache();
+			// Try to initialize proxy if data is already available
+			TryInitializeProxy();
+		}
+	}
+
+	/// <summary>
+	/// Try to initialize proxy state from networked data.
+	/// Called on start and during update until successful.
+	/// </summary>
+	protected void TryInitializeProxy()
+	{
+		if ( !IsProxy || _proxyInitialized )
+			return;
+
+		// Wait until networked data is available
+		if ( BodyBoneIndexes.Count == 0 )
+			return;
+
+		// Initialize body flags for proxies
+		InitializeProxyBodyFlags();
+		InvalidateBodiesCache();
+		_proxyInitialized = true;
 	}
 
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
+
+		// Keep trying to initialize proxy until successful
+		if ( IsProxy && !_proxyInitialized )
+			TryInitializeProxy();
 	}
 
 	protected override void OnFixedUpdate()
@@ -190,6 +226,9 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 		// Build BoneObjects dictionary from ModelPhysics
 		BuildBoneObjects();
+
+		// Sync the bone indexes to network for proxies
+		SyncBodyBoneIndexes();
 
 		// Setup body modes and hierarchy
 		SetupBodyModes();

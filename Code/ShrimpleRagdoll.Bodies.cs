@@ -3,38 +3,68 @@ namespace ShrimpleRagdolls;
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// Wrapper struct for ModelPhysics.Body that provides convenient access methods
+	/// Wrapper struct for body data that works for both host and proxy
 	/// </summary>
 	public readonly record struct Body
 	{
 		private readonly ShrimpleRagdoll _ragdoll;
-		private readonly ModelPhysics.Body _body;
+		private readonly int _boneIndex;
+		private readonly Rigidbody _component;
+		private readonly GameObject _gameObject;
+		private readonly Transform _localTransform;
 
-		public Body( ShrimpleRagdoll ragdoll, ModelPhysics.Body body )
+		/// <summary>
+		/// Create a Body from ModelPhysics.Body (host)
+		/// </summary>
+		public Body( ShrimpleRagdoll ragdoll, ModelPhysics.Body mpBody )
 		{
 			_ragdoll = ragdoll;
-			_body = body;
+			_boneIndex = mpBody.Bone;
+			_component = mpBody.Component;
+			_gameObject = mpBody.Component?.GameObject;
+			_localTransform = mpBody.LocalTransform;
+		}
+
+		/// <summary>
+		/// Create a Body from bone index and BoneObjects (proxy)
+		/// </summary>
+		public Body( ShrimpleRagdoll ragdoll, int boneIndex )
+		{
+			_ragdoll = ragdoll;
+			_boneIndex = boneIndex;
+			var bone = ragdoll.GetBone( boneIndex );
+			if ( bone != null && ragdoll.BoneObjects.TryGetValue( bone, out var boneObject ) )
+			{
+				_gameObject = boneObject;
+				_component = boneObject.GetComponent<Rigidbody>();
+			}
+			else
+			{
+				_gameObject = null;
+				_component = null;
+			}
+			_localTransform = global::Transform.Zero;
 		}
 
 		/// <summary>
 		/// The underlying Rigidbody component
 		/// </summary>
-		public Rigidbody Component => _body.Component;
+		public Rigidbody Component => _component;
 
 		/// <summary>
 		/// The bone index this body is associated with
 		/// </summary>
-		public int BoneIndex => _body.Bone;
+		public int BoneIndex => _boneIndex;
 
 		/// <summary>
 		/// The local transform of the body relative to the bone
 		/// </summary>
-		public Transform LocalTransform => _body.LocalTransform;
+		public Transform LocalTransform => _localTransform;
 
 		/// <summary>
 		/// The GameObject containing this body's rigidbody
 		/// </summary>
-		public GameObject GameObject => _body.Component?.GameObject;
+		public GameObject GameObject => _gameObject;
 
 		/// <summary>
 		/// Get the bone associated with this body
@@ -184,44 +214,88 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
+	/// Networked list of bone indexes that have physics bodies.
+	/// This allows proxies to know which bones have bodies even without ModelPhysics.
+	/// </summary>
+	[Sync]
+	public NetList<int> BodyBoneIndexes { get; set; } = new();
+
+	/// <summary>
 	/// Dictionary mapping bone index to Body wrapper
 	/// </summary>
 	public Dictionary<int, Body> Bodies
 	{
 		get
 		{
-			var mpBodies = ModelPhysics?.Bodies;
-			if ( _bodiesCache == null || _bodiesCacheVersion != (mpBodies?.Count ?? 0) )
+			if ( _bodiesCache == null || _bodiesCacheDirty )
 				RebuildBodiesCache();
 			return _bodiesCache;
 		}
 	}
 
 	private Dictionary<int, Body> _bodiesCache;
-	private int _bodiesCacheVersion = -1;
+	private bool _bodiesCacheDirty = true;
 
 	/// <summary>
-	/// Per-body mode names
+	/// Per-body mode names (networked for proxy sync)
 	/// </summary>
-	public Dictionary<int, string> BodyModes { get; protected set; } = new();
+	[Sync]
+	public NetDictionary<int, string> BodyModes { get; set; } = new();
 
 	/// <summary>
 	/// Per-body flags for controlling updates
 	/// </summary>
 	public Dictionary<int, BodyFlags> AllBodyFlags { get; protected set; } = new();
 
+	/// <summary>
+	/// Mark the bodies cache as dirty so it gets rebuilt on next access
+	/// </summary>
+	public void InvalidateBodiesCache()
+	{
+		_bodiesCacheDirty = true;
+	}
+
 	protected void RebuildBodiesCache()
 	{
 		_bodiesCache = new Dictionary<int, Body>();
+		_bodiesCacheDirty = false;
+
+		if ( IsProxy )
+		{
+			// Proxies build from networked BodyBoneIndexes and BoneObjects
+			foreach ( var boneIndex in BodyBoneIndexes )
+				_bodiesCache[boneIndex] = new Body( this, boneIndex );
+		}
+		else
+		{
+			// Host builds from ModelPhysics
+			var mpBodies = ModelPhysics?.Bodies;
+			if ( mpBodies == null )
+				return;
+
+			foreach ( var mpBody in mpBodies )
+				_bodiesCache[mpBody.Bone] = new Body( this, mpBody );
+		}
+	}
+
+	/// <summary>
+	/// Sync the BodyBoneIndexes list from ModelPhysics (called on host after physics creation)
+	/// </summary>
+	protected void SyncBodyBoneIndexes()
+	{
+		if ( IsProxy )
+			return;
+
+		BodyBoneIndexes.Clear();
 
 		var mpBodies = ModelPhysics?.Bodies;
 		if ( mpBodies == null )
 			return;
 
 		foreach ( var mpBody in mpBodies )
-			_bodiesCache[mpBody.Bone] = new Body( this, mpBody );
+			BodyBoneIndexes.Add( mpBody.Bone );
 
-		_bodiesCacheVersion = mpBodies.Count;
+		InvalidateBodiesCache();
 	}
 
 	/// <summary>
@@ -343,6 +417,19 @@ public partial class ShrimpleRagdoll
 			BodyModes[kvp.Key] = modeName;
 			AllBodyFlags[kvp.Key] = BodyFlags.None;
 		}
+	}
+
+	/// <summary>
+	/// Initialize body flags for proxies (called when Bodies become available)
+	/// </summary>
+	protected void InitializeProxyBodyFlags()
+	{
+		if ( !IsProxy )
+			return;
+
+		AllBodyFlags.Clear();
+		foreach ( var boneIndex in BodyBoneIndexes )
+			AllBodyFlags[boneIndex] = BodyFlags.None;
 	}
 
 	// Body helper methods
