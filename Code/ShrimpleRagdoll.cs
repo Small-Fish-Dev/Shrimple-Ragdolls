@@ -205,10 +205,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( !Active || IsProxy )
 			return;
 
-		if ( ModelPhysics.IsValid() )
-			return;
-
-		if ( !Model.IsValid() )
+		if ( ModelPhysics.IsValid() || !Model.IsValid() )
 			return;
 
 		var physics = Model.Physics;
@@ -222,6 +219,7 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		ModelPhysics.StartAsleep = StartAsleep;
 		ModelPhysics.RigidbodyFlags = RigidbodyFlags;
 		ModelPhysics.Locking = Locking;
+		ModelPhysics.IgnoreRoot = true; // We do it ourselves
 		ModelPhysics.MotionEnabled = true;
 
 		// Build BoneObjects dictionary from ModelPhysics
