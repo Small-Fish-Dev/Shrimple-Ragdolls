@@ -449,6 +449,9 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 		if ( ModelPhysics.IsValid() )
 			ModelPhysics.Enabled = false;
 
+		foreach ( var body in Bodies.Values ) // We remove the physicsbone tag sometimes so modelphysics doesn't know about them
+			body.DisableColliders();
+
 		Renderer?.ClearPhysicsBones();
 	}
 
@@ -461,6 +464,9 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 
 		if ( ModelPhysics.IsValid() )
 			ModelPhysics.Enabled = true;
+
+		foreach ( var body in Bodies.Values )
+			body.EnableColliders();
 
 		foreach ( var kvp in Bodies )
 		{
