@@ -75,16 +75,16 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
-	/// Apply a torque to the ragdoll as a whole rather than on every body individually
+	/// Apply an angular velocity to the ragdoll, spinning it around the mass center
 	/// </summary>
-	/// <param name="torque">The axis to spin around and speed in radians per second</param>
-	public void ApplyTorque( Vector3 torque )
+	/// <param name="angularVelocity">The axis to spin around and speed in radians per second</param>
+	public void ApplyAngularVelocity( Vector3 angularVelocity )
 	{
 		WakePhysics();
 
-		var spinAxis = torque.Normal;
-		var spinSpeed = torque.Length; // radians per second
-		var angularVelocity = spinAxis * spinSpeed;
+		var spinAxis = angularVelocity.Normal;
+		var spinSpeed = angularVelocity.Length;
+		var normalizedAngularVelocity = spinAxis * spinSpeed;
 		var massCenter = GetMassCenter();
 
 		foreach ( var body in Bodies.Values )
@@ -92,13 +92,61 @@ public partial class ShrimpleRagdoll
 			if ( !body.Component.IsValid() )
 				continue;
 
-			var bodyVelocity = Vector3.Cross( angularVelocity, body.Component.WorldPosition - massCenter );
+			var bodyVelocity = Vector3.Cross( normalizedAngularVelocity, body.Component.WorldPosition - massCenter );
 			body.Component.Velocity += bodyVelocity;
-			body.Component.AngularVelocity += angularVelocity;
+			body.Component.AngularVelocity += normalizedAngularVelocity;
 		}
 
 		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.AngularVelocity += angularVelocity;
+			rigidbody.AngularVelocity += normalizedAngularVelocity;
+	}
+
+	/// <summary>
+	/// Apply a torque to the ragdoll, causing angular acceleration based on each body's inertia
+	/// </summary>
+	/// <param name="torque">The torque vector (axis and magnitude)</param>
+	public void ApplyTorque( Vector3 torque )
+	{
+		WakePhysics();
+
+		foreach ( var body in Bodies.Values )
+			if ( body.Component.IsValid() )
+				body.Component.PhysicsBody.ApplyTorque( torque );
+
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.PhysicsBody.ApplyTorque( torque );
+	}
+
+	/// <summary>
+	/// Apply a force to the ragdoll, causing acceleration based on each body's mass
+	/// </summary>
+	/// <param name="force">The force vector</param>
+	public void ApplyForce( Vector3 force )
+	{
+		WakePhysics();
+
+		foreach ( var body in Bodies.Values )
+			if ( body.Component.IsValid() )
+				body.Component.PhysicsBody.ApplyForce( force );
+
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.PhysicsBody.ApplyForce( force );
+	}
+
+	/// <summary>
+	/// Apply an impulse to the ragdoll, instantly changing velocity based on each body's mass
+	/// </summary>
+	/// <param name="impulse">The impulse vector</param>
+	public void ApplyImpulse( Vector3 impulse )
+	{
+		WakePhysics();
+
+		foreach ( var body in Bodies.Values )
+			if ( body.Component.IsValid() )
+				body.Component.PhysicsBody.ApplyImpulse( impulse );
+
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			rigidbody.PhysicsBody.ApplyImpulse( impulse );
 	}
 
 	/// <summary>
