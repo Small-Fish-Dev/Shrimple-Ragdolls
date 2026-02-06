@@ -163,6 +163,8 @@ public partial class ShrimpleRagdoll : Component, IScenePhysicsEvents
 			var handler = GetBodyModeHandler( kvp.Value );
 			handler.VisualUpdate?.Invoke( this, kvp.Value );
 		}
+
+		UpdateHitReactions();
 	}
 
 	internal void ComputePhysics()
