@@ -43,8 +43,7 @@ public partial class ShrimpleRagdoll
 		if ( impactBody == null )
 			return;
 
-		// Walk up the hierarchy to find the bone to rotate based on radius
-		// Small radius = rotate the impact bone, larger radius = rotate a parent further up
+		// Rotate the bone based on radius, the bigger the radius the further we go down
 		var targetBody = impactBody.Value;
 
 		if ( !targetBody.IsRootBone )
@@ -64,8 +63,7 @@ public partial class ShrimpleRagdoll
 		var boneWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( targetBody.BoneIndex );
 		var forceDir = force.Normal;
 
-		// Count descendants to blend between rotation and translation
-		// Many descendants = mostly translate, few = mostly rotate
+		// We don't want to rotate bones with lots of children unless it's a big force
 		var descendantCount = targetBody.GetHierarchy().Count() - 1;
 		var rotationBlend = 1f / (1f + descendantCount * 0.5f);
 
@@ -73,7 +71,7 @@ public partial class ShrimpleRagdoll
 
 		if ( targetBody.IsRootBone )
 		{
-			// Root bone (pelvis) only gets translation
+			// Don't rotate root bone it looks ugly, maybe also don't move it but we'll see
 			displacedWorld = boneWorldTransform.WithPosition( boneWorldTransform.Position + force );
 		}
 		else
@@ -93,7 +91,6 @@ public partial class ShrimpleRagdoll
 			displacedWorld = new Transform( displacedPosition, displacedRotation, boneWorldTransform.Scale );
 		}
 
-		// Snapshot children's original world transforms for rotation propagation
 		var childOriginals = new Dictionary<int, Transform>();
 		foreach ( var descendant in targetBody.GetHierarchy().Skip( 1 ) )
 		{
@@ -101,7 +98,6 @@ public partial class ShrimpleRagdoll
 			childOriginals[descendant.BoneIndex] = childWorld;
 		}
 
-		// Gather nearby bones for radius-based translation (the old splash behavior)
 		var translationOriginals = new Dictionary<int, Transform>();
 		var translationOffsets = new Dictionary<int, Vector3>();
 
@@ -192,6 +188,7 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
+	/*
 	private struct DebugHitRay
 	{
 		public Vector3 Position;
@@ -271,5 +268,5 @@ public partial class ShrimpleRagdoll
 			Gizmo.Draw.Color = Color.Yellow;
 			Gizmo.Draw.Arrow( ray.Position, ray.Position + ray.Direction * 15f, 1f, 2f );
 		}
-	}
+	}*/
 }
