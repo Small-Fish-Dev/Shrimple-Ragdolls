@@ -8,6 +8,8 @@ public partial class ShrimpleRagdoll
 		public Transform DisplacedTransform;
 		public Transform OriginalTransform;
 		public Dictionary<int, Transform> ChildOriginalTransforms;
+		public Dictionary<int, Transform> TranslationOriginalTransforms;
+		public Dictionary<int, Vector3> TranslationOffsets;
 		public TimeUntil TimeUntilDone;
 		public float Duration;
 		public LerpEasing Easing;
@@ -62,6 +64,11 @@ public partial class ShrimpleRagdoll
 		var boneWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( targetBody.BoneIndex );
 		var forceDir = force.Normal;
 
+		// Count descendants to blend between rotation and translation
+		// Many descendants = mostly translate, few = mostly rotate
+		var descendantCount = targetBody.GetHierarchy().Count() - 1;
+		var rotationBlend = 1f / (1f + descendantCount * 0.5f);
+
 		Transform displacedWorld;
 
 		if ( targetBody.IsRootBone )
@@ -71,26 +78,50 @@ public partial class ShrimpleRagdoll
 		}
 		else
 		{
-			// Non-root bones get rotation only
+			var displacedPosition = boneWorldTransform.Position + force * (1f - rotationBlend);
+			var displacedRotation = boneWorldTransform.Rotation;
+
 			var leverArm = (boneWorldTransform.Position - hitPosition).Normal;
 			var rotationAxis = Vector3.Cross( leverArm, forceDir ).Normal;
 
 			if ( rotationAxis.LengthSquared < 1e-4f )
 				rotationAxis = Vector3.Cross( forceDir, boneWorldTransform.Rotation.Up ).Normal;
 
-			if ( rotationAxis.LengthSquared < 1e-4f )
-				return;
+			if ( rotationAxis.LengthSquared > 1e-4f )
+				displacedRotation = Rotation.FromAxis( rotationAxis, rotationStrength * rotationBlend ) * boneWorldTransform.Rotation;
 
-			var displacedRotation = Rotation.FromAxis( rotationAxis, rotationStrength ) * boneWorldTransform.Rotation;
-			displacedWorld = new Transform( boneWorldTransform.Position, displacedRotation, boneWorldTransform.Scale );
+			displacedWorld = new Transform( displacedPosition, displacedRotation, boneWorldTransform.Scale );
 		}
 
-		// Snapshot children's original world transforms so we can propagate without feedback loops
+		// Snapshot children's original world transforms for rotation propagation
 		var childOriginals = new Dictionary<int, Transform>();
 		foreach ( var descendant in targetBody.GetHierarchy().Skip( 1 ) )
 		{
 			var childWorld = Renderer.SceneModel.GetBoneWorldTransform( descendant.BoneIndex );
 			childOriginals[descendant.BoneIndex] = childWorld;
+		}
+
+		// Gather nearby bones for radius-based translation (the old splash behavior)
+		var translationOriginals = new Dictionary<int, Transform>();
+		var translationOffsets = new Dictionary<int, Vector3>();
+
+		foreach ( var body in Bodies.Values )
+		{
+			// Skip the target bone itself and its descendants (they're handled by rotation propagation)
+			if ( body.BoneIndex == targetBody.BoneIndex || childOriginals.ContainsKey( body.BoneIndex ) )
+				continue;
+
+			var bodyWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( body.BoneIndex );
+			var distance = Vector3.DistanceBetween( hitPosition, bodyWorldTransform.Position );
+
+			if ( distance > radius )
+				continue;
+
+			var falloff = 1f - (distance / radius);
+			falloff *= falloff;
+
+			translationOriginals[body.BoneIndex] = bodyWorldTransform;
+			translationOffsets[body.BoneIndex] = force * falloff;
 		}
 
 		ActiveHitReactions.Add( new ActiveHitReaction
@@ -99,6 +130,8 @@ public partial class ShrimpleRagdoll
 			DisplacedTransform = Renderer.WorldTransform.ToLocal( displacedWorld ),
 			OriginalTransform = Renderer.WorldTransform.ToLocal( boneWorldTransform ),
 			ChildOriginalTransforms = childOriginals,
+			TranslationOriginalTransforms = translationOriginals,
+			TranslationOffsets = translationOffsets,
 			TimeUntilDone = duration,
 			Duration = duration,
 			Easing = easing
