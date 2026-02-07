@@ -161,14 +161,6 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
-	/// Apply a directional hit reaction (e.g., bullet impact)
-	/// </summary>
-	public void ApplyDirectionalHitReaction( Vector3 hitPosition, Vector3 direction, float forceMagnitude = 5f, float radius = 30f, float duration = 0.5f, float rotationStrength = 15f )
-	{
-		ApplyHitReaction( hitPosition, direction.Normal * forceMagnitude, radius, duration, rotationStrength: rotationStrength );
-	}
-
-	/// <summary>
 	/// Update all active hit reactions, called from ComputeVisuals
 	/// </summary>
 	internal void UpdateHitReactions()
@@ -247,9 +239,6 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
-	/// <summary>
-	/// Shoot a hit reaction from the scene camera. Bind to a key for in-game testing.
-	/// </summary>
 	[ConCmd( "debug_hit" )]
 	public static void DebugCameraShot()
 	{
@@ -264,6 +253,6 @@ public partial class ShrimpleRagdoll
 			return;
 
 		var direction = camera.WorldRotation.Forward;
-		ragdoll.ApplyHitReaction( tr.HitPosition, direction * 2f, 10f, 2f );
+		ragdoll.ApplyHitReaction( tr.HitPosition, direction * 2f, 10f, 0.2f );
 	}
 }
