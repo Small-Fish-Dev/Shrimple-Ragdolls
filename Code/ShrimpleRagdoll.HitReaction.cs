@@ -61,17 +61,19 @@ public partial class ShrimpleRagdoll
 		}
 
 		var boneWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( targetBody.BoneIndex );
+		var forceMagnitude = force.Length;
 		var forceDir = force.Normal;
 
-		// We don't want to rotate bones with lots of children unless it's a big force
+		// Bones that control a large fraction of the body should translate more and rotate less
 		var descendantCount = targetBody.GetHierarchy().Count() - 1;
-		var rotationBlend = 1f / (1f + descendantCount * 0.5f);
+		var totalBodies = Bodies.Count;
+		var descendantRatio = totalBodies > 1 ? (float)descendantCount / (totalBodies - 1) : 0f;
+		var rotationBlend = 1f - descendantRatio;
 
 		Transform displacedWorld;
 
 		if ( targetBody.IsRootBone )
 		{
-			// Don't rotate root bone it looks ugly, maybe also don't move it but we'll see
 			displacedWorld = boneWorldTransform.WithPosition( boneWorldTransform.Position + force );
 		}
 		else
@@ -86,7 +88,7 @@ public partial class ShrimpleRagdoll
 				rotationAxis = Vector3.Cross( forceDir, boneWorldTransform.Rotation.Up ).Normal;
 
 			if ( rotationAxis.LengthSquared > 1e-4f )
-				displacedRotation = Rotation.FromAxis( rotationAxis, rotationStrength * rotationBlend ) * boneWorldTransform.Rotation;
+				displacedRotation = Rotation.FromAxis( rotationAxis, rotationStrength * forceMagnitude * rotationBlend ) * boneWorldTransform.Rotation;
 
 			displacedWorld = new Transform( displacedPosition, displacedRotation, boneWorldTransform.Scale );
 		}
