@@ -18,7 +18,13 @@ public partial class ShrimpleRagdoll
 	protected List<ActiveHitReaction> ActiveHitReactions { get; set; } = new();
 
 	/// <summary>
-	/// When rotation kicks in during a hit reaction, as a fraction of the total duration (0 = immediately, 1 = never).
+	/// When translation ends during a hit reaction, as a fraction of the total duration.
+	/// </summary>
+	[Property, Group( "Hit Reaction" ), Advanced, Range( 0f, 1f ), Step( 0.05f )]
+	public float HitReactionTranslationEnd { get; set; } = 0.7f;
+
+	/// <summary>
+	/// When rotation kicks in during a hit reaction, as a fraction of the total duration.
 	/// </summary>
 	[Property, Group( "Hit Reaction" ), Advanced, Range( 0f, 1f ), Step( 0.05f )]
 	public float HitReactionRotationStart { get; set; } = 1f / 3f;
@@ -184,8 +190,9 @@ public partial class ShrimpleRagdoll
 
 			var fraction = reaction.TimeUntilDone.Fraction;
 
-			// Position: sine bell over the full duration (ramps up, peaks at 0.5, settles back)
-			var positionBlend = MathF.Sin( fraction * MathF.PI );
+			// Position: sine bell from 0 to TranslationEnd (ramps up, peaks halfway, settles back)
+			var positionFraction = HitReactionTranslationEnd > 0f ? MathF.Min( fraction / HitReactionTranslationEnd, 1f ) : 1f;
+			var positionBlend = MathF.Sin( positionFraction * MathF.PI );
 			var position = Vector3.Lerp( reaction.OriginalTransform.Position, reaction.DisplacedTransform.Position, positionBlend );
 
 			// Rotation: sine bell over the second half (kicks in at 0.5, peaks at 0.75, settles back)
@@ -257,6 +264,6 @@ public partial class ShrimpleRagdoll
 			return;
 
 		var direction = camera.WorldRotation.Forward;
-		ragdoll.ApplyHitReaction( tr.HitPosition, direction * 2f, 10f, 0.2f );
+		ragdoll.ApplyHitReaction( tr.HitPosition, direction * 2f, 10f, 2f );
 	}
 }
