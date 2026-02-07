@@ -214,7 +214,7 @@ public partial class ShrimpleRagdoll
 		if ( !camera.IsValid() )
 			return;
 
-		var tr = Game.ActiveScene.Trace.Ray( camera.WorldPosition + camera.WorldRotation.Forward * 15f, camera.WorldPosition + camera.WorldRotation.Forward * 5000f )
+		var tr = Game.ActiveScene.Trace.Ray( camera.WorldPosition + camera.WorldRotation.Forward * 25f, camera.WorldPosition + camera.WorldRotation.Forward * 5000f )
 			.Run();
 
 		if ( !tr.Hit || !tr.GameObject.Root.Components.TryGet<ShrimpleRagdoll>( out var ragdoll, FindMode.EnabledInSelfAndDescendants ) )
