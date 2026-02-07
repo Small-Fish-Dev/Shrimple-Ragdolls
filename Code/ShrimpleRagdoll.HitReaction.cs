@@ -17,6 +17,24 @@ public partial class ShrimpleRagdoll
 
 	protected List<ActiveHitReaction> ActiveHitReactions { get; set; } = new();
 
+	/// <summary>
+	/// When rotation kicks in during a hit reaction, as a fraction of the total duration (0 = immediately, 1 = never).
+	/// </summary>
+	[Property, Group( "Hit Reaction" ), Advanced, Range( 0f, 1f ), Step( 0.05f )]
+	public float HitReactionRotationStart { get; set; } = 1f / 3f;
+
+	/// <summary>
+	/// Multiplier for hit reaction translation displacement.
+	/// </summary>
+	[Property, Group( "Hit Reaction" ), Advanced, Range( 0f, 5f ), Step( 0.1f )]
+	public float HitReactionTranslationScale { get; set; } = 2f;
+
+	/// <summary>
+	/// Multiplier for hit reaction rotation displacement.
+	/// </summary>
+	[Property, Group( "Hit Reaction" ), Advanced, Range( 0f, 5f ), Step( 0.1f )]
+	public float HitReactionRotationScale { get; set; } = 0.5f;
+
 	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float duration = 0.5f, LerpEasing easing = LerpEasing.AnticipateOvershoot, float rotationStrength = 15f )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
@@ -78,7 +96,7 @@ public partial class ShrimpleRagdoll
 		}
 		else
 		{
-			var displacedPosition = boneWorldTransform.Position + force * (1f - rotationBlend);
+			var displacedPosition = boneWorldTransform.Position + force * HitReactionTranslationScale;
 			var displacedRotation = boneWorldTransform.Rotation;
 
 			var leverArm = (boneWorldTransform.Position - hitPosition).Normal;
@@ -88,7 +106,7 @@ public partial class ShrimpleRagdoll
 				rotationAxis = Vector3.Cross( forceDir, boneWorldTransform.Rotation.Up ).Normal;
 
 			if ( rotationAxis.LengthSquared > 1e-4f )
-				displacedRotation = Rotation.FromAxis( rotationAxis, rotationStrength * forceMagnitude * rotationBlend ) * boneWorldTransform.Rotation;
+				displacedRotation = Rotation.FromAxis( rotationAxis, rotationStrength * HitReactionRotationScale * forceMagnitude * rotationBlend ) * boneWorldTransform.Rotation;
 
 			displacedWorld = new Transform( displacedPosition, displacedRotation, boneWorldTransform.Scale );
 		}
@@ -164,8 +182,26 @@ public partial class ShrimpleRagdoll
 				continue;
 			}
 
-			var t = reaction.Easing.Apply( reaction.TimeUntilDone.Fraction );
-			var currentLocal = reaction.DisplacedTransform.LerpTo( reaction.OriginalTransform, t, false );
+			var fraction = reaction.TimeUntilDone.Fraction;
+
+			// Position: sine bell over the full duration (ramps up, peaks at 0.5, settles back)
+			var positionBlend = MathF.Sin( fraction * MathF.PI );
+			var position = Vector3.Lerp( reaction.OriginalTransform.Position, reaction.DisplacedTransform.Position, positionBlend );
+
+			// Rotation: sine bell over the second half (kicks in at 0.5, peaks at 0.75, settles back)
+			float rotationBlendAmount;
+			if ( fraction < HitReactionRotationStart )
+			{
+				rotationBlendAmount = 0f;
+			}
+			else
+			{
+				var rotationFraction = (fraction - HitReactionRotationStart) / (1f - HitReactionRotationStart);
+				rotationBlendAmount = MathF.Sin( rotationFraction * MathF.PI );
+			}
+			var rotation = Rotation.Slerp( reaction.OriginalTransform.Rotation, reaction.DisplacedTransform.Rotation, rotationBlendAmount );
+
+			var currentLocal = new Transform( position, rotation, reaction.OriginalTransform.Scale );
 			Renderer.SceneModel.SetBoneOverride( reaction.BoneIndex, in currentLocal );
 
 			// Propagate the rotation/translation to children using snapshots
@@ -195,7 +231,7 @@ public partial class ShrimpleRagdoll
 					if ( !reaction.TranslationOffsets.TryGetValue( boneIndex, out var offset ) )
 						continue;
 
-					var lerpedOffset = offset * (1f - t);
+					var lerpedOffset = offset * positionBlend;
 					var displacedWorld = originalWorld.WithPosition( originalWorld.Position + lerpedOffset );
 					var local = Renderer.WorldTransform.ToLocal( displacedWorld );
 					Renderer.SceneModel.SetBoneOverride( boneIndex, in local );
