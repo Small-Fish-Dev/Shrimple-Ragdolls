@@ -28,6 +28,7 @@ public class PassiveMode : IShrimpleRagdollMode<PassiveMode>
 	public static void PhysicsUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
 	{
 		ragdoll.MoveObjectFromAnimation( body.GetBone() );
+		body.Component.Sleeping = false; // Stop the bodies from sleeping so they network over
 	}
 
 	public static void VisualUpdate( ShrimpleRagdoll ragdoll, ShrimpleRagdoll.Body body )
