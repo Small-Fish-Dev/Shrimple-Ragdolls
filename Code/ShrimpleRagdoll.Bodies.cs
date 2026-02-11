@@ -108,6 +108,7 @@ public partial class ShrimpleRagdoll
 		/// </summary>
 		public void EnableColliders()
 		{
+			if ( !GameObject.IsValid() ) return;
 			foreach ( var collider in GameObject.Components.GetAll<Collider>( FindMode.DisabledInSelf ) )
 				if ( collider.IsValid() )
 					collider.Enabled = true;
@@ -118,6 +119,7 @@ public partial class ShrimpleRagdoll
 		/// </summary>
 		public void DisableColliders()
 		{
+			if ( !GameObject.IsValid() ) return;
 			foreach ( var collider in GameObject.Components.GetAll<Collider>( FindMode.EnabledInSelf ) )
 				if ( collider.IsValid() )
 					collider.Enabled = false;
