@@ -12,7 +12,6 @@ public partial class ShrimpleRagdoll
 		public Dictionary<int, Vector3> TranslationOffsets;
 		public TimeUntil TimeUntilDone;
 		public float Duration;
-		public LerpEasing Easing;
 	}
 
 	protected List<ActiveHitReaction> ActiveHitReactions { get; set; } = new();
@@ -41,20 +40,19 @@ public partial class ShrimpleRagdoll
 	[Property, Group( "Hit Reaction" ), Advanced, Range( 0f, 5f ), Step( 0.1f )]
 	public float HitReactionRotationScale { get; set; } = 0.5f;
 
-	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float duration = 0.5f, LerpEasing easing = LerpEasing.AnticipateOvershoot, float rotationStrength = 15f )
+	public void ApplyHitReaction( Vector3 hitPosition, Vector3 force, float radius = 30f, float duration = 0.5f, float rotationStrength = 15f )
 	{
 		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
 			return;
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		// Find the nearest body to the hit position
-		Body? impactBody = null;
+		ModelPhysics.Body? impactBody = null;
 		var closestDistance = float.MaxValue;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 		{
-			var bonePos = Renderer.SceneModel.GetBoneWorldTransform( body.BoneIndex ).Position;
+			var bonePos = Renderer.SceneModel.GetBoneWorldTransform( body.Bone ).Position;
 			var distance = Vector3.DistanceBetween( hitPosition, bonePos );
 
 			if ( distance < closestDistance )
@@ -67,36 +65,34 @@ public partial class ShrimpleRagdoll
 		if ( impactBody == null )
 			return;
 
-		// Rotate the bone based on radius, the bigger the radius the further we go down
 		var targetBody = impactBody.Value;
 
-		if ( !targetBody.IsRootBone )
+		if ( !IsRootBody( targetBody ) )
 		{
-			var parent = targetBody.GetParent();
-			while ( parent != null && !parent.Value.IsRootBone )
+			var parent = GetParentBody( targetBody );
+			while ( parent != null && !IsRootBody( parent.Value ) )
 			{
-				var parentPos = Renderer.SceneModel.GetBoneWorldTransform( parent.Value.BoneIndex ).Position;
+				var parentPos = Renderer.SceneModel.GetBoneWorldTransform( parent.Value.Bone ).Position;
 				if ( Vector3.DistanceBetween( hitPosition, parentPos ) > radius )
 					break;
 
 				targetBody = parent.Value;
-				parent = targetBody.GetParent();
+				parent = GetParentBody( targetBody );
 			}
 		}
 
-		var boneWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( targetBody.BoneIndex );
+		var boneWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( targetBody.Bone );
 		var forceMagnitude = force.Length;
 		var forceDir = force.Normal;
 
-		// Bones that control a large fraction of the body should translate more and rotate less
-		var descendantCount = targetBody.GetHierarchy().Count() - 1;
+		var descendantCount = GetDescendants( targetBody ).Count();
 		var totalBodies = Bodies.Count;
 		var descendantRatio = totalBodies > 1 ? (float)descendantCount / (totalBodies - 1) : 0f;
 		var rotationBlend = 1f - descendantRatio;
 
 		Transform displacedWorld;
 
-		if ( targetBody.IsRootBone )
+		if ( IsRootBody( targetBody ) )
 		{
 			displacedWorld = boneWorldTransform.WithPosition( boneWorldTransform.Position + force );
 		}
@@ -118,22 +114,21 @@ public partial class ShrimpleRagdoll
 		}
 
 		var childOriginals = new Dictionary<int, Transform>();
-		foreach ( var descendant in targetBody.GetHierarchy().Skip( 1 ) )
+		foreach ( var descendant in GetDescendants( targetBody ) )
 		{
-			var childWorld = Renderer.SceneModel.GetBoneWorldTransform( descendant.BoneIndex );
-			childOriginals[descendant.BoneIndex] = childWorld;
+			var childWorld = Renderer.SceneModel.GetBoneWorldTransform( descendant.Bone );
+			childOriginals[descendant.Bone] = childWorld;
 		}
 
-		// Gather nearby bones for radius-based translation splash
 		var translationOriginals = new Dictionary<int, Transform>();
 		var translationOffsets = new Dictionary<int, Vector3>();
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 		{
-			if ( body.BoneIndex == targetBody.BoneIndex || childOriginals.ContainsKey( body.BoneIndex ) )
+			if ( body.Bone == targetBody.Bone || childOriginals.ContainsKey( body.Bone ) )
 				continue;
 
-			var bodyWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( body.BoneIndex );
+			var bodyWorldTransform = Renderer.SceneModel.GetBoneWorldTransform( body.Bone );
 			var distance = Vector3.DistanceBetween( hitPosition, bodyWorldTransform.Position );
 
 			if ( distance > radius )
@@ -142,13 +137,13 @@ public partial class ShrimpleRagdoll
 			var falloff = 1f - (distance / radius);
 			falloff *= falloff;
 
-			translationOriginals[body.BoneIndex] = bodyWorldTransform;
-			translationOffsets[body.BoneIndex] = force * falloff;
+			translationOriginals[body.Bone] = bodyWorldTransform;
+			translationOffsets[body.Bone] = force * falloff;
 		}
 
 		ActiveHitReactions.Add( new ActiveHitReaction
 		{
-			BoneIndex = targetBody.BoneIndex,
+			BoneIndex = targetBody.Bone,
 			DisplacedTransform = Renderer.WorldTransform.ToLocal( displacedWorld ),
 			OriginalTransform = Renderer.WorldTransform.ToLocal( boneWorldTransform ),
 			ChildOriginalTransforms = childOriginals,
@@ -156,12 +151,11 @@ public partial class ShrimpleRagdoll
 			TranslationOffsets = translationOffsets,
 			TimeUntilDone = duration,
 			Duration = duration,
-			Easing = easing
 		} );
 	}
 
 	/// <summary>
-	/// Update all active hit reactions, called from ComputeVisuals
+	/// Update all active hit reactions, called from OnUpdate
 	/// </summary>
 	internal void UpdateHitReactions()
 	{
@@ -182,12 +176,10 @@ public partial class ShrimpleRagdoll
 
 			var fraction = reaction.TimeUntilDone.Fraction;
 
-			// Position: sine bell from 0 to TranslationEnd (ramps up, peaks halfway, settles back)
 			var positionFraction = HitReactionTranslationEnd > 0f ? MathF.Min( fraction / HitReactionTranslationEnd, 1f ) : 1f;
 			var positionBlend = MathF.Sin( positionFraction * MathF.PI );
 			var position = Vector3.Lerp( reaction.OriginalTransform.Position, reaction.DisplacedTransform.Position, positionBlend );
 
-			// Rotation: sine bell over the second half (kicks in at 0.5, peaks at 0.75, settles back)
 			float rotationBlendAmount;
 			if ( fraction < HitReactionRotationStart )
 			{
@@ -198,12 +190,11 @@ public partial class ShrimpleRagdoll
 				var rotationFraction = (fraction - HitReactionRotationStart) / (1f - HitReactionRotationStart);
 				rotationBlendAmount = MathF.Sin( rotationFraction * MathF.PI );
 			}
-			var rotation = Rotation.Slerp( reaction.OriginalTransform.Rotation, reaction.DisplacedTransform.Rotation, rotationBlendAmount );
 
+			var rotation = Rotation.Slerp( reaction.OriginalTransform.Rotation, reaction.DisplacedTransform.Rotation, rotationBlendAmount );
 			var currentLocal = new Transform( position, rotation, reaction.OriginalTransform.Scale );
 			Renderer.SceneModel.SetBoneOverride( reaction.BoneIndex, in currentLocal );
 
-			// Propagate the rotation/translation to children using snapshots
 			if ( reaction.ChildOriginalTransforms != null && reaction.ChildOriginalTransforms.Count > 0 )
 			{
 				var originalWorld = Renderer.WorldTransform.ToWorld( reaction.OriginalTransform );
@@ -222,7 +213,6 @@ public partial class ShrimpleRagdoll
 				}
 			}
 
-			// Apply radius-based translation splash to nearby non-descendant bones
 			if ( reaction.TranslationOriginalTransforms != null && reaction.TranslationOffsets != null )
 			{
 				foreach ( var (boneIndex, originalWorld) in reaction.TranslationOriginalTransforms )
@@ -239,20 +229,40 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
-	[ConCmd( "debug_hit" )]
-	public static void DebugCameraShot()
+	private bool IsRootBody( ModelPhysics.Body body ) => GetParentBody( body ) == null;
+
+	private ModelPhysics.Body? GetParentBody( ModelPhysics.Body body )
 	{
-		var camera = Game.ActiveScene.Camera;
-		if ( !camera.IsValid() )
-			return;
+		var bone = Renderer.Model.Bones.AllBones[body.Bone];
+		var parentBone = bone.Parent;
 
-		var tr = Game.ActiveScene.Trace.Ray( camera.WorldPosition + camera.WorldRotation.Forward * 25f, camera.WorldPosition + camera.WorldRotation.Forward * 5000f )
-			.Run();
+		while ( parentBone != null )
+		{
+			var parentBody = Bodies.FirstOrDefault( b => b.Bone == parentBone.Index );
+			if ( parentBody.Component.IsValid() )
+				return parentBody;
 
-		if ( !tr.Hit || !tr.GameObject.Root.Components.TryGet<ShrimpleRagdoll>( out var ragdoll, FindMode.EnabledInSelfAndDescendants ) )
-			return;
+			parentBone = parentBone.Parent;
+		}
 
-		var direction = camera.WorldRotation.Forward;
-		ragdoll.ApplyHitReaction( tr.HitPosition, direction * 2f, 10f, 0.2f );
+		return null;
+	}
+
+	private IEnumerable<ModelPhysics.Body> GetDescendants( ModelPhysics.Body root )
+	{
+		var rootBone = Renderer.Model.Bones.AllBones[root.Bone];
+		return Bodies.Where( b => b.Bone != root.Bone && IsDescendantOf( Renderer.Model.Bones.AllBones[b.Bone], rootBone ) );
+	}
+
+	private static bool IsDescendantOf( BoneCollection.Bone bone, BoneCollection.Bone ancestor )
+	{
+		var parent = bone.Parent;
+		while ( parent != null )
+		{
+			if ( parent.Index == ancestor.Index )
+				return true;
+			parent = parent.Parent;
+		}
+		return false;
 	}
 }

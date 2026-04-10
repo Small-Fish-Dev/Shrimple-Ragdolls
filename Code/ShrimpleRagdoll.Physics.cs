@@ -1,7 +1,19 @@
-namespace ShrimpleRagdolls;
+﻿namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
+	[Property, Group( "Physics" )]
+	public bool MotionEnabled
+	{
+		get;
+		set
+		{
+			field = value;
+			if ( ModelPhysics.IsValid() )
+				ModelPhysics.MotionEnabled = value;
+		}
+	}
+
 	/// <summary>
 	/// Enable/Disable gravity to all bodies.
 	/// </summary>
@@ -79,11 +91,9 @@ public partial class ShrimpleRagdoll
 		get;
 		set
 		{
-			if ( field == value )
-				return;
-
 			field = value;
-			SetRigidbodyFlags( value );
+			if ( ModelPhysics.IsValid() )
+				ModelPhysics.RigidbodyFlags = value;
 		}
 	}
 
@@ -97,7 +107,8 @@ public partial class ShrimpleRagdoll
 		set
 		{
 			field = value;
-			SetLocking( value );
+			if ( ModelPhysics.IsValid() )
+				ModelPhysics.Locking = value;
 		}
 	}
 
@@ -121,7 +132,16 @@ public partial class ShrimpleRagdoll
 	/// All bodies will be put to sleep on start.
 	/// </summary>
 	[Property, Group( "Physics" )]
-	public bool StartAsleep { get; set; } = false;
+	public bool StartAsleep
+	{
+		get;
+		set
+		{
+			field = value;
+			if ( ModelPhysics.IsValid() )
+				ModelPhysics.StartAsleep = value;
+		}
+	}
 
 	/// <summary>
 	/// Surface to apply to all colliders<br />
@@ -149,15 +169,57 @@ public partial class ShrimpleRagdoll
 		}
 	}
 
+	public float Mass => (ModelPhysics?.Mass ?? 0f) == 0f ? GetModelMass() : ModelPhysics?.Mass ?? 0f;
+
+	/// <summary>
+	/// Calculate the center of mass of the ragdoll in world space based on its bodies' masses and masscenters
+	/// </summary>
+	public Vector3 MassCenter => GetMassCenter();
+
+	/// <summary>
+	/// Calculate the center of mass of the ragdoll in world space based on its bodies' masses and masscenters
+	/// </summary>
+	/// <returns>World position of the combined center of mass</returns>
+	public Vector3 GetMassCenter()
+	{
+		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
+			return rigidbody.WorldTransform.PointToWorld( rigidbody.MassCenter );
+
+		var totalMass = 0f;
+		var weightedCenter = Vector3.Zero;
+
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() || !body.Component.Active )
+				continue;
+
+			var mass = body.Component.PhysicsBody.Mass;
+			var worldMassCenter = body.Component.WorldTransform.PointToWorld( body.Component.MassCenter );
+			weightedCenter += worldMassCenter * mass;
+			totalMass += mass;
+		}
+
+		if ( totalMass <= 0f )
+			return Renderer.IsValid() ? Renderer.WorldPosition : Vector3.Zero;
+
+		return weightedCenter / totalMass;
+	}
+
+	/// <summary>
+	/// Calculate the mass of the ragdoll using the model data
+	/// </summary>
+	/// <returns></returns>
+	public float GetModelMass() => Renderer?.Model?.Physics?.Parts?.Sum( x => x.Mass ) ?? 0f;
+
 	/// <summary>
 	/// Makes sure to wake up all bodies
 	/// </summary>
 	public void WakePhysics()
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.Sleeping = false;
+		if ( !PhysicsWereCreated )
+			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.Sleeping = false;
 	}
@@ -167,10 +229,10 @@ public partial class ShrimpleRagdoll
 	/// </summary>
 	public void SleepPhysics()
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.Sleeping = true;
+		if ( !PhysicsWereCreated )
+			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.Sleeping = true;
 	}
@@ -181,10 +243,10 @@ public partial class ShrimpleRagdoll
 	/// <param name="gravity"></param>
 	protected void SetGravity( bool gravity )
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.Gravity = gravity;
+		if ( !PhysicsWereCreated )
+			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.Gravity = gravity;
 	}
@@ -195,10 +257,10 @@ public partial class ShrimpleRagdoll
 	/// <param name="gravityScale"></param>
 	protected void SetGravityScale( float gravityScale )
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.GravityScale = gravityScale;
+		if ( !PhysicsWereCreated )
+			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.GravityScale = gravityScale;
 	}
@@ -209,10 +271,10 @@ public partial class ShrimpleRagdoll
 	/// <param name="damping"></param>
 	protected void SetLinearDamping( float damping )
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.LinearDamping = damping;
+		if ( !PhysicsWereCreated )
+			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.LinearDamping = damping;
 	}
@@ -223,32 +285,12 @@ public partial class ShrimpleRagdoll
 	/// <param name="damping"></param>
 	protected void SetAngularDamping( float damping )
 	{
-		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.AngularDamping = damping;
+		if ( !PhysicsWereCreated )
+			return;
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.AngularDamping = damping;
-	}
-
-	/// <summary>
-	/// Sets rigidbody flags to every body
-	/// </summary>
-	/// <param name="flags"></param>
-	protected void SetRigidbodyFlags( RigidbodyFlags flags )
-	{
-		if ( ModelPhysics.IsValid() )
-			ModelPhysics.RigidbodyFlags = flags;
-	}
-
-	/// <summary>
-	/// Sets the physics locking to every body
-	/// </summary>
-	/// <param name="locking"></param>
-	protected void SetLocking( PhysicsLock locking )
-	{
-		if ( ModelPhysics.IsValid() )
-			ModelPhysics.Locking = locking;
 	}
 
 	/// <summary>
@@ -257,12 +299,15 @@ public partial class ShrimpleRagdoll
 	/// <param name="surface"></param>
 	protected void SetSurface( Surface surface )
 	{
-		foreach ( var body in Bodies.Values )
+		if ( !PhysicsWereCreated )
+			return;
+
+		foreach ( var body in Bodies )
 		{
-			if ( !body.GameObject.IsValid() )
+			if ( !body.Component.IsValid() || !body.Component.GameObject.IsValid() )
 				continue;
 
-			foreach ( var collider in body.GameObject.GetComponents<Collider>() )
+			foreach ( var collider in body.Component.GameObject.GetComponents<Collider>() )
 			{
 				if ( collider.IsValid() )
 					collider.Surface = surface;
@@ -276,12 +321,15 @@ public partial class ShrimpleRagdoll
 	/// <param name="flags"></param>
 	protected void SetColliderFlags( ColliderFlags flags )
 	{
-		foreach ( var body in Bodies.Values )
+		if ( !PhysicsWereCreated )
+			return;
+
+		foreach ( var body in Bodies )
 		{
-			if ( !body.GameObject.IsValid() )
+			if ( !body.Component.IsValid() || !body.Component.GameObject.IsValid() )
 				continue;
 
-			foreach ( var collider in body.GameObject.GetComponents<Collider>() )
+			foreach ( var collider in body.Component.GameObject.GetComponents<Collider>() )
 			{
 				if ( collider.IsValid() )
 					collider.ColliderFlags = flags;
@@ -295,11 +343,14 @@ public partial class ShrimpleRagdoll
 	/// <param name="massOverride"></param>
 	protected void SetMassOverride( float massOverride )
 	{
+		if ( !PhysicsWereCreated )
+			return;
+
 		if ( Renderer.IsValid() && Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
 			rigidbody.MassOverride = massOverride;
 
 		float totalDefaultMass = 0f;
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 		{
 			if ( body.Component.IsValid() && body.Component.PhysicsBody.IsValid() )
 				totalDefaultMass += body.Component.PhysicsBody.Mass;
@@ -309,7 +360,7 @@ public partial class ShrimpleRagdoll
 			return;
 
 		// Set proportional masses so they sum to massOverride
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 		{
 			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
 				continue;
@@ -324,15 +375,10 @@ public partial class ShrimpleRagdoll
 	/// </summary>
 	public void SetupPhysics()
 	{
-		if ( StartAsleep )
-			SleepPhysics();
-
 		SetGravity( Gravity );
 		SetGravityScale( GravityScale );
 		SetLinearDamping( LinearDamping );
 		SetAngularDamping( AngularDamping );
-		SetRigidbodyFlags( RigidbodyFlags );
-		SetLocking( Locking );
 		SetSurface( Surface );
 		SetColliderFlags( ColliderFlags );
 		SetMassOverride( MassOverride );

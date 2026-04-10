@@ -3,40 +3,6 @@
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// Calculate the center of mass of the ragdoll in world space based on its bodies' masses and masscenters
-	/// </summary>
-	public Vector3 MassCenter => GetMassCenter();
-
-	/// <summary>
-	/// Calculate the center of mass of the ragdoll in world space based on its bodies' masses and masscenters
-	/// </summary>
-	/// <returns>World position of the combined center of mass</returns>
-	public Vector3 GetMassCenter()
-	{
-		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			return rigidbody.WorldTransform.PointToWorld( rigidbody.MassCenter );
-
-		var totalMass = 0f;
-		var weightedCenter = Vector3.Zero;
-
-		foreach ( var body in Bodies.Values )
-		{
-			if ( !body.Component.IsValid() || !body.Component.Active )
-				continue;
-
-			var mass = body.Component.PhysicsBody.Mass;
-			var worldMassCenter = body.Component.WorldTransform.PointToWorld( body.Component.MassCenter );
-			weightedCenter += worldMassCenter * mass;
-			totalMass += mass;
-		}
-
-		if ( totalMass <= 0f )
-			return Renderer.IsValid() ? Renderer.WorldPosition : Vector3.Zero;
-
-		return weightedCenter / totalMass;
-	}
-
-	/// <summary>
 	/// Move the ragdoll without affecting its velocity or simulating collisions<br />
 	/// </summary>
 	/// <param name="target">The target transform, the entire ragdoll will be moved so that its root matches</param>
@@ -44,17 +10,13 @@ public partial class ShrimpleRagdoll
 	{
 		WakePhysics();
 
-		foreach ( var bone in BoneObjects )
+		foreach ( var body in Bodies )
 		{
-			if ( bone.Value.Flags.Contains( GameObjectFlags.Absolute ) )
-			{
-				var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( bone.Value.WorldTransform ) );
-				bone.Value.WorldTransform = targetTransform;
-			}
-			else if ( bone.Key.Index == 0 )
-			{
-				Renderer.WorldTransform = target;
-			}
+			if ( !body.Component.IsValid() )
+				continue;
+
+			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) );
+			body.Component.WorldTransform = targetTransform;
 		}
 	}
 
@@ -66,12 +28,9 @@ public partial class ShrimpleRagdoll
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 			if ( body.Component.IsValid() )
 				body.Component.Velocity += velocity;
-
-		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.Velocity += velocity;
 	}
 
 	/// <summary>
@@ -87,7 +46,7 @@ public partial class ShrimpleRagdoll
 		var normalizedAngularVelocity = spinAxis * spinSpeed;
 		var massCenter = GetMassCenter();
 
-		foreach ( var body in Bodies.Values )
+		foreach ( var body in Bodies )
 		{
 			if ( !body.Component.IsValid() )
 				continue;
@@ -96,9 +55,6 @@ public partial class ShrimpleRagdoll
 			body.Component.Velocity += bodyVelocity;
 			body.Component.AngularVelocity += normalizedAngularVelocity;
 		}
-
-		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.AngularVelocity += normalizedAngularVelocity;
 	}
 
 	/// <summary>
@@ -109,12 +65,13 @@ public partial class ShrimpleRagdoll
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies.Values )
-			if ( body.Component.IsValid() )
-				body.Component.PhysicsBody.ApplyTorque( torque );
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
 
-		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.PhysicsBody.ApplyTorque( torque );
+			body.Component.PhysicsBody.ApplyTorque( torque );
+		}
 	}
 
 	/// <summary>
@@ -125,12 +82,13 @@ public partial class ShrimpleRagdoll
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies.Values )
-			if ( body.Component.IsValid() )
-				body.Component.PhysicsBody.ApplyForce( force );
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
 
-		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.PhysicsBody.ApplyForce( force );
+			body.Component.PhysicsBody.ApplyForce( force );
+		}
 	}
 
 	/// <summary>
@@ -141,95 +99,46 @@ public partial class ShrimpleRagdoll
 	{
 		WakePhysics();
 
-		foreach ( var body in Bodies.Values )
-			if ( body.Component.IsValid() )
-				body.Component.PhysicsBody.ApplyImpulse( impulse );
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
 
-		if ( Renderer.Components.TryGet<Rigidbody>( out var rigidbody ) && rigidbody.IsValid() && rigidbody.Active )
-			rigidbody.PhysicsBody.ApplyImpulse( impulse );
+			body.Component.PhysicsBody.ApplyImpulse( impulse );
+		}
 	}
 
 	/// <summary>
 	/// Get a body by bone name
 	/// </summary>
-	public Body? GetBodyByBoneName( string boneName )
+	public ModelPhysics.Body? GetBodyByBoneName( string boneName )
 	{
 		if ( !Renderer.IsValid() || !Renderer.Model.IsValid() )
 			return null;
 
-		var bone = Renderer.Model.Bones.GetBone( boneName );
-		if ( bone == null )
-			return null;
-
-		if ( Bodies.TryGetValue( bone.Index, out var body ) )
-			return body;
-		return null;
+		return Bodies.FirstOrDefault( x => x.Bone == Renderer.Model.Bones.GetBone( boneName ).Index );
 	}
 
 	/// <summary>
 	/// Get a body by bone index
 	/// </summary>
-	public Body? GetBodyByBoneIndex( int boneIndex )
+	public ModelPhysics.Body? GetBodyByBoneIndex( int boneIndex )
 	{
-		if ( Bodies.TryGetValue( boneIndex, out var body ) )
-			return body;
-		return null;
+		if ( !Renderer.IsValid() || !Renderer.Model.IsValid() )
+			return null;
+
+		return Bodies[boneIndex];
 	}
 
 	/// <summary>
 	/// Get a body by bone
 	/// </summary>
-	public Body? GetBodyByBone( BoneCollection.Bone bone )
+	public ModelPhysics.Body? GetBodyByBone( BoneCollection.Bone bone )
 	{
 		if ( bone == null )
 			return null;
 
-		if ( Bodies.TryGetValue( bone.Index, out var body ) )
-			return body;
-
-		return null;
-	}
-
-	/// <summary>
-	/// Finds the nearest ancestor bone that is associated with a valid body
-	/// </summary>
-	/// <returns>The nearest valid parent body associated with the specified bone, or null if no such body is found.</returns>
-	public Body? GetNearestValidParentBody( BoneCollection.Bone bone )
-	{
-		while ( bone != null )
-		{
-			var parentBody = GetBodyByBone( bone );
-			if ( parentBody != null )
-				return parentBody;
-			bone = bone.Parent;
-		}
-		return null;
-	}
-
-	/// <summary>
-	/// Finds the nearest descendant bone that is associated with a valid body
-	/// </summary>
-	/// <returns>The nearest valid child body associated with the specified bone, or null if no such body is found.</returns>
-	public Body? GetNearestValidChildBody( BoneCollection.Bone bone )
-	{
-		if ( bone == null )
-			return null;
-
-		// If this bone has a body, return it
-		if ( Bodies.TryGetValue( bone.Index, out var body ) )
-			return body;
-
-		// Otherwise, recursively check children
-		if ( bone.Children != null )
-		{
-			foreach ( var childBone in bone.Children )
-			{
-				var childBody = GetNearestValidChildBody( childBone );
-				if ( childBody != null )
-					return childBody;
-			}
-		}
-		return null;
+		return Bodies.FirstOrDefault( x => x.Bone == bone.Index );
 	}
 
 	public static float GetSignedAngleAroundAxis( Rotation rel, Vector3 axis )
@@ -264,5 +173,54 @@ public partial class ShrimpleRagdoll
 		var angleRad = MathF.Atan2( Vector3.Dot( cross, axis ), dot );
 
 		return angleRad * (180f / MathF.PI);
+	}
+
+	/// <summary>
+	/// Get the ragdoll's ideal transform from the provided bone
+	/// </summary>
+	/// <param name="boneIndex">Which bone to base off of</param>
+	/// <param name="mergedBoneTransforms">The final renderer's transform should match the bone's transform</param>
+	/// <returns></returns>
+	public Transform GetRagdollTransform( int boneIndex, bool mergedBoneTransforms = true )
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return WorldTransform;
+
+		var currentTransform = Bodies[boneIndex].Component.GameObject.WorldTransform;
+		var targetTransform = currentTransform;
+
+		if ( mergedBoneTransforms )
+		{
+			var localTransform = Renderer.Model.GetBoneTransform( boneIndex );
+			var invRotation = localTransform.Rotation.Inverse;
+
+			// Transform the bone's world transform back to root space
+			var rotatedLocalPos = currentTransform.Rotation * (localTransform.Position * invRotation);
+			targetTransform = new Transform(
+				currentTransform.Position - rotatedLocalPos,
+				currentTransform.Rotation * invRotation
+			);
+		}
+
+		return targetTransform;
+	}
+
+	public void MultiplyJointLimits( float multiplier = 1f )
+	{
+		foreach ( var joint in Joints )
+		{
+			if ( joint.Component is BallJoint ballJoint )
+			{
+				ballJoint.SwingLimit *= multiplier;
+				ballJoint.TwistLimit *= multiplier;
+			}
+			else if ( joint.Component is HingeJoint hingeJoint )
+			{
+				hingeJoint.MinAngle *= multiplier;
+				hingeJoint.MaxAngle *= multiplier;
+			}
+		}
+
+		_currentJointLimits *= multiplier;
 	}
 }

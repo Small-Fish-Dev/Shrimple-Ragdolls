@@ -1,253 +1,141 @@
-﻿namespace ShrimpleRagdolls;
+namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// How fast lerping will be for physically simulated Moves
-	/// </summary>
-	public float LerpTime { get; set; } = 0f;
-
-	/// <summary>
-	/// Move the bone's mesh based on their Rigidbody transform
-	/// </summary>
-	public void MoveMeshFromBodies()
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		var worldTransform = Renderer.WorldTransform;
-
-		foreach ( var kvp in Bodies )
-		{
-			// Can optimize by not running this if the body is sleeping, but there's times you want it to update anyways so maybe make it a property
-			var transform = worldTransform.ToLocal( kvp.Value.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
-			Renderer.SceneModel.SetBoneOverride( kvp.Key, in transform );
-		}
-	}
-
-	/// <summary>
-	/// Move a single bone's mesh based on its Rigidbody transform
-	/// </summary>
-	public void MoveMeshFromBody( Body body )
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		var worldTransform = Renderer.WorldTransform;
-		var transform = worldTransform.ToLocal( body.Component.PhysicsBody.GetLerpedTransform( Time.Now ) );
-		Renderer.SceneModel.SetBoneOverride( body.GetBone().Index, in transform );
-	}
-
-	/// <summary>
-	/// Move the bone's mesh based on their objects transform
-	/// </summary>
-	public void MoveMeshFromObjects()
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		var worldTransform = Renderer.WorldTransform;
-		foreach ( var kvp in Bodies ) // We still use bodies just for the bone references
-		{
-			var boneObject = BoneObjects[kvp.Value.GetBone()];
-			var transform = worldTransform.ToLocal( boneObject.WorldTransform );
-			Renderer.SceneModel.SetBoneOverride( kvp.Key, in transform );
-		}
-	}
-
-	public void MoveMeshFromObject( Body body )
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		var bone = body.GetBone();
-		var boneObject = BoneObjects[bone];
-		var transform = Renderer.WorldTransform.ToLocal( boneObject.WorldTransform );
-		Renderer.SceneModel.SetBoneOverride( bone.Index, in transform );
-	}
-
-	/// <summary>
-	/// Move the bone's objects based on their mesh transform
-	/// </summary>
-	public void MoveObjectsFromMesh()
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		var renderBonePositions = Renderer.GetBoneTransforms( world: true );
-		var renderBoneVelocities = Renderer.GetBoneVelocities();
-
-		if ( renderBonePositions == null || renderBoneVelocities == null )
-			return;
-
-		foreach ( var item in BoneObjects )
-		{
-			if ( item.Key == null || !item.Value.IsValid() || item.Key.Index >= renderBonePositions.Length || item.Key.Index >= renderBoneVelocities.Length )
-				continue;
-
-			var component = item.Value.GetComponent<Rigidbody>();
-			if ( component.IsValid() )
-			{
-				var worldTransform = renderBonePositions[item.Key.Index];
-				var boneVelocity = renderBoneVelocities[item.Key.Index];
-				component.WorldTransform = worldTransform;
-				component.Velocity = boneVelocity.Linear;
-				component.AngularVelocity = boneVelocity.Angular;
-			}
-		}
-	}
-
-	public void MoveObjectFromMesh( BoneCollection.Bone bone )
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-		if ( !Renderer.TryGetBoneTransform( bone, out var renderBoneTransform ) )
-			return;
-		var renderBoneVelocity = Renderer.GetBoneVelocity( bone.Index );
-		var boneObject = BoneObjects[bone];
-
-		var component = boneObject.GetComponent<Rigidbody>();
-		if ( component.IsValid() )
-		{
-			component.WorldTransform = renderBoneTransform;
-			component.Velocity = renderBoneVelocity.Linear;
-			component.AngularVelocity = renderBoneVelocity.Angular;
-		}
-	}
-
-	/// <summary>
-	/// Physically move the bone's rigidbody based on the mesh transform
-	/// </summary>
-	public void MoveBodyFromMesh( Body body )
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransform( body.GetBone(), out var transform ) )
-			return;
-
-		body.Component.SmoothMove( in transform, MathF.Max( LerpTime, Time.Delta ), Time.Delta );
-	}
-
-	/// <summary>
-	/// Physically move all rigidbodies based on their mesh transforms
-	/// </summary>
-	public void MoveBodiesFromMesh()
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		foreach ( var body in Bodies.Values )
-			MoveBodyFromMesh( body );
-	}
-
-	public void MoveObjectFromAnimation( BoneCollection.Bone bone )
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		if ( !Renderer.TryGetBoneTransformAnimation( bone, out var transform ) )
-			return;
-
-		BoneObjects[bone].WorldTransform = transform;
-	}
-
-	/// <summary>
-	/// Physically move the bone's rigidbody based on their animation transforms
-	/// </summary>
-	public void MoveBodyFromAnimations( Body body )
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		if ( !body.Component.IsValid() || !Renderer.TryGetBoneTransformAnimation( body.GetBone(), out var transform ) )
-			return;
-
-		body.Component.SmoothMove( in transform, MathF.Max( LerpTime, Time.Delta ), Time.Delta );
-	}
-
-	/// <summary>
-	/// Physically move all rigidbodies based on their animation transforms
-	/// </summary>
-	public void MoveBodiesFromAnimations()
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-
-		foreach ( var body in Bodies.Values )
-			MoveBodyFromAnimations( body );
-	}
-
-	/// <summary>
-	/// Move the bone's objects based on their animation transforms
+	/// Teleport all body GameObjects to their animation bone transforms
 	/// </summary>
 	public void MoveObjectsFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		foreach ( var boneObject in BoneObjects )
-			MoveObjectFromAnimation( boneObject.Key );
-	}
-
-	/// <summary>
-	/// Set the Renderer and Root's transform following the <see cref="RagdollFollowMode"/>
-	/// </summary>
-	public void MoveGameObject()
-	{
-		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return;
-		if ( !PhysicsWereCreated || Bodies == null || Bodies.Count == 0 )
-			return;
-
-		if ( RagdollHandler.PhysicsDriven )
+		foreach ( var body in Bodies )
 		{
-			var targetTransform = GetRagdollTransform( FollowOptions.Bone.Selected, FollowOptions.MergeBoneTransforms );
+			if ( !body.Component.IsValid() )
+				continue;
 
-			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
-				Renderer.WorldPosition = targetTransform.Position;
+			var bone = Renderer.Model.Bones.AllBones[body.Bone];
+			if ( !Renderer.TryGetBoneTransformAnimation( bone, out var targetTransform ) )
+				continue;
 
-			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
-				Renderer.WorldRotation = targetTransform.Rotation;
-		}
-
-		if ( GameObject != Renderer.GameObject && FollowOptions.RootObjectFollow )
-		{
-			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Position ) )
-				GameObject.WorldPosition = Renderer.WorldPosition;
-
-			if ( FollowOptions.FollowMode.Contains( RagdollFollowMode.Rotation ) )
-				GameObject.WorldRotation = Renderer.WorldRotation;
+			body.Component.WorldTransform = targetTransform;
 		}
 	}
 
 	/// <summary>
-	/// Get the ragdoll's ideal transform from the provided bone
+	/// Kinematically move all rigidbodies toward their animation bone transforms
 	/// </summary>
-	/// <param name="boneName">Which bone to base off of</param>
-	/// <param name="mergedBoneTransforms">The final renderer's transform should match the bone's transform</param>
-	/// <returns></returns>
-	public Transform GetRagdollTransform( string boneName, bool mergedBoneTransforms = true )
+	public void MoveBodiesFromAnimations()
 	{
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
-			return WorldTransform;
-		var bone = Renderer.Model.Bones.GetBone( boneName );
-		var currentTransform = Bodies[bone.Index].Component.GameObject.WorldTransform;
-		var targetTransform = currentTransform;
+			return;
 
-		if ( mergedBoneTransforms )
+		foreach ( var body in Bodies )
 		{
-			var localTransform = Renderer.Model.GetBoneTransform( boneName );
-			var invRotation = localTransform.Rotation.Inverse;
+			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
+				continue;
 
-			// Transform the bone's world transform back to root space
-			var rotatedLocalPos = currentTransform.Rotation * (localTransform.Position * invRotation);
-			targetTransform = new Transform(
-				currentTransform.Position - rotatedLocalPos,
-				currentTransform.Rotation * invRotation
-			);
+			var bone = Renderer.Model.Bones.AllBones[body.Bone];
+			if ( !Renderer.TryGetBoneTransformAnimation( bone, out var targetTransform ) )
+				continue;
+
+			body.Component.PhysicsBody.SmoothMove( in targetTransform, MathF.Max( ActiveLerpTime, Time.Delta ), Time.Delta );
 		}
+	}
 
-		return targetTransform;
+	/// <summary>
+	/// Enable motors on all joints with the given frequency and damping
+	/// </summary>
+	public void EnableJointMotors( float frequency = 30f, float dampingRatio = 1f )
+	{
+		foreach ( var joint in Joints )
+		{
+			if ( !joint.Component.IsValid() )
+				continue;
+
+			if ( joint.Component is BallJoint ballJoint )
+			{
+				ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
+				ballJoint.Frequency = frequency;
+				ballJoint.DampingRatio = dampingRatio;
+			}
+			else if ( joint.Component is HingeJoint hingeJoint )
+			{
+				hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
+				hingeJoint.Frequency = frequency;
+				hingeJoint.DampingRatio = dampingRatio;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Disable and reset motors on all joints
+	/// </summary>
+	public void DisableJointMotors()
+	{
+		foreach ( var joint in Joints )
+		{
+			if ( !joint.Component.IsValid() )
+				continue;
+
+			if ( joint.Component is BallJoint ballJoint )
+			{
+				ballJoint.Motor = BallJoint.MotorMode.Disabled;
+				ballJoint.Frequency = 0f;
+			}
+			else if ( joint.Component is HingeJoint hingeJoint )
+			{
+				hingeJoint.Motor = HingeJoint.MotorMode.Disabled;
+				hingeJoint.Frequency = 0f;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Drive every joint toward its animation pose using joint motors
+	/// </summary>
+	public void MoveJointsFromAnimations( float frequency = 30f, float dampingRatio = 1f )
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var joint in Joints )
+		{
+			if ( !joint.Component.IsValid() )
+				continue;
+
+			var childBody = joint.Component.Body2;
+			if ( !childBody.IsValid() )
+				continue;
+
+			var childBone = Renderer.Model.Bones.GetBone( childBody.GameObject.Name );
+			var parentBone = childBone.Parent;
+			if ( parentBone == null )
+				continue;
+
+			if ( !Renderer.TryGetBoneTransformAnimation( childBone, out var animChildTransform ) )
+				continue;
+			if ( !Renderer.TryGetBoneTransformAnimation( parentBone, out var animParentTransform ) )
+				continue;
+
+			var animRotation = animParentTransform.ToLocal( animChildTransform ).Rotation;
+
+			if ( joint.Component is BallJoint ballJoint )
+			{
+				ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
+				ballJoint.Frequency = frequency;
+				ballJoint.DampingRatio = dampingRatio;
+				ballJoint.TargetRotation = joint.Component.Point1.LocalRotation.Inverse * animRotation * joint.Component.Point2.LocalRotation;
+			}
+			else if ( joint.Component is HingeJoint hingeJoint )
+			{
+				hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
+				hingeJoint.Frequency = frequency;
+				hingeJoint.DampingRatio = dampingRatio;
+				var targetJointRot = joint.Component.Point1.LocalRotation.Inverse * animRotation * joint.Component.Point2.LocalRotation;
+				hingeJoint.TargetAngle = GetSignedAngleAroundAxis( targetJointRot, hingeJoint.Axis );
+			}
+		}
 	}
 }
