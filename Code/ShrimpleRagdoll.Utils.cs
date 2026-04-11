@@ -193,6 +193,38 @@ public partial class ShrimpleRagdoll
 		return targetTransform;
 	}
 
+	/// <summary>
+	/// Returns the given bone and all of its descendants in the skeleton
+	/// </summary>
+	/// <param name="rootBone">The root bone</param>
+	public IEnumerable<BoneCollection.Bone> GetDescendantBones( BoneCollection.Bone rootBone )
+	{
+		var included = new HashSet<int>() { rootBone.Index };
+
+		foreach ( var bone in Renderer.Model.Bones.AllBones )
+		{
+			if ( bone.Parent != null && included.Contains( bone.Parent.Index ) )
+				included.Add( bone.Index );
+
+			if ( included.Contains( bone.Index ) )
+				yield return bone;
+		}
+	}
+
+	/// <summary>
+	/// Returns the given bone and all of its descendants in the skeleton
+	/// </summary>
+	/// <param name="boneName">The root bone</param>
+	public IEnumerable<BoneCollection.Bone> GetDescendantBones( string boneName )
+		=> GetDescendantBones( Renderer?.Model?.Bones?.GetBone( boneName ) );
+
+	/// <summary>
+	/// Returns the given bone and all of its descendants in the skeleton
+	/// </summary>
+	/// <param name="boneIndex">The root bone</param>
+	public IEnumerable<BoneCollection.Bone> GetDescendantBones( int boneIndex )
+		=> GetDescendantBones( Renderer?.Model?.Bones?.AllBones[boneIndex] );
+
 	public void MultiplyJointLimits( float multiplier = 1f )
 	{
 		foreach ( var joint in Joints )
