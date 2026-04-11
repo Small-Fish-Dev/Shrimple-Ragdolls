@@ -38,7 +38,7 @@ public partial class ShrimpleRagdoll
 			body.Component.Gravity = Gravity; // We reset this for active mode so reenable it
 		}
 
-		// Enable joints last so both bodies are ready
+		// Gotta enable joints last otherwise they error out
 		foreach ( var joint in GetJointsForBones( indices ) )
 		{
 			joint.Component.Enabled = true;
@@ -115,14 +115,6 @@ public partial class ShrimpleRagdoll
 	/// Clear all partial ragdoll overrides, returning full control to the global mode.
 	/// </summary>
 	public void ClearPartialRagdoll() => _partialRagdollBoneIndices.Clear();
-
-	[Property, Group( "Partial Ragdoll" )] private string TestPartialRagdollBone { get; set; } = "arm_upper_R";
-
-	[Button( "Ragdoll Bone" ), Group( "Partial Ragdoll" )]
-	private void TestRagdollBone() => RagdollBone( TestPartialRagdollBone );
-
-	[Button( "Unragdoll Bone" ), Group( "Partial Ragdoll" )]
-	private void TestUnragdollBone() => UnragdollBone( TestPartialRagdollBone );
 
 	public bool IsBonePartiallyRagdolled( BoneCollection.Bone bone )
 		=> bone != null && _partialRagdollBoneIndices.Contains( bone.Index );
