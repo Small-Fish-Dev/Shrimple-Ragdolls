@@ -141,38 +141,26 @@ public partial class ShrimpleRagdoll
 		return Bodies.FirstOrDefault( x => x.Bone == bone.Index );
 	}
 
-	public static float GetSignedAngleAroundAxis( Rotation rel, Vector3 axis )
+	/// <summary>
+	/// Returns the signed angle in degrees that <paramref name="rot"/> rotates around <paramref name="axis"/>.
+	/// Picks a reference vector perpendicular to the axis, rotates it, projects onto the plane, then atan2s the result.
+	/// </summary>
+	public static float GetSignedAngleAroundAxis( Rotation rot, Vector3 axis )
 	{
+		// I really don't understand this math, but my implementation was so long and crap I asked an AI to fix it and I guess this is what it's meant to look?
 		axis = axis.Normal;
 
-		// Pick reference direction perpendicular to axis
-		var refDir = Vector3.Cross( axis, Vector3.Up );
-		if ( refDir.LengthSquared < 1e-4f )
-			refDir = Vector3.Cross( axis, Vector3.Right );
-		refDir = refDir.Normal;
+		// Pick a stable reference vector perpendicular to the axis
+		var reference = MathF.Abs( Vector3.Dot( axis, Vector3.Up ) ) < 0.99f
+			? Vector3.Cross( axis, Vector3.Up ).Normal
+			: Vector3.Cross( axis, Vector3.Right ).Normal;
 
-		// Rotate reference by the relative rotation
-		var rotatedDir = rel * refDir;
+		// Rotate the reference, then flatten it back onto the axis-perpendicular plane
+		var rotated = rot * reference;
+		rotated = (rotated - axis * Vector3.Dot( rotated, axis )).Normal;
 
-		// Project both onto plane perpendicular to axis
-		refDir -= axis * Vector3.Dot( refDir, axis );
-		rotatedDir -= axis * Vector3.Dot( rotatedDir, axis );
-
-		// Safety check: ensure vectors aren't zero after projection
-		var refLen = refDir.Length;
-		var rotLen = rotatedDir.Length;
-		if ( refLen < 1e-6f || rotLen < 1e-6f )
-			return 0f; // No meaningful rotation in this plane
-
-		refDir = refDir / refLen;
-		rotatedDir = rotatedDir / rotLen;
-
-		// Signed angle using atan2
-		var cross = Vector3.Cross( refDir, rotatedDir );
-		var dot = Vector3.Dot( refDir, rotatedDir );
-		var angleRad = MathF.Atan2( Vector3.Dot( cross, axis ), dot );
-
-		return angleRad * (180f / MathF.PI);
+		return MathF.Atan2( Vector3.Dot( Vector3.Cross( reference, rotated ), axis ),
+							Vector3.Dot( reference, rotated ) ) * (180f / MathF.PI);
 	}
 
 	/// <summary>
