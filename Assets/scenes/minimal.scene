@@ -411,7 +411,9 @@
               "Parameters": {
                 "bools": {},
                 "ints": {},
-                "floats": {},
+                "floats": {
+                  "scale_height": 0.5
+                },
                 "vectors": {},
                 "rotations": {}
               },
@@ -579,9 +581,14 @@
               "OnComponentStart": null,
               "OnComponentUpdate": null,
               "Parameters": {
-                "bools": {},
+                "bools": {
+                  "b_grounded": false
+                },
                 "ints": {},
-                "floats": {},
+                "floats": {
+                  "move_x": 50,
+                  "scale_height": 2
+                },
                 "vectors": {},
                 "rotations": {}
               },
@@ -2327,14 +2334,6 @@
             },
             "Property": "MotionEnabled",
             "Value": true
-          },
-          {
-            "Target": {
-              "Type": "Component",
-              "IdValue": "99472fae-974f-458c-8539-dc429b5f108d"
-            },
-            "Property": "MotionEnabled",
-            "Value": true
           }
         ],
         "MovedObjects": []
@@ -2344,7 +2343,7 @@
         "56469045-f4b5-47a9-bd81-5a21b4d70618": "f395a6f0-144e-4373-9aef-52b642ea4424",
         "264c6bd4-cdf3-484c-be5a-bf524de2397f": "8a98d267-cba7-47b2-bce8-00cde804202d",
         "f3b27fc9-9cd3-4d5e-80b7-4c485134df4d": "42cd5d80-b1a2-4d7a-9bc5-598022ed5700",
-        "c5f9be61-2c0f-4b43-99ca-235d3db319ec": "7b4b90c6-a9e4-40cd-aa97-bc20217b195e",
+        "7bc741bd-f050-4f47-9e55-e99d4537d198": "004eeffa-0802-4437-bc3c-86b74e7034ae",
         "f3c5dc63-40af-498a-8c0d-40437f459c16": "d24a909f-bfb8-4b1a-985a-66ae4f014802",
         "762f44cf-f18c-4fa7-b4e4-ea82cbed80c7": "c394e0bb-79f4-4887-b261-5a8bad09c467",
         "3bd761b4-cf77-4bed-a575-60063888775d": "881a511c-0cc0-4e1b-ae44-99006a1ddffa",
@@ -2446,7 +2445,7 @@
         "55027fbb-ef24-4bc4-8ab1-2fe1f36552c9": "a04965aa-417a-4fc4-9833-6e44b9aa6d2a",
         "d1f380fe-d6cc-4675-b5b1-d1514a752732": "a1233f22-ea80-41a8-b648-5ec216b49ca3",
         "209e71c0-0685-466f-bebc-56ac365ad746": "266895ee-5c6d-4f98-b0b8-6737ff1e4dce",
-        "99472fae-974f-458c-8539-dc429b5f108d": "1da19981-f715-4472-8281-c2080df34849"
+        "8e136449-9c0d-4c4c-b6c2-bf71c2511556": "b0a5d5b3-6124-48f6-9034-488340caf8a7"
       }
     }
   ],
@@ -2471,7 +2470,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "489c4f11-f724-4d66-96c8-003bb018cfcd"
+          "$blob": "ec6e70d0-7802-4b5c-8ab2-2fc5082f6f7d"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
