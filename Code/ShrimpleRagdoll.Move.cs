@@ -36,6 +36,9 @@ public partial class ShrimpleRagdoll
 			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
 				continue;
 
+			if ( _partialRagdollBoneIndices.Contains( body.Bone ) )
+				continue;
+
 			var bone = Renderer.Model.Bones.AllBones[body.Bone];
 			if ( !Renderer.TryGetBoneTransformAnimation( bone, out var targetTransform ) )
 				continue;
@@ -103,6 +106,9 @@ public partial class ShrimpleRagdoll
 		foreach ( var joint in Joints )
 		{
 			if ( !joint.Component.IsValid() )
+				continue;
+
+			if ( _partialRagdollBoneIndices.Contains( joint.Body2.Bone ) )
 				continue;
 
 			var childBone = Renderer.Model.Bones.AllBones[joint.Body2.Bone];
