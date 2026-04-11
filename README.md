@@ -26,6 +26,12 @@ With the Shrimple Ragdoll component, you'll be able to use procedural localized 
 - **ApplyHitReaction( hitPosition, force, radius, duration, rotationStrength ):** Start the procedural hit reaction on the specified world position and radius, it will then look up which bones fall inside of the radius and begin the animation.
 Multiple hit reactions can happen at the same time, but beware of having too many happen on the same spot too quickly or else your head will start twisting backwards!
 
+###Partial Ragdolling
+You're able to partially ragdoll only certain bones or limbs so that they flop around, like breaking an arm or leg!
+
+- **RagdollBone( rootBone, includeChildren ):** Ragdolls a single bone and optionally all its children
+- **UnragdollBone( rootBone, IncludeChildren ):** Unragdolls a single bone and optionally all its children
+
 ### Extra properties
 Shrimple Ragdolls come with extra properties on top of ModelPhysics that you can set
 
