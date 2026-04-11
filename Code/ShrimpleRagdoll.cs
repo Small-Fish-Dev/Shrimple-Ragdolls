@@ -27,6 +27,7 @@ public enum RagdollMode
 /// <summary>
 /// A wrapper for modelphysics with utilities
 /// </summary>
+[Icon( "sports_martial_arts" )]
 public partial class ShrimpleRagdoll : Component
 {
 	[Property, Sync]
