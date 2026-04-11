@@ -105,18 +105,13 @@ public partial class ShrimpleRagdoll
 			if ( !joint.Component.IsValid() )
 				continue;
 
-			var childBody = joint.Component.Body2;
-			if ( !childBody.IsValid() )
+			var childBone = Renderer.Model.Bones.AllBones[joint.Body2.Bone];
+			var parentBone = Renderer.Model.Bones.AllBones[joint.Body1.Bone];
+			if ( childBone == null || parentBone == null )
 				continue;
 
-			var childBone = Renderer.Model.Bones.GetBone( childBody.GameObject.Name );
-			var parentBone = childBone.Parent;
-			if ( parentBone == null )
-				continue;
-
-			if ( !Renderer.TryGetBoneTransformAnimation( childBone, out var animChildTransform ) )
-				continue;
-			if ( !Renderer.TryGetBoneTransformAnimation( parentBone, out var animParentTransform ) )
+			if ( !Renderer.TryGetBoneTransformAnimation( childBone, out var animChildTransform ) ||
+				!Renderer.TryGetBoneTransformAnimation( parentBone, out var animParentTransform ) )
 				continue;
 
 			var animRotation = animParentTransform.ToLocal( animChildTransform ).Rotation;
