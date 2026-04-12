@@ -29,8 +29,10 @@ Multiple hit reactions can happen at the same time, but beware of having too man
 ### Partial Ragdolling
 You're able to partially ragdoll only certain bones or limbs so that they flop around, like breaking an arm or leg!
 
-- **RagdollBone( rootBone, includeChildren ):** Ragdolls a single bone and optionally all its children
+- **RagdollBone( rootBone, targetMode, includeChildren ):** Ragdolls a single bone and optionally all its children
 - **UnragdollBone( rootBone, IncludeChildren ):** Unragdolls a single bone and optionally all its children
+
+You're also able to set this in the editor through Advanced Properties, there's a Dictionary where you set the bone name and the target mode, this is set inside of OnStart so you could for example have a zombie NPC where in their prefab their spine is set to motor and they'll flop around.
 
 ### Extra properties
 Shrimple Ragdolls come with extra properties on top of ModelPhysics that you can set
@@ -50,6 +52,7 @@ To enable these you'll have to right click the component and check the "Show Adv
 - **MotorFrequency:** The frequency of the joint's motors
 - **MotorDamping:** The damping of the joint's motors
 - **ActiveLerpTime:** How fast the Active mode takes to reach final transform
+- **PartialRagdollConfig:** A dictionary to manually set partial ragdolled bones in the editor
 
 ### Extra methods
 - **Move( Transform ):** Move the ragdoll without affecting its velocity or simulating collisions
