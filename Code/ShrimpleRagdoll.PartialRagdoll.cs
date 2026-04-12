@@ -2,19 +2,20 @@ namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
-	private readonly HashSet<int> _partialRagdollBoneIndices = new();
-
 	/// <summary>
-	/// Currently ragdolled bones
+	/// Bones that currently have a partial ragdoll override
 	/// </summary>
-	public IEnumerable<BoneCollection.Bone> PartialRagdollBones => _partialRagdollBoneIndices
-		.Select( i => Renderer?.Model?.Bones?.AllBones[i] )
 		.Where( b => b != null );
+	private readonly Dictionary<int, RagdollMode> _partialRagdollOverrides = new();
 
 	/// <summary>
 	/// Ragdolls a single bone and optionally all its children
 	/// </summary>
 	public void RagdollBone( BoneCollection.Bone rootBone, bool includeChildren = true )
+	/// <param name="rootBone">The target bone</param>
+	/// <param name="mode">Which mode to set the bone (Only works for Enabled and Motor)</param>
+	/// <param name="includeChildren">Include all children of the target bone</param>
+	public void RagdollBone( BoneCollection.Bone rootBone, RagdollMode mode = RagdollMode.Enabled, bool includeChildren = true )
 	{
 		if ( Mode == RagdollMode.None )
 			return;
@@ -56,14 +57,14 @@ public partial class ShrimpleRagdoll
 		}
 
 		foreach ( var index in indices )
-			_partialRagdollBoneIndices.Add( index );
+			_partialRagdollOverrides[index] = mode;
 	}
 
-	public void RagdollBone( string boneName, bool includeChildren = true )
-		=> RagdollBone( Renderer?.Model?.Bones?.GetBone( boneName ), includeChildren );
+	public void RagdollBone( string boneName, RagdollMode mode = RagdollMode.Enabled, bool includeChildren = true )
+		=> RagdollBone( Renderer?.Model?.Bones?.GetBone( boneName ), mode, includeChildren );
 
-	public void RagdollBone( int boneIndex, bool includeChildren = true )
-		=> RagdollBone( Renderer?.Model?.Bones?.AllBones[boneIndex], includeChildren );
+	public void RagdollBone( int boneIndex, RagdollMode mode = RagdollMode.Enabled, bool includeChildren = true )
+		=> RagdollBone( Renderer?.Model?.Bones?.AllBones[boneIndex], mode, includeChildren );
 
 	/// <summary>
 	/// Unragdoll the bone optionally all its children
@@ -102,7 +103,7 @@ public partial class ShrimpleRagdoll
 		}
 
 		foreach ( var index in indices )
-			_partialRagdollBoneIndices.Remove( index );
+			_partialRagdollOverrides.Remove( index );
 	}
 
 	public void UnragdollBone( string boneName, bool includeChildren = true )
@@ -114,16 +115,19 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Clear all partial ragdoll overrides, returning full control to the global mode.
 	/// </summary>
-	public void ClearPartialRagdoll() => _partialRagdollBoneIndices.Clear();
+	public void ClearPartialRagdoll() => _partialRagdollOverrides.Clear();
 
 	public bool IsBonePartiallyRagdolled( BoneCollection.Bone bone )
-		=> bone != null && _partialRagdollBoneIndices.Contains( bone.Index );
+		=> bone != null && _partialRagdollOverrides.ContainsKey( bone.Index );
 
 	public bool IsBonePartiallyRagdolled( string boneName )
 		=> IsBonePartiallyRagdolled( Renderer?.Model?.Bones?.GetBone( boneName ) );
 
 	public bool IsBonePartiallyRagdolled( int boneIndex )
-		=> _partialRagdollBoneIndices.Contains( boneIndex );
+		=> _partialRagdollOverrides.ContainsKey( boneIndex );
+
+	public RagdollMode? GetBoneOverrideMode( BoneCollection.Bone bone )
+		=> bone != null && _partialRagdollOverrides.TryGetValue( bone.Index, out var m ) ? m : null;
 
 	private IEnumerable<ModelPhysics.Joint> GetJointsForBones( HashSet<int> boneIndices )
 		=> Joints?.Where( j => j.Component.IsValid() && boneIndices.Contains( j.Body2.Bone ) )
