@@ -5,6 +5,7 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Bones that currently have a partial ragdoll override
 	/// </summary>
+	public IReadOnlyDictionary<int, RagdollMode> PartialRagdollOverrides => _partialRagdollOverrides;
 	private readonly Dictionary<int, RagdollMode> _partialRagdollOverrides = new();
 
 	/// <summary>
