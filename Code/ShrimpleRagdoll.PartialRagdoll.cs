@@ -116,6 +116,32 @@ public partial class ShrimpleRagdoll
 	/// </summary>
 	public void ClearPartialRagdoll() => _partialRagdollOverrides.Clear();
 
+	/// <summary>
+	/// Bone overrides to apply on start and whenever this property is changed.
+	/// Key is the bone name, value is the ragdoll mode.
+	/// </summary>
+	[Advanced, Property, Group( "Partial Ragdoll" )]
+	public Dictionary<string, RagdollMode> PartialRagdollConfig
+	{
+		get;
+		set
+		{
+			field = value;
+			ApplyPartialRagdollConfig();
+		}
+	} = new();
+
+	private void ApplyPartialRagdollConfig()
+	{
+		ClearPartialRagdoll();
+
+		if ( PartialRagdollConfig == null )
+			return;
+
+		foreach ( var (boneName, mode) in PartialRagdollConfig )
+			RagdollBone( boneName, mode );
+	}
+
 	public bool IsBonePartiallyRagdolled( BoneCollection.Bone bone )
 		=> bone != null && _partialRagdollOverrides.ContainsKey( bone.Index );
 

@@ -260,6 +260,7 @@ public partial class ShrimpleRagdoll : Component
 		base.OnStart();
 		SetupRagdoll();
 		ApplyRagdollMode();
+		ApplyPartialRagdollConfig();
 	}
 
 	protected void SetupRagdoll()
