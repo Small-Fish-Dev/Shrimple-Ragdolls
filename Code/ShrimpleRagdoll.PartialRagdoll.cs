@@ -5,13 +5,11 @@ public partial class ShrimpleRagdoll
 	/// <summary>
 	/// Bones that currently have a partial ragdoll override
 	/// </summary>
-		.Where( b => b != null );
 	private readonly Dictionary<int, RagdollMode> _partialRagdollOverrides = new();
 
 	/// <summary>
 	/// Ragdolls a single bone and optionally all its children
 	/// </summary>
-	public void RagdollBone( BoneCollection.Bone rootBone, bool includeChildren = true )
 	/// <param name="rootBone">The target bone</param>
 	/// <param name="mode">Which mode to set the bone (Only works for Enabled and Motor)</param>
 	/// <param name="includeChildren">Include all children of the target bone</param>

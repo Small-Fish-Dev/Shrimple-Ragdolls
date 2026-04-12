@@ -204,10 +204,22 @@ public partial class ShrimpleRagdoll : Component
 		if ( !PhysicsWereCreated || IsProxy )
 			return;
 
-		if ( Mode == RagdollMode.Active )
-			MoveBodiesFromAnimations();
-		else if ( Mode == RagdollMode.Motor )
-			MoveJointsFromAnimations();
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var body in Bodies )
+		{
+			var effectiveMode = _partialRagdollOverrides.TryGetValue( body.Bone, out var overrideMode ) ? overrideMode : Mode;
+			if ( effectiveMode == RagdollMode.Active )
+				MoveBodyFromAnimation( body );
+		}
+
+		foreach ( var joint in Joints )
+		{
+			var effectiveMode = _partialRagdollOverrides.TryGetValue( joint.Body2.Bone, out var overrideMode ) ? overrideMode : Mode;
+			if ( effectiveMode == RagdollMode.Motor )
+				MoveJointFromAnimation( joint, MotorFrequency, MotorDamping );
+		}
 	}
 
 	private void FollowRoot()

@@ -32,19 +32,22 @@ public partial class ShrimpleRagdoll
 			return;
 
 		foreach ( var body in Bodies )
-		{
-			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
-				continue;
+			MoveBodyFromAnimation( body );
+	}
 
-			if ( _partialRagdollBoneIndices.Contains( body.Bone ) )
-				continue;
+	private void MoveBodyFromAnimation( ModelPhysics.Body body )
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
 
-			var bone = Renderer.Model.Bones.AllBones[body.Bone];
-			if ( !Renderer.TryGetBoneTransformAnimation( bone, out var targetTransform ) )
-				continue;
+		if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
+			return;
 
-			body.Component.PhysicsBody.SmoothMove( in targetTransform, MathF.Max( ActiveLerpTime, Time.Delta ), Time.Delta );
-		}
+		var bone = Renderer.Model.Bones.AllBones[body.Bone];
+		if ( !Renderer.TryGetBoneTransformAnimation( bone, out var targetTransform ) )
+			return;
+
+		body.Component.PhysicsBody.SmoothMove( in targetTransform, MathF.Max( ActiveLerpTime, Time.Delta ), Time.Delta );
 	}
 
 	/// <summary>
@@ -104,39 +107,42 @@ public partial class ShrimpleRagdoll
 			return;
 
 		foreach ( var joint in Joints )
+			MoveJointFromAnimation( joint, frequency, dampingRatio );
+	}
+
+	private void MoveJointFromAnimation( ModelPhysics.Joint joint, float frequency = 30f, float dampingRatio = 1f )
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		if ( !joint.Component.IsValid() )
+			return;
+
+		var childBone = Renderer.Model.Bones.AllBones[joint.Body2.Bone];
+		var parentBone = Renderer.Model.Bones.AllBones[joint.Body1.Bone];
+		if ( childBone == null || parentBone == null )
+			return;
+
+		if ( !Renderer.TryGetBoneTransformAnimation( childBone, out var animChildTransform ) ||
+			!Renderer.TryGetBoneTransformAnimation( parentBone, out var animParentTransform ) )
+			return;
+
+		var animRotation = animParentTransform.ToLocal( animChildTransform ).Rotation;
+
+		if ( joint.Component is BallJoint ballJoint )
 		{
-			if ( !joint.Component.IsValid() )
-				continue;
-
-			if ( _partialRagdollBoneIndices.Contains( joint.Body2.Bone ) )
-				continue;
-
-			var childBone = Renderer.Model.Bones.AllBones[joint.Body2.Bone];
-			var parentBone = Renderer.Model.Bones.AllBones[joint.Body1.Bone];
-			if ( childBone == null || parentBone == null )
-				continue;
-
-			if ( !Renderer.TryGetBoneTransformAnimation( childBone, out var animChildTransform ) ||
-				!Renderer.TryGetBoneTransformAnimation( parentBone, out var animParentTransform ) )
-				continue;
-
-			var animRotation = animParentTransform.ToLocal( animChildTransform ).Rotation;
-
-			if ( joint.Component is BallJoint ballJoint )
-			{
-				ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
-				ballJoint.Frequency = frequency;
-				ballJoint.DampingRatio = dampingRatio;
-				ballJoint.TargetRotation = joint.Component.Point1.LocalRotation.Inverse * animRotation * joint.Component.Point2.LocalRotation;
-			}
-			else if ( joint.Component is HingeJoint hingeJoint )
-			{
-				hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
-				hingeJoint.Frequency = frequency;
-				hingeJoint.DampingRatio = dampingRatio;
-				var targetJointRot = joint.Component.Point1.LocalRotation.Inverse * animRotation * joint.Component.Point2.LocalRotation;
-				hingeJoint.TargetAngle = GetSignedAngleAroundAxis( targetJointRot, hingeJoint.Axis );
-			}
+			ballJoint.Motor = BallJoint.MotorMode.TargetRotation;
+			ballJoint.Frequency = frequency;
+			ballJoint.DampingRatio = dampingRatio;
+			ballJoint.TargetRotation = joint.Component.Point1.LocalRotation.Inverse * animRotation * joint.Component.Point2.LocalRotation;
+		}
+		else if ( joint.Component is HingeJoint hingeJoint )
+		{
+			hingeJoint.Motor = HingeJoint.MotorMode.TargetAngle;
+			hingeJoint.Frequency = frequency;
+			hingeJoint.DampingRatio = dampingRatio;
+			var targetJointRot = joint.Component.Point1.LocalRotation.Inverse * animRotation * joint.Component.Point2.LocalRotation;
+			hingeJoint.TargetAngle = GetSignedAngleAroundAxis( targetJointRot, hingeJoint.Axis );
 		}
 	}
 }
