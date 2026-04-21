@@ -132,7 +132,7 @@ public partial class ShrimpleRagdoll : Component
 		ModelPhysics.Flags |= ComponentFlags.Hidden;
 	}
 
-	private void ApplyRagdollMode( RagdollMode oldMode = RagdollMode.None )
+	private void ApplyRagdollMode( RagdollMode oldMode = RagdollMode.None, bool firstTime = false )
 	{
 		if ( !ModelPhysics.IsValid() )
 			return;
@@ -161,14 +161,16 @@ public partial class ShrimpleRagdoll : Component
 			ModelPhysics.Enabled = true;
 			MotionEnabled = true;
 			SetGravity( false ); // We don't want gravity in active mode otherwise we'll have to fight against it!
-			EnableJoints();
+			if ( !firstTime ) // If we enable twice in the same tick (Like when creating) they just break?
+				EnableJoints();
 			MultiplyJointLimits( 1.5f );
 		}
 		else if ( Mode == RagdollMode.Enabled )
 		{
 			ModelPhysics.Enabled = true;
 			MotionEnabled = true;
-			EnableJoints();
+			if ( !firstTime )
+				EnableJoints();
 			SetGravity( Gravity );
 		}
 		else if ( Mode == RagdollMode.Motor )
@@ -176,7 +178,8 @@ public partial class ShrimpleRagdoll : Component
 			ModelPhysics.Enabled = true;
 			MotionEnabled = true;
 			SetGravity( Gravity );
-			EnableJoints();
+			if ( !firstTime )
+				EnableJoints();
 			EnableJointMotors( MotorFrequency, MotorFrequency );
 		}
 	}
@@ -238,7 +241,7 @@ public partial class ShrimpleRagdoll : Component
 	protected override void OnEnabled()
 	{
 		base.OnEnabled();
-		ApplyRagdollMode( Mode );
+		ApplyRagdollMode( Mode, true );
 		Renderer.ClearPhysicsBones();
 	}
 
@@ -278,6 +281,7 @@ public partial class ShrimpleRagdoll : Component
 	public void EnableJoints()
 	{
 		foreach ( var joint in Joints )
-			joint.Component.Enabled = true;
+			if ( !joint.Component.Enabled )
+				joint.Component.Enabled = true;
 	}
 }
