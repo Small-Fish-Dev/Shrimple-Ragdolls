@@ -144,6 +144,34 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
+	/// All bodies will have impact damage enabled
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public bool EnableImpactDamage
+	{
+		get;
+		set
+		{
+			field = value;
+			SetEnableImpactDamage( value );
+		}
+	} = false;
+
+	/// <summary>
+	/// Set the minimum impact speed on all bodies
+	/// </summary>
+	[Property, Group( "Physics" )]
+	public float MinimumImpactSpeed
+	{
+		get;
+		set
+		{
+			field = value;
+			SetImpactMinimumSpeed( value );
+		}
+	} = 500f;
+
+	/// <summary>
 	/// Surface to apply to all colliders<br />
 	/// Set to null for the surfaces defined in the ragdoll
 	/// </summary>
@@ -371,6 +399,34 @@ public partial class ShrimpleRagdoll
 	}
 
 	/// <summary>
+	/// Sets <see cref="Rigidbody.EnableImpactDamage"/> on all bodies
+	/// </summary>
+	/// <param name="enabled"></param>
+	protected void SetEnableImpactDamage( bool enabled )
+	{
+		if ( !PhysicsWereCreated )
+			return;
+
+		foreach ( var body in Bodies )
+			if ( body.Component.IsValid() )
+				body.Component.EnableImpactDamage = enabled;
+	}
+
+	/// <summary>
+	/// Sets <see cref="Rigidbody.MinImpactDamageSpeed"/> on all bodies
+	/// </summary>
+	/// <param name="speed"></param>
+	protected void SetImpactMinimumSpeed( float speed )
+	{
+		if ( !PhysicsWereCreated )
+			return;
+
+		foreach ( var body in Bodies )
+			if ( body.Component.IsValid() )
+				body.Component.MinImpactDamageSpeed = speed;
+	}
+
+	/// <summary>
 	/// Sets up all physics related settings for colliders and rigidbodies
 	/// </summary>
 	public void SetupPhysics()
@@ -382,5 +438,7 @@ public partial class ShrimpleRagdoll
 		SetSurface( Surface );
 		SetColliderFlags( ColliderFlags );
 		SetMassOverride( MassOverride );
+		SetEnableImpactDamage( EnableImpactDamage );
+		SetImpactMinimumSpeed( MinimumImpactSpeed );
 	}
 }
