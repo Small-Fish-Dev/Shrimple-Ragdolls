@@ -107,8 +107,10 @@ public partial class ShrimpleRagdoll : Component
 	} = 1f;
 
 	public List<ModelPhysics.Body> Bodies => ModelPhysics?.Bodies;
-	public List<ModelPhysics.Joint> Joints => ModelPhysics?.Joints;
+	public List<ModelPhysics.Joint> Joints => _joints;
 	public bool PhysicsWereCreated => ModelPhysics?.PhysicsWereCreated ?? false;
+	private readonly List<ModelPhysics.Joint> _joints = new();
+	private readonly Dictionary<int, ModelPhysics.Joint> _jointsByChildBone = new();
 	private float _currentJointLimits = 1f;
 
 	/// <summary>
@@ -130,6 +132,26 @@ public partial class ShrimpleRagdoll : Component
 		ModelPhysics.Locking = Locking;
 		ModelPhysics.MotionEnabled = MotionEnabled;
 		ModelPhysics.Flags |= ComponentFlags.Hidden;
+		RefreshJointCache();
+	}
+
+	private void RefreshJointCache()
+	{
+		_joints.Clear();
+		_jointsByChildBone.Clear();
+
+		if ( !ModelPhysics.IsValid() )
+			return;
+
+		var joints = ModelPhysics.Joints;
+		if ( joints == null )
+			return;
+
+		foreach ( var joint in joints )
+		{
+			_joints.Add( joint );
+			_jointsByChildBone.TryAdd( joint.Body2.Bone, joint );
+		}
 	}
 
 	private void ApplyRagdollMode( RagdollMode oldMode = RagdollMode.None, bool firstTime = false )
@@ -270,18 +292,42 @@ public partial class ShrimpleRagdoll : Component
 	{
 		EnsureModelPhysics();
 		SetupPhysics();
+		RefreshJointCache();
+	}
+
+	public ModelPhysics.Joint? GetJointByChildBody( ModelPhysics.Body? body )
+	{
+		if ( !body.HasValue )
+			return null;
+
+		return GetJointByChildBone( body.Value.Bone );
+	}
+
+	public ModelPhysics.Joint? GetJointByChildBone( int boneIndex )
+	{
+		if ( _jointsByChildBone.TryGetValue( boneIndex, out var joint ) )
+			return joint;
+
+		return null;
 	}
 
 	public void DisableJoints()
 	{
 		foreach ( var joint in Joints )
+		{
+			if ( !joint.Component.IsValid() ) continue;
 			joint.Component.Enabled = false;
+		}
 	}
 
 	public void EnableJoints()
 	{
 		foreach ( var joint in Joints )
+		{
+			if ( !joint.Component.IsValid() ) continue;
+
 			if ( !joint.Component.Enabled )
 				joint.Component.Enabled = true;
+		}
 	}
 }
