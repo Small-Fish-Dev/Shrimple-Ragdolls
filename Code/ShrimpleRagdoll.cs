@@ -166,22 +166,27 @@ public partial class ShrimpleRagdoll : Component
 		else if ( oldMode == RagdollMode.Active )
 			MultiplyJointLimits( 1f / _currentJointLimits );
 
+		ModelPhysics.Enabled = true;
+		RefreshJointCache();
+
 		if ( Mode == RagdollMode.None )
 		{
-			ModelPhysics.Enabled = false;
+			MotionEnabled = false;
+			DisableJoints();
+			SetBodiesEnabled( false );
 			Renderer.ClearPhysicsBones();
 		}
 		else if ( Mode == RagdollMode.Passive )
 		{
-			ModelPhysics.Enabled = true;
 			MotionEnabled = false;
+			SetBodiesEnabled( true );
 			DisableJoints();
 
 		}
 		else if ( Mode == RagdollMode.Active )
 		{
-			ModelPhysics.Enabled = true;
 			MotionEnabled = true;
+			SetBodiesEnabled( true );
 			SetGravity( false ); // We don't want gravity in active mode otherwise we'll have to fight against it!
 			if ( !firstTime ) // If we enable twice in the same tick (Like when creating) they just break?
 				EnableJoints();
@@ -189,16 +194,16 @@ public partial class ShrimpleRagdoll : Component
 		}
 		else if ( Mode == RagdollMode.Enabled )
 		{
-			ModelPhysics.Enabled = true;
 			MotionEnabled = true;
+			SetBodiesEnabled( true );
 			if ( !firstTime )
 				EnableJoints();
 			SetGravity( Gravity );
 		}
 		else if ( Mode == RagdollMode.Motor )
 		{
-			ModelPhysics.Enabled = true;
 			MotionEnabled = true;
+			SetBodiesEnabled( true );
 			SetGravity( Gravity );
 			if ( !firstTime )
 				EnableJoints();
@@ -328,6 +333,24 @@ public partial class ShrimpleRagdoll : Component
 
 			if ( !joint.Component.Enabled )
 				joint.Component.Enabled = true;
+		}
+	}
+
+	private void SetBodiesEnabled( bool enabled )
+	{
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() ) continue;
+
+			body.Component.Enabled = enabled;
+		}
+
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() ) continue;
+
+			foreach ( var collider in body.Component.GameObject.GetComponents<Collider>( true ) )
+				collider.Enabled = enabled;
 		}
 	}
 }
