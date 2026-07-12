@@ -301,6 +301,8 @@ public partial class ShrimpleRagdoll : Component
 
 		if ( ModelPhysics.IsValid() )
 			ModelPhysics.CopyBonesFrom( Renderer, true );
+
+		UpdatePhysicsPoints();
 	}
 
 	public ModelPhysics.Joint? GetJointByChildBody( ModelPhysics.Body? body )
