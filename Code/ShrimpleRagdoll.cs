@@ -41,6 +41,10 @@ public partial class ShrimpleRagdoll : Component
 
 			var oldValue = field;
 			field = value;
+
+			if ( !Active )
+				return;
+
 			ApplyRagdollMode( oldValue );
 			ModeChanged?.Invoke( oldValue, value ); // We want the new mode to already be in effect when invoking
 		}
@@ -277,6 +281,7 @@ public partial class ShrimpleRagdoll : Component
 		base.OnDisabled();
 		ModelPhysics?.Enabled = false;
 		Renderer.ClearPhysicsBones();
+		ClearPartialRagdoll();
 	}
 
 	protected override void OnDestroy()
