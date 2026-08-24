@@ -115,7 +115,8 @@ public partial class ShrimpleRagdoll : Component
 	public bool PhysicsWereCreated => ModelPhysics?.PhysicsWereCreated ?? false;
 	private readonly List<ModelPhysics.Joint> _joints = new();
 	private readonly Dictionary<int, ModelPhysics.Joint> _jointsByChildBone = new();
-	private float _currentJointLimits = 1f;
+	private float _currentBallJointLimits = 1f;
+	private float _currentHingeJointLimits = 1f;
 
 	/// <summary>
 	/// Before, After
@@ -168,7 +169,7 @@ public partial class ShrimpleRagdoll : Component
 		if ( oldMode == RagdollMode.Motor )
 			DisableJointMotors();
 		else if ( oldMode == RagdollMode.Active )
-			MultiplyJointLimits( 1f / _currentJointLimits );
+			MultiplyJointLimits( 1f / _currentBallJointLimits, 1f / _currentHingeJointLimits );
 
 		ModelPhysics.Enabled = true;
 		RefreshJointCache();
@@ -194,7 +195,8 @@ public partial class ShrimpleRagdoll : Component
 			SetGravity( false ); // We don't want gravity in active mode otherwise we'll have to fight against it!
 			if ( !firstTime ) // If we enable twice in the same tick (Like when creating) they just break?
 				EnableJoints();
-			MultiplyJointLimits( 1.5f );
+			// Ball joints (shoulders/spine/neck/hips) need much looser limits than hinges (elbows/knees)
+			MultiplyJointLimits( ballMultiplier: 3f, hingeMultiplier: 1.5f );
 		}
 		else if ( Mode == RagdollMode.Enabled )
 		{

@@ -1,4 +1,4 @@
-﻿namespace ShrimpleRagdolls;
+namespace ShrimpleRagdolls;
 
 public partial class ShrimpleRagdoll
 {
@@ -116,7 +116,17 @@ public partial class ShrimpleRagdoll
 		if ( !Renderer.IsValid() || !Renderer.Model.IsValid() )
 			return null;
 
-		return Bodies.FirstOrDefault( x => x.Bone == Renderer.Model.Bones.GetBone( boneName ).Index );
+		var bone = Renderer.Model.Bones.GetBone( boneName );
+		if ( bone is null )
+			return null;
+
+		foreach ( var body in Bodies )
+		{
+			if ( body.Bone == bone.Index )
+				return body;
+		}
+
+		return null;
 	}
 
 	/// <summary>
@@ -138,7 +148,13 @@ public partial class ShrimpleRagdoll
 		if ( bone == null )
 			return null;
 
-		return Bodies.FirstOrDefault( x => x.Bone == bone.Index );
+		foreach ( var body in Bodies )
+		{
+			if ( body.Bone == bone.Index )
+				return body;
+		}
+
+		return null;
 	}
 
 	/// <summary>
@@ -225,22 +241,23 @@ public partial class ShrimpleRagdoll
 	public IEnumerable<BoneCollection.Bone> GetDescendantBones( int boneIndex )
 		=> GetDescendantBones( Renderer?.Model?.Bones?.AllBones[boneIndex] );
 
-	public void MultiplyJointLimits( float multiplier = 1f )
+	public void MultiplyJointLimits( float ballMultiplier = 1f, float hingeMultiplier = 1f )
 	{
 		foreach ( var joint in Joints )
 		{
 			if ( joint.Component is BallJoint ballJoint )
 			{
-				ballJoint.SwingLimit *= multiplier;
-				ballJoint.TwistLimit *= multiplier;
+				ballJoint.SwingLimit *= ballMultiplier;
+				ballJoint.TwistLimit *= ballMultiplier;
 			}
 			else if ( joint.Component is HingeJoint hingeJoint )
 			{
-				hingeJoint.MinAngle *= multiplier;
-				hingeJoint.MaxAngle *= multiplier;
+				hingeJoint.MinAngle *= hingeMultiplier;
+				hingeJoint.MaxAngle *= hingeMultiplier;
 			}
 		}
 
-		_currentJointLimits *= multiplier;
+		_currentBallJointLimits *= ballMultiplier;
+		_currentHingeJointLimits *= hingeMultiplier;
 	}
 }

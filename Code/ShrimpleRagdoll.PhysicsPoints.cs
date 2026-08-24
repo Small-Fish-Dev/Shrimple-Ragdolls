@@ -22,11 +22,16 @@ public partial class ShrimpleRagdoll
 			var rb2 = joint.Body2.Component;
 			if ( !rb1.IsValid() || !rb2.IsValid() ) continue;
 
-			var worldScale1 = joint.Component.WorldTransform.UniformScale;
-			var p1WorldPos = rb1.PhysicsBody.Transform.PointToWorld( joint.LocalFrame1.Position * worldScale1 );
+			var physicsBody1 = rb1.PhysicsBody;
+			var physicsBody2 = rb2.PhysicsBody;
+			var jointBody = joint.Component.Body;
+			if ( !physicsBody1.IsValid() || !physicsBody2.IsValid() || !jointBody.IsValid() ) continue;
 
-			var worldScale2 = joint.Component.Body.WorldTransform.UniformScale;
-			var p2LocalPos = rb2.PhysicsBody.Transform.PointToLocal( p1WorldPos );
+			var worldScale1 = joint.Component.WorldTransform.UniformScale;
+			var p1WorldPos = physicsBody1.Transform.PointToWorld( joint.LocalFrame1.Position * worldScale1 );
+
+			var worldScale2 = jointBody.WorldTransform.UniformScale;
+			var p2LocalPos = physicsBody2.Transform.PointToLocal( p1WorldPos );
 
 			joints[i] = joint with { LocalFrame2 = joint.LocalFrame2.WithPosition( p2LocalPos / worldScale2 ) };
 
