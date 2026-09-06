@@ -77,6 +77,13 @@ public partial class ShrimpleRagdoll : Component
 	public float ActiveLerpTime { get; set; } = 0f;
 
 	/// <summary>
+	/// Distance an active body's target can jump in a tick before it snaps instead of smooth moving<br />
+	/// This way teleporting doesn't have the bodies fly and stretch
+	/// </summary>
+	[Advanced, Property, Group( "Settings" )]
+	public float TeleportSnapDistance { get; set; } = 100f;
+
+	/// <summary>
 	/// Motor joints frequency
 	/// </summary>
 	[Advanced, Property, Group( "Settings" )]
@@ -231,9 +238,18 @@ public partial class ShrimpleRagdoll : Component
 		if ( IsProxy )
 			return;
 
+		// Keep velocity zeroed for the settle ticks after a teleport so it can't build into a launch
+		if ( _settleTicks > 0 )
+		{
+			FreezeBodies();
+			_settleTicks--;
+		}
+
 		UpdateRagdollMode();
 		FollowRoot();
 	}
+
+	internal int _settleTicks;
 
 	private void UpdateRagdollMode()
 	{

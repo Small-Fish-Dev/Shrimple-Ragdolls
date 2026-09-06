@@ -47,6 +47,15 @@ public partial class ShrimpleRagdoll
 		if ( !Renderer.TryGetBoneTransformAnimation( bone, out var targetTransform ) )
 			return;
 
+		// Snap teleports straight to the pose instead of driving a huge velocity toward them
+		if ( targetTransform.Position.DistanceSquared( body.Component.WorldPosition ) > TeleportSnapDistance * TeleportSnapDistance )
+		{
+			body.Component.WorldTransform = targetTransform;
+			body.Component.Velocity = Vector3.Zero;
+			body.Component.AngularVelocity = Vector3.Zero;
+			return;
+		}
+
 		body.Component.PhysicsBody.SmoothMove( in targetTransform, MathF.Max( ActiveLerpTime, Time.Delta ), Time.Delta );
 	}
 

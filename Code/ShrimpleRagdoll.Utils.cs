@@ -3,10 +3,15 @@ namespace ShrimpleRagdolls;
 public partial class ShrimpleRagdoll
 {
 	/// <summary>
-	/// Move the ragdoll without affecting its velocity or simulating collisions<br />
+	/// Physics ticks a teleport keeps the bodies' velocity zeroed for by default
 	/// </summary>
-	/// <param name="target">The target transform, the entire ragdoll will be moved so that its root matches</param>
-	public void Move( Transform target )
+	public const int DefaultSettleTicks = 8;
+
+	/// <summary>
+	/// Move the ragdoll so its root matches the target, without simulating collisions<br />
+	/// Damps velocity for <paramref name="settleTicks"/> ticks so the teleport can't launch it, pass 0 to keep velocity
+	/// </summary>
+	public void Move( Transform target, int settleTicks = DefaultSettleTicks )
 	{
 		WakePhysics();
 
@@ -17,6 +22,81 @@ public partial class ShrimpleRagdoll
 
 			var targetTransform = target.ToWorld( Renderer.WorldTransform.ToLocal( body.Component.WorldTransform ) );
 			body.Component.WorldTransform = targetTransform;
+		}
+
+		Settle( settleTicks );
+	}
+
+	/// <summary>
+	/// Snap the bodies onto the renderer's current transform in its animation pose<br />
+	/// Call after the root has been moved to its destination so the freshly-enabled physics keyframes there instead of the origin
+	/// </summary>
+	public void SnapToRenderer( int settleTicks = DefaultSettleTicks )
+	{
+		if ( !Renderer.IsValid() || !PhysicsWereCreated || Bodies is not { Count: > 0 } )
+			return;
+
+		// Evaluate the bones at the renderer's current transform so we snap to the destination, not the origin
+		if ( Renderer.SceneModel.IsValid() )
+		{
+			Renderer.SceneModel.Transform = Renderer.WorldTransform;
+			Renderer.SceneModel.Update( Time.Delta );
+		}
+
+		SnapBodiesToAnimation();
+		Settle( settleTicks );
+	}
+
+	/// <summary>
+	/// Keep the bodies' velocity zeroed for a few ticks so the implicit velocity from a teleport can't build into a launch<br />
+	/// Bodies stay dynamic, going kinematic fights FollowRootPosition and diverges
+	/// </summary>
+	private void Settle( int settleTicks )
+	{
+		if ( settleTicks <= 0 )
+			return;
+
+		FreezeBodies();
+		_settleTicks = Math.Max( _settleTicks, settleTicks );
+	}
+
+	/// <summary>
+	/// Teleport each body onto its animation bone transform (absolute, unlike <see cref="Move"/> which keeps the pose relative to the renderer)
+	/// </summary>
+	private void SnapBodiesToAnimation()
+	{
+		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
+			return;
+
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
+
+			var bone = Renderer.Model.Bones.AllBones[body.Bone];
+			if ( !Renderer.TryGetBoneTransformAnimation( bone, out var boneTransform ) )
+				continue;
+
+			body.Component.WorldTransform = boneTransform;
+		}
+	}
+
+	/// <summary>
+	/// Zero velocity and clear interpolation on every body so a teleport doesn't carry momentum or lerp
+	/// </summary>
+	private void FreezeBodies()
+	{
+		if ( Bodies is null )
+			return;
+
+		foreach ( var body in Bodies )
+		{
+			if ( !body.Component.IsValid() )
+				continue;
+
+			body.Component.Velocity = Vector3.Zero;
+			body.Component.AngularVelocity = Vector3.Zero;
+			body.Component.GameObject.Transform.ClearInterpolation();
 		}
 	}
 
