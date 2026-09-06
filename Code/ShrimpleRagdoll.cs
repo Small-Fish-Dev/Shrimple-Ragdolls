@@ -21,7 +21,11 @@ public enum RagdollMode
 	/// <summary>
 	/// Physical driven but uses joint motors to follow animations
 	/// </summary>
-	Motor
+	Motor,
+	/// <summary>
+	/// EXPERIMENTAL! Mixed mode that can be messed with, follows animations but can be dragged out or ragdolled
+	/// </summary>
+	Driven
 }
 
 /// <summary>
@@ -184,6 +188,12 @@ public partial class ShrimpleRagdoll : Component
 			DisableJointMotors();
 		else if ( oldMode == RagdollMode.Active )
 			MultiplyJointLimits( 1f / _currentBallJointLimits, 1f / _currentHingeJointLimits );
+		else if ( oldMode == RagdollMode.Driven )
+		{
+			DisableJointMotors();
+			MultiplyJointLimits( 1f / _currentBallJointLimits, 1f / _currentHingeJointLimits );
+			ResetDriven();
+		}
 
 		ModelPhysics.Enabled = true;
 		RefreshJointCache();
@@ -220,6 +230,16 @@ public partial class ShrimpleRagdoll : Component
 				EnableJoints();
 			SetGravity( Gravity );
 		}
+		else if ( Mode == RagdollMode.Driven )
+		{
+			MotionEnabled = true;
+			SetBodiesEnabled( true );
+			SetGravity( Gravity );
+			if ( !firstTime )
+				EnableJoints();
+			MultiplyJointLimits( ballMultiplier: 3f, hingeMultiplier: 1.5f );
+			EnableJointMotors( MotorFrequency, MotorDamping );
+		}
 		else if ( Mode == RagdollMode.Motor )
 		{
 			MotionEnabled = true;
@@ -227,7 +247,7 @@ public partial class ShrimpleRagdoll : Component
 			SetGravity( Gravity );
 			if ( !firstTime )
 				EnableJoints();
-			EnableJointMotors( MotorFrequency, MotorFrequency );
+			EnableJointMotors( MotorFrequency, MotorDamping );
 		}
 	}
 
@@ -235,6 +255,7 @@ public partial class ShrimpleRagdoll : Component
 	{
 		if ( IsLerping && _lerpMode == LerpMode.Mesh )
 			UpdateLerp();
+
 	}
 
 	protected override void OnFixedUpdate()
@@ -243,7 +264,10 @@ public partial class ShrimpleRagdoll : Component
 			UpdateLerp();
 
 		if ( IsProxy )
+		{
+			ReleaseGrabsIfProxy();
 			return;
+		}
 
 		// Keep velocity zeroed for the settle ticks after a teleport so it can't build into a launch
 		if ( _settleTicks > 0 )
@@ -258,6 +282,12 @@ public partial class ShrimpleRagdoll : Component
 
 	internal int _settleTicks;
 
+	/// <summary>
+	/// The mode a bone is actually running in, which is its partial ragdoll override if it has one
+	/// </summary>
+	public RagdollMode GetEffectiveMode( int boneIndex )
+		=> _partialRagdollOverrides.TryGetValue( boneIndex, out var overrideMode ) ? overrideMode : Mode;
+
 	private void UpdateRagdollMode()
 	{
 		if ( !PhysicsWereCreated || IsProxy )
@@ -268,23 +298,29 @@ public partial class ShrimpleRagdoll : Component
 
 		foreach ( var body in Bodies )
 		{
-			var effectiveMode = _partialRagdollOverrides.TryGetValue( body.Bone, out var overrideMode ) ? overrideMode : Mode;
-			if ( effectiveMode == RagdollMode.Active )
+			if ( GetEffectiveMode( body.Bone ) == RagdollMode.Active )
 				MoveBodyFromAnimation( body );
 		}
 
 		foreach ( var joint in Joints )
 		{
-			var effectiveMode = _partialRagdollOverrides.TryGetValue( joint.Body2.Bone, out var overrideMode ) ? overrideMode : Mode;
-			if ( effectiveMode == RagdollMode.Motor )
+			if ( GetEffectiveMode( joint.Body2.Bone ) == RagdollMode.Motor )
 				MoveJointFromAnimation( joint, MotorFrequency, MotorDamping );
 		}
+
+		UpdateDriven();
 	}
 
 	private void FollowRoot()
 	{
 		if ( !FollowRootPosition && !FollowRootRotation || !Renderer.IsValid() ) return;
-		if ( Mode == RagdollMode.None || Mode == RagdollMode.Passive || Mode == RagdollMode.Active ) return;
+		if ( Mode is RagdollMode.None or RagdollMode.Passive or RagdollMode.Active ) return;
+
+		if ( Mode == RagdollMode.Driven )
+		{
+			FollowRootDriven();
+			return;
+		}
 
 		var targetTransform = GetRagdollTransform( 0 ); // Follow root bone
 
@@ -292,6 +328,25 @@ public partial class ShrimpleRagdoll : Component
 			Renderer.WorldPosition = targetTransform.Position;
 		if ( FollowRootRotation )
 			Renderer.WorldRotation = targetTransform.Rotation;
+	}
+
+	private void FollowRootDriven()
+	{
+		if ( FollowRootPosition )
+		{
+			var push = GetPushVelocity( horizontalOnly: false );
+
+			if ( !push.IsNearlyZero( 0.01f ) )
+				Renderer.WorldPosition += push * Time.Delta;
+		}
+
+		if ( FollowRootRotation )
+		{
+			var turn = GetTurnSpeed();
+
+			if ( turn != 0f )
+				Renderer.WorldRotation *= Rotation.FromYaw( turn * Time.Delta );
+		}
 	}
 
 	protected override void OnEnabled()
