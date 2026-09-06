@@ -56,7 +56,28 @@ public partial class ShrimpleRagdoll
 			return;
 		}
 
+		if ( ActiveStressThreshold > 0f && IsBodyJointStressed( body ) )
+		{
+			var current = body.Component.WorldTransform;
+			body.Component.WorldTransform = new Transform(
+				Vector3.Lerp( current.Position, targetTransform.Position, 0.5f ),
+				Rotation.Lerp( current.Rotation, targetTransform.Rotation, 0.5f ),
+				current.Scale );
+			body.Component.Velocity = Vector3.Zero;
+			body.Component.AngularVelocity = Vector3.Zero;
+			return;
+		}
+
 		body.Component.PhysicsBody.SmoothMove( in targetTransform, MathF.Max( ActiveLerpTime, Time.Delta ), Time.Delta );
+	}
+
+	private bool IsBodyJointStressed( ModelPhysics.Body body )
+	{
+		if ( GetJointByChildBone( body.Bone ) is not { } joint || !joint.Component.IsValid() )
+			return false;
+
+		var threshold = ActiveStressThreshold * body.Component.Mass;
+		return joint.Component.AngularStress >= threshold;
 	}
 
 	/// <summary>

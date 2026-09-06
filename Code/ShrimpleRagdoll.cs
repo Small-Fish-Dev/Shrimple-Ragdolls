@@ -84,6 +84,13 @@ public partial class ShrimpleRagdoll : Component
 	public float TeleportSnapDistance { get; set; } = 100f;
 
 	/// <summary>
+	/// Angular joint stress per unit of body mass above which an active body eases back toward its animation, 0 to disable<br />
+	/// Frees bodies that get caught on themselves at odd angles (head twisted back, folded torso)
+	/// </summary>
+	[Advanced, Property, Group( "Settings" )]
+	public float ActiveStressThreshold { get; set; } = 30000f;
+
+	/// <summary>
 	/// Motor joints frequency
 	/// </summary>
 	[Advanced, Property, Group( "Settings" )]
