@@ -214,10 +214,39 @@ public partial class ShrimpleRagdoll
 	/// </summary>
 	public ModelPhysics.Body? GetBodyByBoneIndex( int boneIndex )
 	{
-		if ( !Renderer.IsValid() || !Renderer.Model.IsValid() )
-			return null;
+		var index = GetBodyIndex( boneIndex );
+		return index < 0 ? null : Bodies[index];
+	}
 
-		return Bodies[boneIndex];
+	/// <summary>
+	/// Index into <see cref="Bodies"/> for a bone, or -1 if that bone has no body
+	/// </summary>
+	public int GetBodyIndex( int boneIndex )
+	{
+		if ( !EnsureBodyCache() )
+			return -1;
+
+		return _bodyIndexByBone.TryGetValue( boneIndex, out var index ) ? index : -1;
+	}
+
+	private readonly Dictionary<int, int> _bodyIndexByBone = new();
+	private int _bodyCacheCount = -1;
+
+	private bool EnsureBodyCache()
+	{
+		if ( Bodies is not { Count: > 0 } )
+			return false;
+
+		if ( _bodyCacheCount == Bodies.Count )
+			return true;
+
+		_bodyIndexByBone.Clear();
+
+		for ( var i = 0; i < Bodies.Count; i++ )
+			_bodyIndexByBone[Bodies[i].Bone] = i;
+
+		_bodyCacheCount = Bodies.Count;
+		return true;
 	}
 
 	/// <summary>
