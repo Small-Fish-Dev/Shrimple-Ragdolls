@@ -12,7 +12,7 @@ public partial class ShrimpleRagdoll
 	/// Ragdolls a single bone and optionally all its children
 	/// </summary>
 	/// <param name="rootBone">The target bone</param>
-	/// <param name="mode">Which mode to set the bone (Only works for Enabled and Motor)</param>
+	/// <param name="mode">Which mode to set the bone (Only works for Enabled, Motor and Driven)</param>
 	/// <param name="includeChildren">Include all children of the target bone</param>
 	public void RagdollBone( BoneCollection.Bone rootBone, RagdollMode mode = RagdollMode.Enabled, bool includeChildren = true )
 	{
@@ -42,6 +42,10 @@ public partial class ShrimpleRagdoll
 		foreach ( var joint in GetJointsForBones( indices ) )
 		{
 			joint.Component.Enabled = true;
+
+			// Driven bones want their motors, UpdateDriven retunes them to the bone's strength every tick
+			if ( mode == RagdollMode.Driven )
+				continue;
 
 			if ( joint.Component is BallJoint ballJoint )
 			{
@@ -77,7 +81,7 @@ public partial class ShrimpleRagdoll
 		var indices = bones.Select( b => b.Index ).ToHashSet();
 
 		var modeWantsRigidbodies = Mode != RagdollMode.None;
-		var modeWantsMotion = Mode == RagdollMode.Enabled || Mode == RagdollMode.Active || Mode == RagdollMode.Motor;
+		var modeWantsMotion = Mode is RagdollMode.Enabled or RagdollMode.Active or RagdollMode.Motor or RagdollMode.Driven;
 		var modeWantsJoints = Mode != RagdollMode.None && Mode != RagdollMode.Passive;
 		var modeWantsGravity = Mode != RagdollMode.Active && Gravity;
 
