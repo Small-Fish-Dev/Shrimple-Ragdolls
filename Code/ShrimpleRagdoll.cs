@@ -128,7 +128,7 @@ public partial class ShrimpleRagdoll : Component
 		}
 	} = 1f;
 
-	public List<ModelPhysics.Body> Bodies => ModelPhysics?.Bodies;
+	public NetList<ModelPhysics.Body> Bodies => ModelPhysics?.Bodies;
 	public List<ModelPhysics.Joint> Joints => _joints;
 	public bool PhysicsWereCreated => ModelPhysics?.PhysicsWereCreated ?? false;
 	private readonly List<ModelPhysics.Joint> _joints = new();
