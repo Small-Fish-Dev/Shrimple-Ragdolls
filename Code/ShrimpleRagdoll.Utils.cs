@@ -89,8 +89,10 @@ public partial class ShrimpleRagdoll
 		if ( Bodies is null )
 			return;
 
-		foreach ( var body in Bodies )
+		for ( var i = 0; i < Bodies.Count; i++ )
 		{
+			var body = Bodies[i];
+
 			if ( !body.Component.IsValid() )
 				continue;
 
@@ -200,8 +202,10 @@ public partial class ShrimpleRagdoll
 		if ( bone is null )
 			return null;
 
-		foreach ( var body in Bodies )
+		for ( var i = 0; i < Bodies.Count; i++ )
 		{
+			var body = Bodies[i];
+
 			if ( body.Bone == bone.Index )
 				return body;
 		}

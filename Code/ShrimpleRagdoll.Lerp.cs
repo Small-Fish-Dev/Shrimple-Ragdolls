@@ -47,8 +47,10 @@ public partial class ShrimpleRagdoll
 
 		var fraction = Easing.SineEaseInOut( _lerpToAnimation.Value.Fraction );
 
-		foreach ( var body in Bodies )
+		for ( var i = 0; i < Bodies.Count; i++ )
 		{
+			var body = Bodies[i];
+
 			if ( _lerpTargetBones != null && !_lerpTargetBones.Contains( body.Bone ) )
 				continue;
 
@@ -73,8 +75,10 @@ public partial class ShrimpleRagdoll
 
 		var fraction = Easing.SineEaseInOut( _lerpToAnimation.Value.Fraction );
 
-		foreach ( var body in Bodies )
+		for ( var i = 0; i < Bodies.Count; i++ )
 		{
+			var body = Bodies[i];
+
 			if ( !body.Component.IsValid() )
 				continue;
 			if ( _lerpTargetBones != null && !_lerpTargetBones.Contains( body.Bone ) )
@@ -100,8 +104,10 @@ public partial class ShrimpleRagdoll
 
 		var fraction = Easing.SineEaseInOut( _lerpToAnimation.Value.Fraction );
 
-		foreach ( var body in Bodies )
+		for ( var i = 0; i < Bodies.Count; i++ )
 		{
+			var body = Bodies[i];
+
 			if ( !body.Component.IsValid() || !body.Component.PhysicsBody.IsValid() )
 				continue;
 			if ( _lerpTargetBones != null && !_lerpTargetBones.Contains( body.Bone ) )

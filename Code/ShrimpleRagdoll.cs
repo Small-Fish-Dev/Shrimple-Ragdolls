@@ -296,8 +296,10 @@ public partial class ShrimpleRagdoll : Component
 		if ( !Renderer.IsValid() || !Renderer.SceneModel.IsValid() )
 			return;
 
-		foreach ( var body in Bodies )
+		for ( var i = 0; i < Bodies.Count; i++ )
 		{
+			var body = Bodies[i];
+
 			if ( GetEffectiveMode( body.Bone ) == RagdollMode.Active )
 				MoveBodyFromAnimation( body );
 		}
